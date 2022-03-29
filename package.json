@@ -11,7 +11,7 @@
     "android",
     "ios",
     "lib",
-    "bdk-rn.podspec",
+    "rn-bdk.podspec",
     "!android/build",
     "!.DS_Store",
     "!.gradle",
