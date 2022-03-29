@@ -19,12 +19,25 @@ class BdkInterface {
   }
 
   /**
-   * Test method
+   * Get new address
    * @return {Promise<Response>}
    */
   async getNewAddress(): Promise<Response> {
     try {
       const test = await this._bdk.getNewAddress();
+      return success(test);
+    } catch (e: any) {
+      return failure(e);
+    }
+  }
+
+  /**
+   * Get wallet balance
+   * @return {Promise<Response>}
+   */
+  async getBalance(): Promise<Response> {
+    try {
+      const test = await this._bdk.getBalance();
       return success(test);
     } catch (e: any) {
       return failure(e);
