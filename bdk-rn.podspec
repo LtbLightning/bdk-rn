@@ -16,4 +16,5 @@ Pod::Spec.new do |s|
   s.source_files  = "ios/**/*.{h,m,swift}"
 
   s.dependency 'React'
+  s.ios.vendored_frameworks = "ios/bdkFFI.xcframework"
 end
