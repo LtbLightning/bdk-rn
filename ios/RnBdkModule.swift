@@ -51,19 +51,39 @@ class RnBdkModule: NSObject {
     }
     
     @objc
+    func createWallet(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        do {
+            let keys: ExtendedKeyInfo = try generateExtendedKey(network: Network.testnet, wordCount: WordCount.words12, password: nil)
+            let descriptor: String = createDescriptor(keys: keys)
+            let changeDescriptor: String = createChangeDescriptor(keys: keys)
+            let newWallet: Wallet = try Wallet(descriptor: descriptor, changeDescriptor: changeDescriptor, network: Network.testnet, databaseConfig: databaseConfig, blockchainConfig: blockchainConfig)
+            resolve(keys.mnemonic)
+        } catch {
+            reject("create wallet", "failed", error)
+        }
+    }
+    
+    private func createDescriptor(keys: ExtendedKeyInfo)-> String {
+        return ("wpkh(" + keys.xprv + "/84'/1'/0'/0/*)")
+    }
+    
+    private func createChangeDescriptor(keys: ExtendedKeyInfo)-> String {
+        return ("wpkh(" + keys.xprv + "/84'/1'/0'/1/*)")
+    }
+    
+    
+    @objc
     func broadcastTx(_ recipient: String, amount: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock){
         do {
             
-            let amt = UInt64(amount)
-            print("Wallet:", wallet);
-            print("Wecipient:", recipient);
-            print("Amt:", amt);
-
-
-            let psbt = try PartiallySignedBitcoinTransaction(wallet: wallet, recipient: recipient, amount: amt, feeRate: nil)
-            print("PSBT", psbt)
+            let amt = UInt64(1000)
+            let psbt = try PartiallySignedBitcoinTransaction(wallet: wallet, recipient: recipient, amount: amt, feeRate: 0)
             
             try wallet.sign(psbt: psbt)
+            
+            print("NOT COMING HERE")
+            
+            
             let transaction = try wallet.broadcast(psbt: psbt)
             print(transaction)
             resolve(recipient)

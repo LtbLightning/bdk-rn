@@ -22,6 +22,19 @@ class BdkInterface {
    * Get new address
    * @return {Promise<Response>}
    */
+  async createWallet(): Promise<Response> {
+    try {
+      const wallet = await this._bdk.createWallet();
+      return success(wallet);
+    } catch (e: any) {
+      return failure(e);
+    }
+  }
+
+  /**
+   * Get new address
+   * @return {Promise<Response>}
+   */
   async getNewAddress(): Promise<Response> {
     try {
       const test = await this._bdk.getNewAddress();
@@ -45,7 +58,7 @@ class BdkInterface {
   }
 
   /**
-   * Get wallet balance
+   * Broadcast TX
    * @return {Promise<Response>}
    */
   async broadcastTx(address: string, amount: number): Promise<Response> {

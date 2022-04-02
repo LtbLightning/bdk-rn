@@ -59,6 +59,30 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun createWallet(promise: Promise) {
+        try {
+            val keys: ExtendedKeyInfo = generateExtendedKey(Network.TESTNET, WordCount.WORDS12, null)
+            val descriptor: String = createDescriptor(keys)
+            val changeDescriptor: String = createChangeDescriptor(keys)
+            val newWallet: Wallet = Wallet(descriptor, changeDescriptor, Network.TESTNET, databaseConfig, blockchainConfig)
+            Log.i("New Wallet", newWallet.toString())
+            promise.resolve(keys.mnemonic)
+        } catch (err: Error){
+            promise.reject(err)
+        }
+    }
+
+    private fun createDescriptor(keys: ExtendedKeyInfo): String {
+        return ("wpkh(" + keys.xprv + "/84'/1'/0'/0/*)")
+    }
+
+    private fun createChangeDescriptor(keys: ExtendedKeyInfo): String {
+        return ("wpkh(" + keys.xprv + "/84'/1'/0'/1/*)")
+    }
+
+
+
+    @ReactMethod
     fun broadcastTx(recepient: String, amount: Integer, promise: Promise) {
         try {
             val longAmt: Long = amount.toLong();
