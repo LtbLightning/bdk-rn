@@ -26,7 +26,7 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
     private lateinit var wallet: Wallet
 
     // Init wallet
-    object LogProgress: BdkProgress {
+    object Progress : BdkProgress {
         override fun update(progress: Float, message: String?) {
             Log.i("Progress", "Sync wallet $progress $message")
         }
@@ -40,7 +40,7 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
             databaseConfig,
             blockchainConfig
         )
-        this.wallet.sync(LogProgress, null)
+        this.wallet.sync(Progress, null)
     }
 
     @ReactMethod
@@ -53,7 +53,7 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
         try {
             val balance = this.wallet.getBalance().toString()
             promise.resolve(balance)
-        } catch (err: Error){
+        } catch (err: Error) {
             promise.reject(err)
         }
     }
@@ -61,16 +61,44 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun createWallet(promise: Promise) {
         try {
-            val keys: ExtendedKeyInfo = generateExtendedKey(Network.TESTNET, WordCount.WORDS12, null)
-            val descriptor: String = createDescriptor(keys)
-            val changeDescriptor: String = createChangeDescriptor(keys)
-            val newWallet: Wallet = Wallet(descriptor, changeDescriptor, Network.TESTNET, databaseConfig, blockchainConfig)
-            Log.i("New Wallet", newWallet.toString())
-            promise.resolve(keys.mnemonic)
-        } catch (err: Error){
+            val keys: ExtendedKeyInfo =
+                generateExtendedKey(Network.TESTNET, WordCount.WORDS12, null)
+            val newWallet = createRecoverWallet(keys)
+            promise.resolve("Address: ${newWallet.getNewAddress()}, Mnemonic: ${keys.mnemonic}")
+        } catch (err: Error) {
             promise.reject(err)
         }
     }
+
+    @ReactMethod
+    fun restoreWallet(mnemonic: String, password: String? = null, promise: Promise) {
+        try {
+            val keys: ExtendedKeyInfo = restoreExtendedKey(Network.TESTNET, mnemonic, password)
+            val newWallet = createRecoverWallet(keys)
+            promise.resolve("Balance: ${newWallet.getBalance()} Address: ${newWallet.getNewAddress()}")
+        } catch (err: Error) {
+            promise.reject(err)
+        }
+    }
+
+    private fun createRecoverWallet(keys: ExtendedKeyInfo): Wallet {
+        try {
+            val descriptor: String = createDescriptor(keys)
+            val changeDescriptor: String = createChangeDescriptor(keys)
+            val newWallet = Wallet(
+                descriptor,
+                changeDescriptor,
+                Network.TESTNET,
+                databaseConfig,
+                blockchainConfig
+            )
+            newWallet.sync(Progress, null)
+            return newWallet
+        } catch (err: Error) {
+            throw err
+        }
+    }
+
 
     private fun createDescriptor(keys: ExtendedKeyInfo): String {
         return ("wpkh(" + keys.xprv + "/84'/1'/0'/0/*)")
@@ -81,13 +109,13 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
     }
 
 
-
     @ReactMethod
     fun broadcastTx(recepient: String, amount: Integer, promise: Promise) {
         try {
             val longAmt: Long = amount.toLong();
 
-            val psbt: PartiallySignedBitcoinTransaction = this.createTransaction(recepient, longAmt.toULong(), null)
+            val psbt: PartiallySignedBitcoinTransaction =
+                this.createTransaction(recepient, longAmt.toULong(), null)
             Log.i("", psbt.toString());
             this.wallet.sign(psbt)
             val transaction: Transaction = this.wallet.broadcast(psbt)
@@ -101,12 +129,16 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
 
             Log.i("TxID", "Transaction was broadcast! txid: $txidString")
 //            promise.resolve(psbt)
-        } catch (err: Error){
+        } catch (err: Error) {
             promise.reject(err)
         }
     }
 
-    fun createTransaction(recipient: String, amount: ULong, fee_rate: Float?): PartiallySignedBitcoinTransaction {
+    fun createTransaction(
+        recipient: String,
+        amount: ULong,
+        fee_rate: Float?
+    ): PartiallySignedBitcoinTransaction {
         return PartiallySignedBitcoinTransaction(this.wallet, recipient, amount, fee_rate)
     }
 }

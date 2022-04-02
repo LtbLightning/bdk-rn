@@ -2,7 +2,7 @@
 //  RnBdkModule.m
 //  RnBdkModule
 //
-//  Copyright © 2022 ltbl. All rights reserved.
+//  Copyright © 2022 . All rights reserved.
 //
 
 #import <React/RCTBridgeModule.h>

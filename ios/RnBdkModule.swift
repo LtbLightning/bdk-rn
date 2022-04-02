@@ -2,7 +2,7 @@
 //  RnBdkModule.swift
 //  RnBdkModule
 //
-//  Copyright © 2022 ltbl. All rights reserved.
+//  Copyright © 2022 . All rights reserved.
 //
 import Foundation
 
