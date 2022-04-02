@@ -1,6 +1,8 @@
 package com.ltbl.rnbdk
 
 import android.util.Log
+import android.util.Log.DEBUG
+import android.util.LogPrinter
 import com.facebook.react.bridge.*
 import org.bitcoindevkit.*
 
@@ -38,6 +40,7 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
             databaseConfig,
             blockchainConfig
         )
+        this.wallet.sync(LogProgress, null)
     }
 
     @ReactMethod
@@ -48,12 +51,39 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun getBalance(promise: Promise) {
         try {
-            this.wallet.sync(LogProgress, null)
             val balance = this.wallet.getBalance().toString()
             promise.resolve(balance)
         } catch (err: Error){
             promise.reject(err)
         }
+    }
+
+    @ReactMethod
+    fun broadcastTx(recepient: String, amount: Integer, promise: Promise) {
+        try {
+            val longAmt: Long = amount.toLong();
+
+            val psbt: PartiallySignedBitcoinTransaction = this.createTransaction(recepient, longAmt.toULong(), null)
+            Log.i("", psbt.toString());
+            this.wallet.sign(psbt)
+            val transaction: Transaction = this.wallet.broadcast(psbt)
+
+            val details = when (transaction) {
+                is Transaction.Confirmed -> transaction.details
+                is Transaction.Unconfirmed -> transaction.details
+            }
+
+            val txidString = details.txid
+
+            Log.i("TxID", "Transaction was broadcast! txid: $txidString")
+//            promise.resolve(psbt)
+        } catch (err: Error){
+            promise.reject(err)
+        }
+    }
+
+    fun createTransaction(recipient: String, amount: ULong, fee_rate: Float?): PartiallySignedBitcoinTransaction {
+        return PartiallySignedBitcoinTransaction(this.wallet, recipient, amount, fee_rate)
     }
 }
 

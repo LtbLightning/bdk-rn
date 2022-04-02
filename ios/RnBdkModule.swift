@@ -32,6 +32,7 @@ class RnBdkModule: NSObject {
     
     override init() {
         self.wallet = try! Wallet.init(descriptor: descriptor, changeDescriptor: changeDescriptor, network: Network.testnet, databaseConfig: databaseConfig, blockchainConfig: blockchainConfig)
+        try! self.wallet.sync(progressUpdate: Progress(), maxAddressParam: nil)
     }
     
     @objc
@@ -42,11 +43,33 @@ class RnBdkModule: NSObject {
     @objc
     func getBalance(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         do{
-            try self.wallet.sync(progressUpdate: Progress(), maxAddressParam: nil)
             let balance = try self.wallet.getBalance()
             resolve(balance)
         } catch {
             reject("balance", "failed", error)
+        }
+    }
+    
+    @objc
+    func broadcastTx(_ recipient: String, amount: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock){
+        do {
+            
+            let amt = UInt64(amount)
+            print("Wallet:", wallet);
+            print("Wecipient:", recipient);
+            print("Amt:", amt);
+
+
+            let psbt = try PartiallySignedBitcoinTransaction(wallet: wallet, recipient: recipient, amount: amt, feeRate: nil)
+            print("PSBT", psbt)
+            
+            try wallet.sign(psbt: psbt)
+            let transaction = try wallet.broadcast(psbt: psbt)
+            print(transaction)
+            resolve(recipient)
+        } catch let error {
+            print(error)
+            reject("tx", "failed", error)
         }
     }
     

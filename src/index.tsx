@@ -37,9 +37,24 @@ class BdkInterface {
    */
   async getBalance(): Promise<Response> {
     try {
-      const test = await this._bdk.getBalance();
-      return success(test);
+      const bal = await this._bdk.getBalance();
+      return success(bal);
     } catch (e: any) {
+      return failure(e);
+    }
+  }
+
+  /**
+   * Get wallet balance
+   * @return {Promise<Response>}
+   */
+  async broadcastTx(address: string, amount: number): Promise<Response> {
+    try {
+      const tx = await this._bdk.broadcastTx(address, amount);
+      console.log("TX Object", tx);
+      return success(tx);
+    } catch (e: any) {
+      console.log("Error: ", e);
       return failure(e);
     }
   }

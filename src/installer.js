@@ -1,21 +1,23 @@
-const request = require('request');
-const fs = require('fs');
-var AdmZip = require('adm-zip');
+// Commented while developing methods
 
-var fileUrl =
-  'https://github.com/bitcoindevkit/bdk-swift/releases/download/0.2.0/bdkFFI.xcframework.zip';
+// const request = require('request');
+// const fs = require('fs');
+// var AdmZip = require('adm-zip');
 
-const src = 'ios/bdkFFI.xcframework.zip';
-const target = 'ios/';
+// var fileUrl =
+//   'https://github.com/bitcoindevkit/bdk-swift/releases/download/0.2.0/bdkFFI.xcframework.zip';
 
-try {
-  request(fileUrl)
-    .pipe(fs.createWriteStream(src))
-    .on('close', function () {
-      var zip = new AdmZip(src);
-      zip.extractAllTo(target, true);
-      fs.unlinkSync(src);
-    });
-} catch (err) {
-  console.log(err);
-}
+// const src = 'ios/bdkFFI.xcframework.zip';
+// const target = 'ios/';
+
+// try {
+//   request(fileUrl)
+//     .pipe(fs.createWriteStream(src))
+//     .on('close', function () {
+//       var zip = new AdmZip(src);
+//       zip.extractAllTo(target, true);
+//       fs.unlinkSync(src);
+//     });
+// } catch (err) {
+//   console.log(err);
+// }
