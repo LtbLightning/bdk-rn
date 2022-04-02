@@ -22,19 +22,31 @@ class RnBdkModule: NSObject {
     let blockchainConfig = BlockchainConfig.electrum(
         config: ElectrumConfig(url: "ssl://electrum.blockstream.info:60002", socks5: nil, retry: 5, timeout: nil, stopGap: 10))
     var wallet: Wallet;
+    let nodeNetwork = Network.testnet
     
     @objc static func requiresMainQueueSetup() -> Bool {
         return false
     }
 
     override init() {
-        self.wallet = try! Wallet.init(descriptor: descriptor, changeDescriptor: changeDescriptor, network: Network.testnet, databaseConfig: databaseConfig, blockchainConfig: blockchainConfig)
+        self.wallet = try! Wallet.init(descriptor: descriptor, changeDescriptor: changeDescriptor, network: nodeNetwork, databaseConfig: databaseConfig, blockchainConfig: blockchainConfig)
         try! self.wallet.sync(progressUpdate: Progress(), maxAddressParam: nil)
     }
 
     @objc
     func getNewAddress(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         resolve(self.wallet.getNewAddress())
+    }
+
+    @objc
+    func genSeed(_ password: String? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        do {
+            let seed = try generateExtendedKey(network: nodeNetwork, wordCount: WordCount.words12, password: password)
+            resolve(seed.mnemonic)
+        }
+        catch {
+            reject("seed", "failed", error)
+        }
     }
 
     @objc
@@ -51,7 +63,7 @@ class RnBdkModule: NSObject {
     @objc
     func createWallet(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         do {
-            let keys: ExtendedKeyInfo = try generateExtendedKey(network: Network.testnet, wordCount: WordCount.words12, password: nil)
+            let keys: ExtendedKeyInfo = try generateExtendedKey(network: nodeNetwork, wordCount: WordCount.words12, password: nil)
             let newWallet = try createRecoverWallet(keys: keys)
             resolve("Address: \(newWallet.getNewAddress()), \n Mnemonic: \(keys.mnemonic)")
         }
@@ -63,7 +75,7 @@ class RnBdkModule: NSObject {
     @objc
     func restoreWallet(_ mnemonic: String, password: String? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         do {
-            let keys: ExtendedKeyInfo = try restoreExtendedKey(network: Network.testnet, mnemonic: mnemonic, password: password)
+            let keys: ExtendedKeyInfo = try restoreExtendedKey(network: nodeNetwork, mnemonic: mnemonic, password: password)
             let newWallet = try createRecoverWallet(keys: keys)
             resolve("Balance: \(try newWallet.getBalance()) Address: \(newWallet.getNewAddress())")
         }
@@ -76,7 +88,7 @@ class RnBdkModule: NSObject {
         do{
             let descriptor: String = createDescriptor(keys: keys)
             let changeDescriptor: String = createChangeDescriptor(keys: keys)
-            let newWallet: Wallet = try Wallet(descriptor: descriptor, changeDescriptor: changeDescriptor, network: Network.testnet, databaseConfig: databaseConfig, blockchainConfig: blockchainConfig)
+            let newWallet: Wallet = try Wallet(descriptor: descriptor, changeDescriptor: changeDescriptor, network: nodeNetwork, databaseConfig: databaseConfig, blockchainConfig: blockchainConfig)
             try newWallet.sync(progressUpdate: Progress(), maxAddressParam: nil)
             return newWallet
         }

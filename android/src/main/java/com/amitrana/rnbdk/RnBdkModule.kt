@@ -24,6 +24,7 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
             ElectrumConfig("ssl://electrum.blockstream.info:60002", null, 5u, null, 10u)
         )
     private lateinit var wallet: Wallet
+    private var nodeNetwork = Network.TESTNET
 
     // Init wallet
     object Progress : BdkProgress {
@@ -36,7 +37,7 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
         this.wallet = Wallet(
             externalDescriptor,
             internalDescriptor,
-            Network.TESTNET,
+            nodeNetwork,
             databaseConfig,
             blockchainConfig
         )
@@ -59,10 +60,21 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun createWallet(promise: Promise) {
+    fun genSeed(password: String?, promise: Promise) {
+        try{
+            val seed = generateExtendedKey(nodeNetwork, WordCount.WORDS12, password)
+            promise.resolve(seed.mnemonic)
+        } catch (err: Error){
+            promise.reject(err)
+        }
+    }
+
+    @ReactMethod
+    fun createWallet(keys: ExtendedKeyInfo, promise: Promise) {
         try {
-            val keys: ExtendedKeyInfo =
-                generateExtendedKey(Network.TESTNET, WordCount.WORDS12, null)
+            Log.i("Keys", keys.toString())
+//            val keys: ExtendedKeyInfo =
+//                generateExtendedKey(nodeNetwork, WordCount.WORDS12, null)
             val newWallet = createRecoverWallet(keys)
             promise.resolve("Address: ${newWallet.getNewAddress()}, Mnemonic: ${keys.mnemonic}")
         } catch (err: Error) {
@@ -73,7 +85,7 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun restoreWallet(mnemonic: String, password: String? = null, promise: Promise) {
         try {
-            val keys: ExtendedKeyInfo = restoreExtendedKey(Network.TESTNET, mnemonic, password)
+            val keys: ExtendedKeyInfo = restoreExtendedKey(nodeNetwork, mnemonic, password)
             val newWallet = createRecoverWallet(keys)
             promise.resolve("Balance: ${newWallet.getBalance()} Address: ${newWallet.getNewAddress()}")
         } catch (err: Error) {
@@ -88,7 +100,7 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
             val newWallet = Wallet(
                 descriptor,
                 changeDescriptor,
-                Network.TESTNET,
+                nodeNetwork,
                 databaseConfig,
                 blockchainConfig
             )
