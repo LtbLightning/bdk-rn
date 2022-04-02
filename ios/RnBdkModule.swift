@@ -12,6 +12,7 @@ class Progress : BdkProgress {
     }
 }
 
+let TAG = "RN-BDK"
 
 @objc(RnBdkModule)
 class RnBdkModule: NSObject {
@@ -38,15 +39,20 @@ class RnBdkModule: NSObject {
         resolve(self.wallet.getNewAddress())
     }
 
+    func _seed(
+        recover: Bool = false,
+        mnemonic: String?,
+        password: String? = nil
+    ) -> ExtendedKeyInfo {
+        return !recover ? try! generateExtendedKey(network: nodeNetwork, wordCount:WordCount.words12, password: password)
+        : try! restoreExtendedKey(network: nodeNetwork, mnemonic: mnemonic ?? "", password: password)
+    }
+
+
     @objc
     func genSeed(_ password: String? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        do {
-            let seed = try generateExtendedKey(network: nodeNetwork, wordCount: WordCount.words12, password: password)
-            resolve(seed.mnemonic)
-        }
-        catch {
-            reject("seed", "failed", error)
-        }
+        let seed = _seed(recover: false, mnemonic: "")
+        resolve(seed.mnemonic)
     }
 
     @objc
@@ -61,10 +67,10 @@ class RnBdkModule: NSObject {
     }
 
     @objc
-    func createWallet(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    func createWallet(_ mnemonic: String? = "", password: String? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         do {
-            let keys: ExtendedKeyInfo = try generateExtendedKey(network: nodeNetwork, wordCount: WordCount.words12, password: nil)
-            let newWallet = try createRecoverWallet(keys: keys)
+            let keys: ExtendedKeyInfo = _seed(recover: mnemonic != "" ? true : false, mnemonic: mnemonic, password: password)
+            let newWallet = try createRestoreWallet(keys: keys)
             resolve("Address: \(newWallet.getNewAddress()), \n Mnemonic: \(keys.mnemonic)")
         }
         catch {
@@ -75,8 +81,8 @@ class RnBdkModule: NSObject {
     @objc
     func restoreWallet(_ mnemonic: String, password: String? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         do {
-            let keys: ExtendedKeyInfo = try restoreExtendedKey(network: nodeNetwork, mnemonic: mnemonic, password: password)
-            let newWallet = try createRecoverWallet(keys: keys)
+            let keys: ExtendedKeyInfo = _seed(recover: true, mnemonic: mnemonic, password: password)
+            let newWallet = try createRestoreWallet(keys: keys)
             resolve("Balance: \(try newWallet.getBalance()) Address: \(newWallet.getNewAddress())")
         }
         catch {
@@ -84,7 +90,7 @@ class RnBdkModule: NSObject {
         }
     }
 
-    private func createRecoverWallet(keys: ExtendedKeyInfo) throws -> Wallet {
+    private func createRestoreWallet(keys: ExtendedKeyInfo) throws -> Wallet {
         do{
             let descriptor: String = createDescriptor(keys: keys)
             let changeDescriptor: String = createChangeDescriptor(keys: keys)
@@ -108,12 +114,12 @@ class RnBdkModule: NSObject {
     @objc
     func broadcastTx(_ recipient: String, amount: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock){
         do {
-            let amt = UInt64(1000)
-            let psbt = try PartiallySignedBitcoinTransaction(wallet: wallet, recipient: recipient, amount: amt, feeRate: 0)
-            try wallet.sign(psbt: psbt)
-            print("NOT COMING HERE")
-            let transaction = try wallet.broadcast(psbt: psbt)
-            print(transaction)
+            let keys: ExtendedKeyInfo = _seed(recover: true, mnemonic: "cushion merry upper hat mind tip fly ritual scheme civil disease since", password: nil)
+            let newWal: Wallet = try createRestoreWallet(keys: keys)
+            let psbt: PartiallySignedBitcoinTransaction = try PartiallySignedBitcoinTransaction(wallet: newWal, recipient: recipient, amount: UInt64(truncating: amount), feeRate: nil)
+            try newWal.sign(psbt: psbt)
+            let transaction = try newWal.broadcast(psbt: psbt)
+            print("Sign success")
             resolve(recipient)
         }
         catch let error {
@@ -123,3 +129,6 @@ class RnBdkModule: NSObject {
     }
 
 }
+
+
+// "Address: tb1qc0pnkezmhcpgt70lu5djpl8pyypmfl7tyt5jcs, \n Mnemonic: cushion merry upper hat mind tip fly ritual scheme civil disease since"

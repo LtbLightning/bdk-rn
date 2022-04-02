@@ -22,7 +22,7 @@ class BdkInterface {
    * Create new wallet
    * @return {Promise<Response>}
    */
-  async genSeed(password: any  = ""): Promise<Response> {
+  async genSeed(password: string  = ""): Promise<Response> {
     try {
       const seed = await this._bdk.genSeed(password);
       return success(seed);
@@ -35,9 +35,9 @@ class BdkInterface {
    * Create new wallet
    * @return {Promise<Response>}
    */
-  async createWallet(): Promise<Response> {
+  async createWallet(mnemonic: string = "", password: string = "" ): Promise<Response> {
     try {
-      const wallet = await this._bdk.createWallet();
+      const wallet = await this._bdk.createWallet(mnemonic, password);
       return success(wallet);
     } catch (e: any) {
       return failure(e);
