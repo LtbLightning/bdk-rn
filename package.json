@@ -1,6 +1,6 @@
 {
   "name": "bdk-rn",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "bdk-rn",
   "homepage": "https://github.com/LtbLightning",
   "main": "src/index.tsx",
@@ -30,7 +30,8 @@
     "compile": "rm -rf lib && tsc -p .",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "prepare": "yarn compile",
-    "test": "jest"
+    "test": "jest",
+    "postinstall": "node ./src/installer.js"
   },
   "devDependencies": {
     "@babel/core": "^7.16.12",
@@ -63,5 +64,9 @@
       "json",
       "node"
     ]
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.9",
+    "request": "^2.88.2"
   }
 }

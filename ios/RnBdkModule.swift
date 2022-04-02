@@ -44,7 +44,6 @@ class RnBdkModule: NSObject {
         do{
             try self.wallet.sync(progressUpdate: Progress(), maxAddressParam: nil)
             let balance = try self.wallet.getBalance()
-            print(balance)
             resolve(balance)
         } catch {
             reject("balance", "failed", error)
