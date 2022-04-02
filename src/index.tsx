@@ -19,12 +19,25 @@ class BdkInterface {
   }
 
   /**
-   * Get new address
+   * Create new wallet
    * @return {Promise<Response>}
    */
   async createWallet(): Promise<Response> {
     try {
       const wallet = await this._bdk.createWallet();
+      return success(wallet);
+    } catch (e: any) {
+      return failure(e);
+    }
+  }
+
+  /**
+   * Restore wallet
+   * @return {Promise<Response>}
+   */
+  async restoreWallet(mnemonic: string = "box limit letter buddy endorse crush pulp copy immune dynamic phrase initial", password: string = ""): Promise<Response> {
+    try {
+      const wallet = await this._bdk.restoreWallet(mnemonic, password);
       return success(wallet);
     } catch (e: any) {
       return failure(e);
