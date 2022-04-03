@@ -60,15 +60,15 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
         try {
             val descriptor: String = createDescriptor(keys)
             val changeDescriptor: String = createChangeDescriptor(keys)
-            val newWallet = Wallet(
+            wallet = Wallet(
                 descriptor,
                 changeDescriptor,
                 nodeNetwork,
                 databaseConfig,
                 blockchainConfig
             )
-            newWallet.sync(Progress, null)
-            return newWallet
+            wallet.sync(Progress, null)
+            return wallet
         } catch (error: Error) {
             throw error
         }
@@ -97,8 +97,8 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
         try {
             val keys: ExtendedKeyInfo =
                 _seed(if (mnemonic != "") true else false, mnemonic, password)
-            val newWallet = createRestoreWallet(keys)
-            promise.resolve("Address: ${newWallet.getNewAddress()}, Mnemonic: ${keys.mnemonic}")
+            createRestoreWallet(keys)
+            promise.resolve("Address: ${wallet.getNewAddress()}, Mnemonic: ${keys.mnemonic}")
         } catch (error: Error) {
             return promise.reject("Create Wallet Error", error.localizedMessage, error)
         }
@@ -123,6 +123,7 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun getBalance(promise: Promise) {
         try {
+            this.wallet.sync(Progress, null)
             val balance = this.wallet.getBalance().toString()
             promise.resolve(balance)
         } catch (error: Error) {
@@ -134,22 +135,11 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
     fun broadcastTx(recepient: String, amount: Integer, promise: Promise) {
         try {
             val longAmt: Long = amount.toLong();
-            val keys: ExtendedKeyInfo = _seed(
-                true,
-                "cushion merry upper hat mind tip fly ritual scheme civil disease since",
-                null
-            )
-            val newWal: Wallet = createRestoreWallet(keys)
-            Log.i("Custom Logs=======", "")
-            Log.i(TAG, newWal.getNewAddress());
-            Log.i(TAG, newWal.getBalance().toString())
-            Log.i("=======Custom Logs", "")
-
             val psbt =
-                PartiallySignedBitcoinTransaction(newWal, recepient, longAmt.toULong(), null)
-            newWal.sign(psbt)
+                PartiallySignedBitcoinTransaction(wallet, recepient, longAmt.toULong(), null)
+            wallet.sign(psbt)
 
-            val transaction: Transaction = newWal.broadcast(psbt)
+            val transaction: Transaction = wallet.broadcast(psbt)
 
             val details = when (transaction) {
                 is Transaction.Confirmed -> transaction.details
