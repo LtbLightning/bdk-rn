@@ -6,7 +6,7 @@
     "lib": ["ESNext"],
     "module": "ESNext",
     "moduleResolution": "Node",
-    "noEmitOnError": true,
+    "noEmitOnError": false,
     "outDir": "./lib",
     "skipLibCheck": true,
     "sourceMap": true,

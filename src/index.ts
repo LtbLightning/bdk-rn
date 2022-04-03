@@ -1,11 +1,9 @@
 import { NativeModules } from 'react-native';
-import { failure, getItem, setItem, success, _exists } from './lib/utils';
+import { failure, getItem, removeItem, setItem, success, _exists } from './lib/utils';
 import { createWalletResponse, Response } from './lib/interfaces';
 
-const MnemonicPhraseKey = "mnemonic"
-const PasswordKey = "passowrd"
-
-
+const MnemonicPhraseKey = 'mnemonic';
+const PasswordKey = 'passowrd';
 
 class BdkInterface {
   public _bdk: any;
@@ -34,7 +32,7 @@ class BdkInterface {
   async walletExists(): Promise<Response> {
     try {
       const phrase = await getItem(MnemonicPhraseKey);
-      return success(phrase!=null);
+      return success(phrase != null);
     } catch (e: any) {
       return failure(e);
     }
@@ -46,13 +44,11 @@ class BdkInterface {
    */
   async unlockWallet(): Promise<Response> {
     try {
-      const phrase = await getItem(MnemonicPhraseKey);
-      if (!_exists(phrase)) throw "No saved seed pharse found!!";
+      const phrase = (await getItem(MnemonicPhraseKey)) ?? '';
+      if (!_exists(phrase)) throw 'No saved seed phrase found!!';
       const data = await this.restoreWallet(phrase);
-      if (!data.error)
-        return success("Wallet unlocked")
-      else
-        return failure("Wallet Unlock failed");
+      if (!data.error) return success('Wallet unlocked');
+      else return failure('Wallet Unlock failed');
     } catch (e: any) {
       return failure(e);
     }
@@ -64,7 +60,9 @@ class BdkInterface {
    */
   async createWallet(mnemonic: string = '', password: string = ''): Promise<Response> {
     try {
+      console.log("Seed", mnemonic)
       const wallet: createWalletResponse = await this._bdk.createWallet(mnemonic, password);
+      console.log(wallet);
       await setItem(MnemonicPhraseKey, wallet.mnemonic);
       await setItem(PasswordKey, password);
       return success(wallet);
@@ -79,11 +77,25 @@ class BdkInterface {
    */
   async restoreWallet(mnemonic: string, password: string = ''): Promise<Response> {
     try {
-      if (!_exists(mnemonic)) throw "Required mnemonic paramter is emtpy!!";
+      if (!_exists(mnemonic)) throw 'Required mnemonic paramter is emtpy!!';
       const wallet = await this._bdk.restoreWallet(mnemonic, password);
       await setItem(MnemonicPhraseKey, mnemonic);
       await setItem(PasswordKey, password);
       return success(wallet);
+    } catch (e: any) {
+      return failure(e);
+    }
+  }
+
+  /**
+   * Reset wallet
+   * @return {Promise<Response>}
+   */
+  async resetWallet(): Promise<Response> {
+    try {
+      await removeItem(MnemonicPhraseKey);
+      await removeItem(PasswordKey);
+      return success(true);
     } catch (e: any) {
       return failure(e);
     }

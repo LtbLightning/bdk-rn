@@ -2,7 +2,6 @@
 //  RnBdkModule.swift
 //  RnBdkModule
 //
-
 //
 import Foundation
 
@@ -24,7 +23,6 @@ class RnBdkModule: NSObject {
         config: ElectrumConfig(url: "ssl://electrum.blockstream.info:60002", socks5: nil, retry: 5, timeout: nil, stopGap: 10))
     var wallet: Wallet
     let nodeNetwork = Network.testnet
-    var testData: String = "Empty"
     
     @objc static func requiresMainQueueSetup() -> Bool {
         return false
@@ -117,7 +115,7 @@ class RnBdkModule: NSObject {
     @objc
     func broadcastTx(_ recipient: String, amount: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock){
         do {
-            let psbt: PartiallySignedBitcoinTransaction = try PartiallySignedBitcoinTransaction(wallet: wallet, recipient: wallet.getNewAddress(), amount: UInt64(truncating: amount), feeRate: nil)
+            let psbt: PartiallySignedBitcoinTransaction = try PartiallySignedBitcoinTransaction(wallet: wallet, recipient: recipient, amount: UInt64(truncating: amount), feeRate: nil)
             try wallet.sign(psbt: psbt)
             let transaction = try wallet.broadcast(psbt: psbt)
             print("Broadcast success", transaction)
