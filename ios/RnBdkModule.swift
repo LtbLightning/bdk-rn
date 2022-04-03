@@ -2,7 +2,7 @@
 //  RnBdkModule.swift
 //  RnBdkModule
 //
-//  Copyright © 2022 . All rights reserved.
+
 //
 import Foundation
 
@@ -34,61 +34,15 @@ class RnBdkModule: NSObject {
         try! self.wallet.sync(progressUpdate: Progress(), maxAddressParam: nil)
     }
 
-    @objc
-    func getNewAddress(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        resolve(self.wallet.getNewAddress())
-    }
-
     func _seed(
         recover: Bool = false,
-        mnemonic: String?,
+        mnemonic: String?,  
         password: String? = nil
     ) -> ExtendedKeyInfo {
         return !recover ? try! generateExtendedKey(network: nodeNetwork, wordCount:WordCount.words12, password: password)
         : try! restoreExtendedKey(network: nodeNetwork, mnemonic: mnemonic ?? "", password: password)
     }
 
-
-    @objc
-    func genSeed(_ password: String? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        let seed = _seed(recover: false, mnemonic: "")
-        resolve(seed.mnemonic)
-    }
-
-    @objc
-    func getBalance(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        do {
-            let balance = try self.wallet.getBalance()
-            resolve(balance)
-        }
-        catch {
-            reject("balance", "failed", error)
-        }
-    }
-
-    @objc
-    func createWallet(_ mnemonic: String? = "", password: String? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        do {
-            let keys: ExtendedKeyInfo = _seed(recover: mnemonic != "" ? true : false, mnemonic: mnemonic, password: password)
-            let newWallet = try createRestoreWallet(keys: keys)
-            resolve("Address: \(newWallet.getNewAddress()), \n Mnemonic: \(keys.mnemonic)")
-        }
-        catch {
-            reject("create wallet", "failed", error)
-        }
-    }
-
-    @objc
-    func restoreWallet(_ mnemonic: String, password: String? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        do {
-            let keys: ExtendedKeyInfo = _seed(recover: true, mnemonic: mnemonic, password: password)
-            let newWallet = try createRestoreWallet(keys: keys)
-            resolve("Balance: \(try newWallet.getBalance()) Address: \(newWallet.getNewAddress())")
-        }
-        catch {
-            reject("restore wallet", "failed", error)
-        }
-    }
 
     private func createRestoreWallet(keys: ExtendedKeyInfo) throws -> Wallet {
         do{
@@ -112,6 +66,52 @@ class RnBdkModule: NSObject {
     }
 
     @objc
+    func genSeed(_ password: String? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        let seed = _seed(recover: false, mnemonic: "")
+        resolve(seed.mnemonic)
+    }
+
+    @objc
+    func createWallet(_ mnemonic: String? = "", password: String? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        do {
+            let keys: ExtendedKeyInfo = _seed(recover: mnemonic != "" ? true : false, mnemonic: mnemonic, password: password)
+            let newWallet = try createRestoreWallet(keys: keys)
+            resolve("Address: \(newWallet.getNewAddress()), \n Mnemonic: \(keys.mnemonic)")
+        }
+        catch {
+            return reject("Create Wallet Error", error.localizedDescription, error)
+        }
+    }
+
+    @objc
+    func restoreWallet(_ mnemonic: String, password: String? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        do {
+            let keys: ExtendedKeyInfo = _seed(recover: true, mnemonic: mnemonic, password: password)
+            let newWallet = try createRestoreWallet(keys: keys)
+            resolve("Balance: \(try newWallet.getBalance()) Address: \(newWallet.getNewAddress())")
+        }
+        catch {
+            return reject("Restore Wallet Error", error.localizedDescription, error)
+        }
+    }
+
+    @objc
+    func getNewAddress(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        resolve(self.wallet.getNewAddress())
+    }
+
+    @objc
+    func getBalance(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        do {
+            let balance = try self.wallet.getBalance()
+            resolve(balance)
+        }
+        catch {
+            return reject("Get Balance Error", error.localizedDescription, error)
+        }
+    }
+
+    @objc
     func broadcastTx(_ recipient: String, amount: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock){
         do {
             let keys: ExtendedKeyInfo = _seed(recover: true, mnemonic: "cushion merry upper hat mind tip fly ritual scheme civil disease since", password: nil)
@@ -119,12 +119,11 @@ class RnBdkModule: NSObject {
             let psbt: PartiallySignedBitcoinTransaction = try PartiallySignedBitcoinTransaction(wallet: newWal, recipient: recipient, amount: UInt64(truncating: amount), feeRate: nil)
             try newWal.sign(psbt: psbt)
             let transaction = try newWal.broadcast(psbt: psbt)
-            print("Sign success")
+            print("Broadcast success", transaction)
             resolve(recipient)
         }
         catch let error {
-            print(error)
-            reject("tx", "failed", error)
+            return reject("Transaction Error", error.localizedDescription, error)
         }
     }
 

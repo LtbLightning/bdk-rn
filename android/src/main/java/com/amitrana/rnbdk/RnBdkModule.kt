@@ -6,6 +6,12 @@ import org.bitcoindevkit.*
 
 val TAG = "RN-BDK"
 
+object Progress : BdkProgress {
+    override fun update(progress: Float, message: String?) {
+        Log.i("Progress", "Sync wallet $progress $message")
+    }
+}
+
 class RnBdkModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
     override fun getName() = "RnBdkModule"
@@ -27,12 +33,6 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
     private var nodeNetwork = Network.TESTNET
 
     // Init wallet
-    object Progress : BdkProgress {
-        override fun update(progress: Float, message: String?) {
-            Log.i("Progress", "Sync wallet $progress $message")
-        }
-    }
-
     init {
         this.wallet = Wallet(
             externalDescriptor,
@@ -42,21 +42,6 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
             blockchainConfig
         )
         this.wallet.sync(Progress, null)
-    }
-
-    @ReactMethod
-    fun getNewAddress(promise: Promise) {
-        promise.resolve(this.wallet.getNewAddress())
-    }
-
-    @ReactMethod
-    fun getBalance(promise: Promise) {
-        try {
-            val balance = this.wallet.getBalance().toString()
-            promise.resolve(balance)
-        } catch (err: Error) {
-            promise.reject(err)
-        }
     }
 
     fun _seed(
@@ -69,39 +54,6 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
             WordCount.WORDS12,
             password
         ) else restoreExtendedKey(nodeNetwork, mnemonic, password)
-    }
-
-    @ReactMethod
-    fun genSeed(password: String?, promise: Promise) {
-        try {
-            val seed = _seed(false)
-            promise.resolve(seed.mnemonic)
-        } catch (err: Error) {
-            promise.reject(err)
-        }
-    }
-
-    @ReactMethod
-    fun createWallet(mnemonic: String = "", password: String?, promise: Promise) {
-        try {
-            val keys: ExtendedKeyInfo =
-                _seed(if (mnemonic != "") true else false, mnemonic, password)
-            val newWallet = createRestoreWallet(keys)
-            promise.resolve("Address: ${newWallet.getNewAddress()}, Mnemonic: ${keys.mnemonic}")
-        } catch (err: Error) {
-            promise.reject(err)
-        }
-    }
-
-    @ReactMethod
-    fun restoreWallet(mnemonic: String, password: String? = null, promise: Promise) {
-        try {
-            val keys: ExtendedKeyInfo = _seed(true, mnemonic, password)
-            val newWallet = createRestoreWallet(keys)
-            promise.resolve("Balance: ${newWallet.getBalance()} Address: ${newWallet.getNewAddress()}")
-        } catch (err: Error) {
-            promise.reject(err)
-        }
     }
 
     private fun createRestoreWallet(keys: ExtendedKeyInfo): Wallet {
@@ -117,11 +69,10 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
             )
             newWallet.sync(Progress, null)
             return newWallet
-        } catch (err: Error) {
-            throw err
+        } catch (error: Error) {
+            throw error
         }
     }
-
 
     private fun createDescriptor(keys: ExtendedKeyInfo): String {
         return ("wpkh(" + keys.xprv + "/84'/1'/0'/0/*)")
@@ -131,12 +82,60 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
         return ("wpkh(" + keys.xprv + "/84'/1'/0'/1/*)")
     }
 
+    @ReactMethod
+    fun genSeed(password: String?, promise: Promise) {
+        try {
+            val seed = _seed(false)
+            promise.resolve(seed.mnemonic)
+        } catch (error: Error) {
+            return promise.reject("Gen Seed Error", error.localizedMessage, error)
+        }
+    }
+
+    @ReactMethod
+    fun createWallet(mnemonic: String = "", password: String?, promise: Promise) {
+        try {
+            val keys: ExtendedKeyInfo =
+                _seed(if (mnemonic != "") true else false, mnemonic, password)
+            val newWallet = createRestoreWallet(keys)
+            promise.resolve("Address: ${newWallet.getNewAddress()}, Mnemonic: ${keys.mnemonic}")
+        } catch (error: Error) {
+            return promise.reject("Create Wallet Error", error.localizedMessage, error)
+        }
+    }
+
+    @ReactMethod
+    fun restoreWallet(mnemonic: String, password: String? = null, promise: Promise) {
+        try {
+            val keys: ExtendedKeyInfo = _seed(true, mnemonic, password)
+            val newWallet = createRestoreWallet(keys)
+            promise.resolve("Balance: ${newWallet.getBalance()} Address: ${newWallet.getNewAddress()}")
+        } catch (error: Error) {
+            return promise.reject("Restore Wallet Error", error.localizedMessage, error)
+        }
+    }
+
+    @ReactMethod
+    fun getNewAddress(promise: Promise) {
+        promise.resolve(this.wallet.getNewAddress())
+    }
+
+    @ReactMethod
+    fun getBalance(promise: Promise) {
+        try {
+            val balance = this.wallet.getBalance().toString()
+            promise.resolve(balance)
+        } catch (error: Error) {
+            return promise.reject("Get Balance Error", error.localizedMessage, error)
+        }
+    }
 
     @ReactMethod
     fun broadcastTx(recepient: String, amount: Integer, promise: Promise) {
         try {
             val longAmt: Long = amount.toLong();
             val keys: ExtendedKeyInfo = _seed(
+                true,
                 "cushion merry upper hat mind tip fly ritual scheme civil disease since",
                 null
             )
@@ -146,34 +145,24 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
             Log.i(TAG, newWal.getBalance().toString())
             Log.i("=======Custom Logs", "")
 
-            val psbt: PartiallySignedBitcoinTransaction =
-                this.createTransaction(newWal, recepient, longAmt.toULong(), null)
+            val psbt =
+                PartiallySignedBitcoinTransaction(newWal, recepient, longAmt.toULong(), null)
             newWal.sign(psbt)
 
-//            val transaction: Transaction = newWal.broadcast(psbt)
-//            Log.i(TAG, "Transaction Completed", transaction.toString())
-//
-//            val details = when (transaction) {
-//                is Transaction.Confirmed -> transaction.details
-//                is Transaction.Unconfirmed -> transaction.details
-//            }
-//
-//            val txidString = details.txid
+            val transaction: Transaction = newWal.broadcast(psbt)
 
-//            Log.i("TxID", "Transaction was broadcast! txid: $txidString")
+            val details = when (transaction) {
+                is Transaction.Confirmed -> transaction.details
+                is Transaction.Unconfirmed -> transaction.details
+            }
+
+            val txidString = details.txid
+
+            Log.i("TxID", "Transaction was broadcast! txid: $txidString")
             Log.i("TxID", "Transaction was broadcast!!!")
-        } catch (err: Error) {
-            promise.reject(err)
+        } catch (error: Error) {
+            return promise.reject("Transaction Error", error.localizedMessage, error)
         }
-    }
-
-    fun createTransaction(
-        wall: Wallet,
-        recipient: String,
-        amount: ULong,
-        fee_rate: Float?
-    ): PartiallySignedBitcoinTransaction {
-        return PartiallySignedBitcoinTransaction(wall, recipient, amount, fee_rate)
     }
 }
 

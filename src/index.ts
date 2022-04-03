@@ -5,7 +5,7 @@ export interface Response {
   data: any;
 }
 
-export const failure = (data: string = '') => ({ error: true, data });
+export const failure = (data: any = '') => ({ error: true, data: `Code: ${data.code} Message: ${data.message} ` });
 export const success = (data: string | object | any = '') => ({
   error: false,
   data,
@@ -19,10 +19,10 @@ class BdkInterface {
   }
 
   /**
-   * Create new wallet
+   * Gen seed of 12 words
    * @return {Promise<Response>}
    */
-  async genSeed(password: string  = ""): Promise<Response> {
+  async genSeed(password: string = ''): Promise<Response> {
     try {
       const seed = await this._bdk.genSeed(password);
       return success(seed);
@@ -35,7 +35,7 @@ class BdkInterface {
    * Create new wallet
    * @return {Promise<Response>}
    */
-  async createWallet(mnemonic: string = "", password: string = "" ): Promise<Response> {
+  async createWallet(mnemonic: string = '', password: string = ''): Promise<Response> {
     try {
       const wallet = await this._bdk.createWallet(mnemonic, password);
       return success(wallet);
@@ -48,7 +48,7 @@ class BdkInterface {
    * Restore wallet
    * @return {Promise<Response>}
    */
-  async restoreWallet(mnemonic: string, password: string = ""): Promise<Response> {
+  async restoreWallet(mnemonic: string, password: string = ''): Promise<Response> {
     try {
       const wallet = await this._bdk.restoreWallet(mnemonic, password);
       return success(wallet);
@@ -84,16 +84,15 @@ class BdkInterface {
   }
 
   /**
-   * Broadcast TX
+   * Broadcast Transaction
    * @return {Promise<Response>}
    */
   async broadcastTx(address: string, amount: number): Promise<Response> {
     try {
       const tx = await this._bdk.broadcastTx(address, amount);
-      console.log("TX Object", tx);
+      console.log('TX Object', tx);
       return success(tx);
     } catch (e: any) {
-      console.log("Error: ", e);
       return failure(e);
     }
   }
