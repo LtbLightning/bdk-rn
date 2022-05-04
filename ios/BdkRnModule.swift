@@ -37,9 +37,13 @@ class BdkRnModule: NSObject {
         recover: Bool = false,
         mnemonic: String?,  
         password: String? = nil
-    ) -> ExtendedKeyInfo {
-        return !recover ? try! generateExtendedKey(network: nodeNetwork, wordCount:WordCount.words12, password: password)
-        : try! restoreExtendedKey(network: nodeNetwork, mnemonic: mnemonic ?? "", password: password)
+    ) throws -> ExtendedKeyInfo {
+        do {
+            if(!recover){ return try generateExtendedKey(network: nodeNetwork, wordCount:WordCount.words12, password: password) }
+            else {return try restoreExtendedKey(network: nodeNetwork, mnemonic: mnemonic ?? "", password: password) }
+        } catch {
+            throw error
+        }
     }
 
 
@@ -50,9 +54,8 @@ class BdkRnModule: NSObject {
             wallet = try Wallet(descriptor: descriptor, changeDescriptor: changeDescriptor, network: nodeNetwork, databaseConfig: databaseConfig, blockchainConfig: blockchainConfig)
             try wallet.sync(progressUpdate: Progress(), maxAddressParam: nil)
             return wallet
-        }
-        catch {
-            return error as! Wallet
+        } catch {
+            throw error
         }
     }
 
@@ -66,33 +69,37 @@ class BdkRnModule: NSObject {
 
     @objc
     func genSeed(_ password: String? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        let seed = _seed(recover: false, mnemonic: "")
-        resolve(seed.mnemonic)
+        do {
+            let seed = try _seed(recover: false, mnemonic: "")
+            resolve(seed.mnemonic)
+        } catch {
+            reject("Gen seed Error: ", error.localizedDescription, error)
+        }
     }
 
     @objc
     func createWallet(_ mnemonic: String? = "", password: String? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         do {
-            let keys: ExtendedKeyInfo = _seed(recover: mnemonic != "" ? true : false, mnemonic: mnemonic, password: password)
+            let keys: ExtendedKeyInfo = try _seed(recover: mnemonic != "" ? true : false, mnemonic: mnemonic, password: password)
             try createRestoreWallet(keys: keys)
             let responseObject = ["address": wallet.getNewAddress(), "mnemonic": keys.mnemonic]
             resolve(responseObject)
         }
         catch {
-            return reject("Create Wallet Error", error.localizedDescription, error)
+            return reject("Create Wallet Error: ", error.localizedDescription, error)
         }
     }
 
     @objc
     func restoreWallet(_ mnemonic: String, password: String? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         do {
-            let keys: ExtendedKeyInfo = _seed(recover: true, mnemonic: mnemonic, password: password)
+            let keys: ExtendedKeyInfo = try _seed(recover: true, mnemonic: mnemonic, password: password)
             try createRestoreWallet(keys: keys)
             let responseObject = ["balance": try wallet.getBalance(), "address": wallet.getNewAddress()] as [String : Any]
             resolve(responseObject)
         }
         catch {
-            return reject("Restore Wallet Error", error.localizedDescription, error)
+            return reject("Restore Wallet Error: ", error.localizedDescription, error)
         }
     }
 
@@ -109,26 +116,23 @@ class BdkRnModule: NSObject {
             resolve(balance)
         }
         catch {
-            return reject("Get Balance Error", error.localizedDescription, error)
+            return reject("Get Balance Error: ", error.localizedDescription, error)
         }
     }
 
     @objc
-    func broadcastTx(_ recipient: String, amount: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock){
+    func broadcastTx(_ recipient: String, amount: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         do {
             let psbt: PartiallySignedBitcoinTransaction = try PartiallySignedBitcoinTransaction(wallet: wallet, recipient: recipient, amount: UInt64(truncating: amount), feeRate: nil)
             try wallet.sign(psbt: psbt)
             let transaction = try wallet.broadcast(psbt: psbt)
             print("Broadcast success", transaction)
             resolve(recipient)
-        }
-        catch let error {
-            return reject("Transaction Error", error.localizedDescription, error)
+        }   catch let error {
+            let description = "\(error)"
+            return reject("Broadcast tracsaction Error: ", description, error)
         }
     }
 
 }
 
-
-// "Address: tb1qc0pnkezmhcpgt70lu5djpl8pyypmfl7tyt5jcs, \n Mnemonic: cushion merry upper hat mind tip fly ritual scheme civil disease since"
-// address: tb1quveq827kjss05e9y5tsdgr6ypk0jzjr3p896wg  ,  Mnemonic: title screen science betray fiber brother differ sniff page put damage slender
