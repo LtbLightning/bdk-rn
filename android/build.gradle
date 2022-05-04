@@ -41,5 +41,5 @@ dependencies {
     implementation 'com.facebook.react:react-native:+'
 
     // bitcoindevkit
-    implementation 'org.bitcoindevkit:bdk-android:0.4.0'
+    implementation 'org.bitcoindevkit:bdk-android:0.5.2'
 }

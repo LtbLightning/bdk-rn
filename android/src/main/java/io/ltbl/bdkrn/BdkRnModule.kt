@@ -24,13 +24,16 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         "wpkh([c258d2e4/84h/1h/0h]tpubDDYkZojQFQjht8Tm4jsS3iuEmKjTiEGjG6KnuFNKKJb5A6ZUCUZKdvLdSDWofKi4ToRCwb9poe1XdqfUnP4jaJjCB2Zwv11ZLgSbnZSNecE/0/*)"
     private val internalDescriptor =
         "wpkh([c258d2e4/84h/1h/0h]tpubDDYkZojQFQjht8Tm4jsS3iuEmKjTiEGjG6KnuFNKKJb5A6ZUCUZKdvLdSDWofKi4ToRCwb9poe1XdqfUnP4jaJjCB2Zwv11ZLgSbnZSNecE/1/*)"
-    private val databaseConfig = DatabaseConfig.Memory("")
+
+    private val databaseConfig = DatabaseConfig.Memory
+
     private val blockchainConfig =
         BlockchainConfig.Electrum(
             ElectrumConfig("ssl://electrum.blockstream.info:60002", null, 5u, null, 10u)
         )
     private lateinit var wallet: Wallet
     private var nodeNetwork = Network.TESTNET
+
 
     // Init wallet
     init {
@@ -60,6 +63,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         try {
             val descriptor: String = createDescriptor(keys)
             val changeDescriptor: String = createChangeDescriptor(keys)
+
             wallet = Wallet(
                 descriptor,
                 changeDescriptor,
@@ -144,18 +148,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             val psbt =
                 PartiallySignedBitcoinTransaction(wallet, recepient, longAmt.toULong(), null)
             wallet.sign(psbt)
-
-            val transaction: Transaction = wallet.broadcast(psbt)
-
-            val details = when (transaction) {
-                is Transaction.Confirmed -> transaction.details
-                is Transaction.Unconfirmed -> transaction.details
-            }
-
-            val txidString = details.txid
-
-            Log.i("TxID", "Transaction was broadcast! txid: $txidString")
-            Log.i("TxID", "Transaction was broadcast!!!")
+            val transaction: String = wallet.broadcast(psbt)
+            promise.resolve(transaction)
         } catch (error: Error) {
             return promise.reject("Transaction Error", error.localizedMessage, error)
         }
