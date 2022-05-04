@@ -45,7 +45,7 @@ class BdkInterface {
   async unlockWallet(): Promise<Response> {
     try {
       const phrase = (await getItem(MnemonicPhraseKey)) ?? '';
-      if (!_exists(phrase)) throw 'No saved seed phrase found!!';
+      if (!_exists(phrase)) throw 'No saved seed phrase found.';
       const data = await this.restoreWallet(phrase);
       if (!data.error) return success('Wallet unlocked');
       else return failure('Wallet Unlock failed');
@@ -75,7 +75,7 @@ class BdkInterface {
    */
   async restoreWallet(mnemonic: string, password: string = ''): Promise<Response> {
     try {
-      if (!_exists(mnemonic)) throw 'Required mnemonic paramter is emtpy!!';
+      if (!_exists(mnemonic)) throw 'Required mnemonic parameter is emtpy.';
       const wallet = await this._bdk.restoreWallet(mnemonic, password);
       await setItem(MnemonicPhraseKey, mnemonic);
       await setItem(PasswordKey, password);
@@ -105,8 +105,8 @@ class BdkInterface {
    */
   async getNewAddress(): Promise<Response> {
     try {
-      const test = await this._bdk.getNewAddress();
-      return success(test);
+      const address = await this._bdk.getNewAddress();
+      return success(address);
     } catch (e: any) {
       return failure(e);
     }
@@ -118,8 +118,8 @@ class BdkInterface {
    */
   async getBalance(): Promise<Response> {
     try {
-      const bal = await this._bdk.getBalance();
-      return success(bal);
+      const balance = await this._bdk.getBalance();
+      return success(balance);
     } catch (e: any) {
       return failure(e);
     }
@@ -131,8 +131,9 @@ class BdkInterface {
    */
   async broadcastTx(address: string, amount: number): Promise<Response> {
     try {
+      if (!_exists(address) || !_exists(amount)) throw "Required address or amount parameters are missing.";
+      if (isNaN(amount)) throw "Entered amount is invalid";
       const tx = await this._bdk.broadcastTx(address, amount);
-      console.log('TX Object', tx);
       return success(tx);
     } catch (e: any) {
       return failure(e);

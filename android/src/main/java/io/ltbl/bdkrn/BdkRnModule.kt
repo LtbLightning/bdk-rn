@@ -59,11 +59,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         ) else restoreExtendedKey(nodeNetwork, mnemonic, password)
     }
 
-    private fun createRestoreWallet(keys: ExtendedKeyInfo): Wallet {
-        try {
+    private fun createRestoreWallet(keys: ExtendedKeyInfo) {
+        try{
             val descriptor: String = createDescriptor(keys)
             val changeDescriptor: String = createChangeDescriptor(keys)
-
             wallet = Wallet(
                 descriptor,
                 changeDescriptor,
@@ -72,18 +71,17 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 blockchainConfig
             )
             wallet.sync(Progress, null)
-            return wallet
-        } catch (error: Error) {
+        } catch (error: Error){
             throw error
         }
     }
 
     private fun createDescriptor(keys: ExtendedKeyInfo): String {
-        return ("wpkh(" + keys.xprv + "/84'/1'/0'/0/*)")
+        return "wpkh(" + keys.xprv + "/84'/1'/0'/0/*)"
     }
 
     private fun createChangeDescriptor(keys: ExtendedKeyInfo): String {
-        return ("wpkh(" + keys.xprv + "/84'/1'/0'/1/*)")
+        return "wpkh(" + keys.xprv + "/84'/1'/0'/1/*)"
     }
 
     @ReactMethod
@@ -91,7 +89,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         try {
             val seed = _seed(false)
             promise.resolve(seed.mnemonic)
-        } catch (error: Error) {
+        } catch (error: Throwable) {
             return promise.reject("Gen Seed Error", error.localizedMessage, error)
         }
     }
@@ -106,7 +104,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             responseObject.putString("address", wallet.getNewAddress())
             responseObject.putString("mnemonic", keys.mnemonic)
             promise.resolve(responseObject)
-        } catch (error: Error) {
+        } catch (error: Throwable) {
             return promise.reject("Create Wallet Error", error.localizedMessage, error)
         }
     }
@@ -120,7 +118,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             responseObject.putString("address", wallet.getNewAddress())
             responseObject.putString("balance", wallet.getBalance().toString())
             promise.resolve(responseObject)
-        } catch (error: Error) {
+        } catch (error: Throwable) {
             return promise.reject("Restore Wallet Error", error.localizedMessage, error)
         }
     }
@@ -136,7 +134,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             this.wallet.sync(Progress, null)
             val balance = this.wallet.getBalance().toString()
             promise.resolve(balance)
-        } catch (error: Error) {
+        } catch (error: Throwable) {
             return promise.reject("Get Balance Error", error.localizedMessage, error)
         }
     }
@@ -150,7 +148,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             wallet.sign(psbt)
             val transaction: String = wallet.broadcast(psbt)
             promise.resolve(transaction)
-        } catch (error: Error) {
+        } catch (error: Throwable) {
             return promise.reject("Transaction Error", error.localizedMessage, error)
         }
     }
