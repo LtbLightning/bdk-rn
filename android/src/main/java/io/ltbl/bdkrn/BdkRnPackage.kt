@@ -1,11 +1,11 @@
-package com.ltbl.rnbdk
+package io.ltbl.bdkrn
 
 import com.facebook.react.ReactPackage
 import com.facebook.react.bridge.NativeModule
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.uimanager.ViewManager
 
-class RnBdkPackage : ReactPackage {
+class BdkRnPackage : ReactPackage {
 
     override fun createViewManagers(reactContext: ReactApplicationContext):
             MutableList<ViewManager<*, *>> {
@@ -14,6 +14,6 @@ class RnBdkPackage : ReactPackage {
 
     override fun createNativeModules(reactContext: ReactApplicationContext):
             MutableList<NativeModule> {
-        return mutableListOf(RnBdkModule(reactContext))
+        return mutableListOf(BdkRnModule(reactContext))
     }
 }

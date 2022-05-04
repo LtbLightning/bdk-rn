@@ -9,7 +9,7 @@ class BdkInterface {
   public _bdk: any;
 
   constructor() {
-    this._bdk = NativeModules.RnBdkModule;
+    this._bdk = NativeModules.BdkRnModule;
   }
 
   /**
@@ -60,9 +60,7 @@ class BdkInterface {
    */
   async createWallet(mnemonic: string = '', password: string = ''): Promise<Response> {
     try {
-      console.log("Seed", mnemonic)
       const wallet: createWalletResponse = await this._bdk.createWallet(mnemonic, password);
-      console.log(wallet);
       await setItem(MnemonicPhraseKey, wallet.mnemonic);
       await setItem(PasswordKey, password);
       return success(wallet);
@@ -142,5 +140,5 @@ class BdkInterface {
   }
 }
 
-const RnBdk = new BdkInterface();
-export default RnBdk;
+const BdkRn = new BdkInterface();
+export default BdkRn;

@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "FA0EFF5F236CC8FB00069FA8"
-               BuildableName = "libRnBdkModule.a"
-               BlueprintName = "RnBdkModule"
-               ReferencedContainer = "container:RnBdkModule.xcodeproj">
+               BuildableName = "libBdkRnModule.a"
+               BlueprintName = "BdkRnModule"
+               ReferencedContainer = "container:BdkRnModule.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -51,9 +51,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "FA0EFF5F236CC8FB00069FA8"
-            BuildableName = "libRnBdkModule.a"
-            BlueprintName = "RnBdkModule"
-            ReferencedContainer = "container:RnBdkModule.xcodeproj">
+            BuildableName = "libBdkRnModule.a"
+            BlueprintName = "BdkRnModule"
+            ReferencedContainer = "container:BdkRnModule.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>

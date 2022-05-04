@@ -1,12 +1,12 @@
 //
-//  RnBdkModule.m
-//  RnBdkModule
+//  BdkRnModule.m
+//  BdkRnModule
 //
 //
 
 #import <React/RCTBridgeModule.h>
 
-@interface RCT_EXTERN_MODULE(RnBdkModule, NSObject)
+@interface RCT_EXTERN_MODULE(BdkRnModule, NSObject)
 
 RCT_EXTERN_METHOD(getNewAddress:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(getBalance:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)

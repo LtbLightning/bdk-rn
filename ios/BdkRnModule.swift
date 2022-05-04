@@ -1,6 +1,6 @@
 //
-//  RnBdkModule.swift
-//  RnBdkModule
+//  BdkRnModule.swift
+//  BdkRnModule
 //
 //
 import Foundation
@@ -11,10 +11,10 @@ class Progress : BdkProgress {
     }
 }
 
-let TAG = "RN-BDK"
+let TAG = "BDK-RN"
 
-@objc(RnBdkModule)
-class RnBdkModule: NSObject {
+@objc(BdkRnModule)
+class BdkRnModule: NSObject {
     
     let descriptor = "wpkh([c258d2e4/84h/1h/0h]tpubDDYkZojQFQjht8Tm4jsS3iuEmKjTiEGjG6KnuFNKKJb5A6ZUCUZKdvLdSDWofKi4ToRCwb9poe1XdqfUnP4jaJjCB2Zwv11ZLgSbnZSNecE/0/*)"
     let changeDescriptor = "wpkh([c258d2e4/84h/1h/0h]tpubDDYkZojQFQjht8Tm4jsS3iuEmKjTiEGjG6KnuFNKKJb5A6ZUCUZKdvLdSDWofKi4ToRCwb9poe1XdqfUnP4jaJjCB2Zwv11ZLgSbnZSNecE/1/*)"
@@ -87,8 +87,9 @@ class RnBdkModule: NSObject {
     func restoreWallet(_ mnemonic: String, password: String? = nil, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         do {
             let keys: ExtendedKeyInfo = _seed(recover: true, mnemonic: mnemonic, password: password)
-            let newWallet = try createRestoreWallet(keys: keys)
-            resolve("Balance: \(try newWallet.getBalance()) Address: \(newWallet.getNewAddress())")
+            try createRestoreWallet(keys: keys)
+            let responseObject = ["balance": try wallet.getBalance(), "address": wallet.getNewAddress()] as [String : Any]
+            resolve(responseObject)
         }
         catch {
             return reject("Restore Wallet Error", error.localizedDescription, error)

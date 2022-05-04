@@ -1,10 +1,10 @@
-package com.ltbl.rnbdk
+package io.ltbl.bdkrn
 
 import android.util.Log
 import com.facebook.react.bridge.*
 import org.bitcoindevkit.*
 
-val TAG = "RN-BDK"
+val TAG = "BDK-RN"
 
 object Progress : BdkProgress {
     override fun update(progress: Float, message: String?) {
@@ -12,9 +12,9 @@ object Progress : BdkProgress {
     }
 }
 
-class RnBdkModule(reactContext: ReactApplicationContext) :
+class BdkRnModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
-    override fun getName() = "RnBdkModule"
+    override fun getName() = "BdkRnModule"
     override fun getConstants(): MutableMap<String, Any> {
         return hashMapOf("count" to 1)
     }
@@ -98,7 +98,10 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
             val keys: ExtendedKeyInfo =
                 _seed(if (mnemonic != "") true else false, mnemonic, password)
             createRestoreWallet(keys)
-            promise.resolve("Address: ${wallet.getNewAddress()}, Mnemonic: ${keys.mnemonic}")
+            val responseObject = WritableNativeMap()
+            responseObject.putString("address", wallet.getNewAddress())
+            responseObject.putString("mnemonic", keys.mnemonic)
+            promise.resolve(responseObject)
         } catch (error: Error) {
             return promise.reject("Create Wallet Error", error.localizedMessage, error)
         }
@@ -108,8 +111,11 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
     fun restoreWallet(mnemonic: String, password: String? = null, promise: Promise) {
         try {
             val keys: ExtendedKeyInfo = _seed(true, mnemonic, password)
-            val newWallet = createRestoreWallet(keys)
-            promise.resolve("Balance: ${newWallet.getBalance()} Address: ${newWallet.getNewAddress()}")
+            createRestoreWallet(keys)
+            val responseObject = WritableNativeMap()
+            responseObject.putString("address", wallet.getNewAddress())
+            responseObject.putString("balance", wallet.getBalance().toString())
+            promise.resolve(responseObject)
         } catch (error: Error) {
             return promise.reject("Restore Wallet Error", error.localizedMessage, error)
         }
@@ -117,7 +123,7 @@ class RnBdkModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun getNewAddress(promise: Promise) {
-        promise.resolve(this.wallet.getNewAddress())
+        promise.resolve(wallet.getNewAddress())
     }
 
     @ReactMethod
