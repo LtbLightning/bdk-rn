@@ -1,9 +1,9 @@
 {
   "name": "bdk-rn",
-  "version": "0.0.17",
+  "version": "0.0.19",
   "description": "bdk-rn",
   "homepage": "https://github.com/LtbLightning",
-  "main": "src/index.tsx",
+  "main": "src/index.ts",
   "types": "lib/index.d.ts",
   "author": "Bitcoin Zavior <BitcoinZavior@gmail.com>",
   "license": "MIT",

@@ -17,6 +17,19 @@ Please consider reviewing, experimenting and contributing ⚡️
 
 ## Installation
 
+Not available in package manager yet so please either clone locally and install or from github:
+
+Clone in bdk-rn folder locally and specify folder in package.json:
+
+```
+"bdk-rn": "file:./bdk-rn"
+```
+or directly via github:
+```
+"bdk-rn": "git+https://github.com/LtbLightning/bdk-rn.git"
+```
+Once bdk-rn is specified in package.json proceed to run npm i
+
 Using npm:
 
 ```bash
@@ -68,7 +81,7 @@ _BdkRn.walletExists()_ OR _BdkRn.genSeed()_
 
 | Method                            | Request Parameters                                |
 | --------------------------------- | ------------------------------------------------- |
-| [genSeed()](#genmnemonic)         | password                                          |
+| [genSeed()](#genseed)             | password                                          |
 | [walletExists()](#walletexists)   | -                                                 |
 | [unlockWallet()](#unlockwallet)   | -                                                 |
 | [createWallet()](#createwallet)   | mnemonic, password                                |

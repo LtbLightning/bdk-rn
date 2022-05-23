@@ -2,7 +2,7 @@
 //  BdkRnModule.swift
 //  BdkRnModule
 //
-//
+
 import Foundation
 
 class Progress : BdkProgress {
