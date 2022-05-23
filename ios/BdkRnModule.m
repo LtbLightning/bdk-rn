@@ -2,7 +2,6 @@
 //  BdkRnModule.m
 //  BdkRnModule
 //
-//
 
 #import <React/RCTBridgeModule.h>
 
