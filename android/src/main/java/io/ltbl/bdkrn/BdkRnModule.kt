@@ -143,7 +143,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun getTransactions(promise: Promise) {
         try {
             val allTransactions: List<Transaction> = wallet.getTransactions()
-            val (responseObject, confirmedObject, unconfirmedObject) = WritableNativeMap()
+            val responseObject = WritableNativeMap()
+            val confirmedObject = WritableNativeMap()
+            val unconfirmedObject = WritableNativeMap()
             for (item in allTransactions.filterIsInstance<Transaction.Confirmed>()) {
                 val transaction = WritableNativeMap()
                 transaction.putString("fees", item.details.fees.toString())
