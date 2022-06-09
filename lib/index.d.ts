@@ -43,6 +43,11 @@ declare class BdkInterface {
      */
     getBalance(): Promise<Response>;
     /**
+     * Get all transactions
+     * @return {Promise<Response>}
+     */
+    getTransactions(): Promise<Response>;
+    /**
      * Broadcast Transaction
      * @return {Promise<Response>}
      */

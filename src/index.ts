@@ -126,6 +126,19 @@ class BdkInterface {
   }
 
   /**
+   * Get all transactions
+   * @return {Promise<Response>}
+   */
+  async getTransactions(): Promise<Response> {
+    try {
+      const transactions = await this._bdk.getTransactions();
+      return success(transactions);
+    } catch (e: any) {
+      return failure(e);
+    }
+  }
+
+  /**
    * Broadcast Transaction
    * @return {Promise<Response>}
    */

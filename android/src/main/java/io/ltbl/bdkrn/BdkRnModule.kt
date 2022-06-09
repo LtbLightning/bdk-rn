@@ -140,6 +140,36 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun getTransactions(promise: Promise) {
+        try {
+            val allTransactions: List<Transaction> = wallet.getTransactions()
+            val (responseObject, confirmedObject, unconfirmedObject) = WritableNativeMap()
+            for (item in allTransactions.filterIsInstance<Transaction.Confirmed>()) {
+                val transaction = WritableNativeMap()
+                transaction.putString("fees", item.details.fees.toString())
+                transaction.putString("received", item.details.received.toString())
+                transaction.putString("sent", item.details.sent.toString())
+                transaction.putString("height", item.confirmation.height.toString())
+                transaction.putString("timestamp", item.confirmation.timestamp.toString())
+                confirmedObject.putMap(item.details.txid.toString(), transaction)
+            }
+            for (item in allTransactions.filterIsInstance<Transaction.Unconfirmed>()) {
+                val transaction = WritableNativeMap()
+                transaction.putString("fees", item.details.fees.toString())
+                transaction.putString("received", item.details.received.toString())
+                transaction.putString("sent", item.details.sent.toString())
+                transaction.putString("timestamp", "pending")
+                unconfirmedObject.putMap(item.details.txid.toString(), transaction)
+            }
+            responseObject.putMap("confirmed", confirmedObject)
+            responseObject.putMap("unconfirmed", unconfirmedObject)
+            promise.resolve(responseObject)
+        } catch (error: Throwable) {
+            return promise.reject("Get Transactions Error", error.localizedMessage, error)
+        }
+    }
+
+    @ReactMethod
     fun broadcastTx(recepient: String, amount: Integer, promise: Promise) {
         try {
             val longAmt: Long = amount.toLong();
