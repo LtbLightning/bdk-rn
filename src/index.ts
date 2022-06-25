@@ -58,9 +58,27 @@ class BdkInterface {
    * Create new wallet
    * @return {Promise<Response>}
    */
-  async createWallet(mnemonic: string = '', password: string = ''): Promise<Response> {
+  async createWallet(
+    mnemonic: string = '',
+    password: string = '',
+    network: string = '',
+    blockChainConfigUrl: string = '',
+    blockChainSocket5: string = '',
+    retry: string = '',
+    timeOut: string = '',
+    blockChain: string = ''
+  ): Promise<Response> {
     try {
-      const wallet: createWalletResponse = await this._bdk.createWallet(mnemonic, password);
+      const wallet: createWalletResponse = await this._bdk.createWallet(
+        mnemonic,
+        password,
+        network,
+        blockChainConfigUrl,
+        blockChainSocket5,
+        retry,
+        timeOut,
+        blockChain
+      );
       await setItem(MnemonicPhraseKey, wallet.mnemonic);
       await setItem(PasswordKey, password);
       return success(wallet);
@@ -73,10 +91,28 @@ class BdkInterface {
    * Restore wallet
    * @return {Promise<Response>}
    */
-  async restoreWallet(mnemonic: string, password: string = ''): Promise<Response> {
+  async restoreWallet(
+    mnemonic: string,
+    password: string = '',
+    network: string = '',
+    blockChainConfigUrl: string = '',
+    blockChainSocket5: string = '',
+    retry: string = '',
+    timeOut: string = '',
+    blockChain: string = ''
+  ): Promise<Response> {
     try {
       if (!_exists(mnemonic)) throw 'Required mnemonic parameter is emtpy.';
-      const wallet = await this._bdk.restoreWallet(mnemonic, password);
+      const wallet = await this._bdk.restoreWallet(
+        mnemonic,
+        password,
+        network,
+        blockChainConfigUrl,
+        blockChainSocket5,
+        retry,
+        timeOut,
+        blockChain
+      );
       await setItem(MnemonicPhraseKey, mnemonic);
       await setItem(PasswordKey, password);
       return success(wallet);
@@ -135,6 +171,32 @@ class BdkInterface {
       if (isNaN(amount)) throw 'Entered amount is invalid';
       const tx = await this._bdk.broadcastTx(address, amount);
       return success(tx);
+    } catch (e: any) {
+      return failure(e);
+    }
+  }
+
+  /**
+   * Get pending transactions
+   * @return {Promise<Response>}
+   */
+  async genPendingTransactions(): Promise<Response> {
+    try {
+      const response = await this._bdk.genPendingTransactions();
+      return success(response);
+    } catch (e: any) {
+      return failure(e);
+    }
+  }
+
+  /**
+   * Get pending transactions
+   * @return {Promise<Response>}
+   */
+  async getConfirmedTransactions(): Promise<Response> {
+    try {
+      const response = await this._bdk.getConfirmedTransactions();
+      return success(response);
     } catch (e: any) {
       return failure(e);
     }

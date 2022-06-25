@@ -21,12 +21,12 @@ declare class BdkInterface {
      * Create new wallet
      * @return {Promise<Response>}
      */
-    createWallet(mnemonic?: string, password?: string): Promise<Response>;
+    createWallet(mnemonic?: string, password?: string, network?: string, blockChainConfigUrl?: string, blockChainSocket5?: string, retry?: string, timeOut?: string, blockChain?: string): Promise<Response>;
     /**
      * Restore wallet
      * @return {Promise<Response>}
      */
-    restoreWallet(mnemonic: string, password?: string): Promise<Response>;
+    restoreWallet(mnemonic: string, password?: string, network?: string, blockChainConfigUrl?: string, blockChainSocket5?: string, retry?: string, timeOut?: string, blockChain?: string): Promise<Response>;
     /**
      * Reset wallet
      * @return {Promise<Response>}
@@ -47,6 +47,16 @@ declare class BdkInterface {
      * @return {Promise<Response>}
      */
     broadcastTx(address: string, amount: number): Promise<Response>;
+    /**
+     * Get pending transactions
+     * @return {Promise<Response>}
+     */
+    genPendingTransactions(): Promise<Response>;
+    /**
+     * Get pending transactions
+     * @return {Promise<Response>}
+     */
+    getConfirmedTransactions(): Promise<Response>;
 }
 declare const BdkRn: BdkInterface;
 export default BdkRn;
