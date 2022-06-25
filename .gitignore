@@ -49,6 +49,7 @@ buck-out/
 #misc
 .com.greenworldsoft.syncfolderspro
 _DelSyncFiles/*
+.vscode/settings.json
 
 # fastlane
 #

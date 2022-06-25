@@ -81,7 +81,7 @@ _BdkRn.walletExists()_ OR _BdkRn.genSeed()_
 
 | Method                            | Request Parameters                                |
 | --------------------------------- | ------------------------------------------------- |
-| [genSeed()](#genseed)             | password                                          |
+| [genSeed()](#genmnemonic)         | password                                          |
 | [walletExists()](#walletexists)   | -                                                 |
 | [unlockWallet()](#unlockwallet)   | -                                                 |
 | [createWallet()](#createwallet)   | mnemonic, password                                |
@@ -235,5 +235,8 @@ const response = await BdkRn.broadcastTx(address, amount);
 ```
 
 ---
+
+_Note: Caution this is pre-Alpha at this stage
+Please consider reviewing, experimenting and contributing ⚡️_
 
 Thanks for taking a look!
