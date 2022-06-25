@@ -2,14 +2,8 @@
 //  BdkRnModule.swift
 //  BdkRnModule
 //
-
 import Foundation
 
-class Progress : BdkProgress {
-    func update(progress: Float, message: String?) {
-        print("progress", progress, message as Any)
-    }
-}
 
 let TAG = "BDK-RN"
 
@@ -18,9 +12,10 @@ class BdkRnModule: NSObject {
     
     let descriptor = "wpkh([c258d2e4/84h/1h/0h]tpubDDYkZojQFQjht8Tm4jsS3iuEmKjTiEGjG6KnuFNKKJb5A6ZUCUZKdvLdSDWofKi4ToRCwb9poe1XdqfUnP4jaJjCB2Zwv11ZLgSbnZSNecE/0/*)"
     let changeDescriptor = "wpkh([c258d2e4/84h/1h/0h]tpubDDYkZojQFQjht8Tm4jsS3iuEmKjTiEGjG6KnuFNKKJb5A6ZUCUZKdvLdSDWofKi4ToRCwb9poe1XdqfUnP4jaJjCB2Zwv11ZLgSbnZSNecE/1/*)"
-    let databaseConfig = DatabaseConfig.memory(junk: "")
+    let databaseConfig = DatabaseConfig.memory
     let blockchainConfig = BlockchainConfig.electrum(
         config: ElectrumConfig(url: "ssl://electrum.blockstream.info:60002", socks5: nil, retry: 5, timeout: nil, stopGap: 10))
+    let blockChain: Blockchain
     var wallet: Wallet
     let nodeNetwork = Network.testnet
     
@@ -29,8 +24,9 @@ class BdkRnModule: NSObject {
     }
 
     override init() {
-       self.wallet = try! Wallet.init(descriptor: descriptor, changeDescriptor: changeDescriptor, network: nodeNetwork, databaseConfig: databaseConfig, blockchainConfig: blockchainConfig)
-       try! self.wallet.sync(progressUpdate: Progress(), maxAddressParam: nil)
+        blockChain = try! Blockchain(config: blockchainConfig)
+       self.wallet = try! Wallet.init(descriptor: descriptor, changeDescriptor: changeDescriptor, network: nodeNetwork, databaseConfig: databaseConfig)
+       try! self.wallet.sync(blockchain: blockChain, progress: nil)
     }
 
     func _seed(
@@ -51,8 +47,8 @@ class BdkRnModule: NSObject {
         do{
             let descriptor: String = createDescriptor(keys: keys)
             let changeDescriptor: String = createChangeDescriptor(keys: keys)
-            wallet = try Wallet(descriptor: descriptor, changeDescriptor: changeDescriptor, network: nodeNetwork, databaseConfig: databaseConfig, blockchainConfig: blockchainConfig)
-            try wallet.sync(progressUpdate: Progress(), maxAddressParam: nil)
+            wallet = try Wallet(descriptor: descriptor, changeDescriptor: changeDescriptor, network: nodeNetwork, databaseConfig: databaseConfig)
+            try wallet.sync(blockchain: blockChain, progress: nil)
             return wallet
         } catch {
             throw error
@@ -111,7 +107,7 @@ class BdkRnModule: NSObject {
     @objc
     func getBalance(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         do {
-            try! self.wallet.sync(progressUpdate: Progress(), maxAddressParam: nil)
+            try! self.wallet.sync(blockchain: blockChain, progress: nil)
             let balance = try self.wallet.getBalance()
             resolve(balance)
         }
@@ -123,11 +119,12 @@ class BdkRnModule: NSObject {
     @objc
     func broadcastTx(_ recipient: String, amount: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         do {
-            let psbt: PartiallySignedBitcoinTransaction = try PartiallySignedBitcoinTransaction(wallet: wallet, recipient: recipient, amount: UInt64(truncating: amount), feeRate: nil)
+            let txBuilder = TxBuilder().addRecipient(address: recipient, amount: UInt64(truncating: amount))
+            let psbt = try txBuilder.finish(wallet: wallet)
             try wallet.sign(psbt: psbt)
-            let transaction = try wallet.broadcast(psbt: psbt)
-            print("Broadcast success", transaction)
-            resolve(recipient)
+            try blockChain.broadcast(psbt: psbt)
+            let txid = psbt.txid()
+            resolve(txid)
         }   catch let error {
             let description = "\(error)"
             return reject("Broadcast tracsaction Error: ", description, error)

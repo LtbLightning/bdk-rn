@@ -81,7 +81,7 @@ _BdkRn.walletExists()_ OR _BdkRn.genSeed()_
 
 | Method                            | Request Parameters                                |
 | --------------------------------- | ------------------------------------------------- |
-| [genSeed()](#genmnemonic)         | password                                          |
+| [genSeed()](#genseed)             | password                                          |
 | [walletExists()](#walletexists)   | -                                                 |
 | [unlockWallet()](#unlockwallet)   | -                                                 |
 | [createWallet()](#createwallet)   | mnemonic, password                                |
