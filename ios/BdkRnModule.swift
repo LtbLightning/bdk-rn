@@ -51,7 +51,7 @@ class BdkRnModule: NSObject {
                 blockChainSocket5: blockChainSocket5,
                 retry: retry,
                 timeOut: timeOut,
-                blockChainString: blockChain
+                blockChainName: blockChain
             )
             resolve(responseObject)
         } catch let error {
@@ -81,7 +81,7 @@ class BdkRnModule: NSObject {
                 blockChainSocket5: blockChainSocket5,
                 retry: retry,
                 timeOut: timeOut,
-                blockChainString: blockChain
+                blockChainName: blockChain
             )
             resolve(responseObject)
         } catch let error {

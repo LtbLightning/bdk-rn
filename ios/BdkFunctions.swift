@@ -109,7 +109,7 @@ class BdkFunctions: NSObject {
         switch (blockChainName) {
         case  "ELECTRUM" : return  BlockchainConfig.electrum(config:
                                                                 ElectrumConfig(
-                                                                    url: blockChainConfigUrl ?? self.defaultBlockChainConfigUrl, socks5: blockChainConfigUrl,
+                                                                    url: blockChainConfigUrl ?? self.defaultBlockChainConfigUrl, socks5: blockChainSocket5 ?? nil,
                                                                     retry: UInt8(retry ?? "") ?? 5, timeout: UInt8(timeOut ?? "") ?? 5,
                                                                     stopGap: 5
                                                                 )

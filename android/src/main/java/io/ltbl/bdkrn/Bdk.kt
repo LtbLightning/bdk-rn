@@ -9,10 +9,6 @@ import com.facebook.react.bridge.Promise as Result
 object Bdk {
     const val TAG = "BDK-F"
 
-    fun sync(maxAddress: UInt? = null): Unit {
-        BdkFunctions.sync()
-    }
-
     fun getWallet(result: Result) {
         try {
             val wallet: String = BdkFunctions.getWallet()
@@ -70,8 +66,7 @@ object Bdk {
                     blockChainSocket5,
                     retry,
                     timeOut,
-                    blockChain,
-                    null
+                    blockChain
                 )
             result.resolve(Arguments.makeNativeMap(responseObject))
         } catch (error: Throwable) {
@@ -100,8 +95,7 @@ object Bdk {
                     blockChainSocket5,
                     retry,
                     timeOut,
-                    blockChain,
-                    null
+                    blockChain
                 )
             result.resolve(Arguments.makeNativeMap(responseObject))
         } catch (error: Throwable) {
@@ -115,17 +109,6 @@ object Bdk {
             result.resolve(transaction)
         } catch (error: Throwable) {
             return result.reject("Broadcast Transaction Error", error.message, error.cause)
-        }
-    }
-
-    fun createAndSign(recipient: String, amount: Double, result: Result) {
-        try {
-            val psbt: String =
-                BdkFunctions.createPartiallySignedBitcoinTransaction(recipient, amount)
-            Log.i(TAG, "Successfully Psbt $psbt")
-            result.resolve(psbt)
-        } catch (error: Throwable) {
-            return result.reject("Psbt Error", error.message, error.cause)
         }
     }
 
