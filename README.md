@@ -13,13 +13,13 @@ A React Native version of the Bitcon Development Kit (https://bitcoindevkit.org/
 Using npm:
 
 ```bash
-$ npm i bdk-rn @react-native-async-storage/async-storage
+$ npm i git+https://github.com/LtbLightning/bdk-rn.git @react-native-async-storage/async-storage
 ```
 
 Using yarn:
 
 ```bash
-$ yarn add bdk-rn @react-native-async-storage/async-storage
+$ yarn add https://github.com/LtbLightning/bdk-rn.git @react-native-async-storage/async-storage
 ```
 
 [IOS Only] Install pods:
