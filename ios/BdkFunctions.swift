@@ -82,12 +82,12 @@ class BdkFunctions: NSObject {
         blockChainSocket5: String?,
         retry: String?,
         timeOut: String?,
-        blockChain: String?
+        blockChainName: String?
     ) throws -> Wallet {
         do{
             let descriptor: String = createDefaultDescriptor(keys: keys)
             let changeDescriptor: String = createDefaultChangeDescriptor(keys: keys)
-            let config: BlockchainConfig = createDatabaseConfig(blockChainConfigUrl: blockChainConfigUrl, blockChainSocket5: blockChainSocket5, retry: retry, timeOut: timeOut, blockChain: blockChain)
+            let config: BlockchainConfig = createDatabaseConfig(blockChainConfigUrl: blockChainConfigUrl, blockChainSocket5: blockChainSocket5, retry: retry, timeOut: timeOut, blockChainName: blockChainName)
             let walletNetwork: Network = setNetwork(networkStr: network)
             self.wallet = try Wallet.init(
                 descriptor: descriptor,
@@ -104,9 +104,9 @@ class BdkFunctions: NSObject {
     
     private func createDatabaseConfig(
         blockChainConfigUrl: String?, blockChainSocket5: String?,
-        retry: String?, timeOut: String?, blockChain: String?
+        retry: String?, timeOut: String?, blockChainName: String?
     )-> BlockchainConfig {
-        switch (blockChain) {
+        switch (blockChainName) {
         case  "ELECTRUM" : return  BlockchainConfig.electrum(config:
                                                                 ElectrumConfig(
                                                                     url: blockChainConfigUrl ?? self.defaultBlockChainConfigUrl, socks5: blockChainConfigUrl,
@@ -147,10 +147,10 @@ class BdkFunctions: NSObject {
         blockChainSocket5: String?,
         retry: String?,
         timeOut: String?,
-        blockChain: String?
+        blockChainName: String?
     ) throws -> [String: Any?] {
             do {
-            let keys: ExtendedKeyInfo = try _seed(recover: mnemonic != "" ? true : false, mnemonic: mnemonic, password: password)
+            let keys: ExtendedKeyInfo = try _seed(recover: mnemonic != "" ? true : false, mnemonic: mnemonic, password: password)
                 
                 let wallet = try createRestoreWallet(
                     keys: keys, network: network!,
@@ -158,8 +158,8 @@ class BdkFunctions: NSObject {
                     blockChainSocket5: blockChainSocket5,
                     retry:retry,
                     timeOut: timeOut,
-                    blockChain: blockChain ?? defaultBlockChain
-               )
+                    blockChainName: blockChainName ?? defaultBlockChain
+               )
 
                 let addressInfo = try! self.wallet.getAddress(addressIndex: AddressIndex.new)
                 let responseObject = [
@@ -183,7 +183,7 @@ class BdkFunctions: NSObject {
             blockChainSocket5: String?,
             retry: String?,
             timeOut: String?,
-            blockChain: String?
+            blockChainName: String?
         ) throws -> [String: Any?] {
             do {
                 let keys: ExtendedKeyInfo = try _seed(recover:  true, mnemonic: mnemonic, password: password)
@@ -194,7 +194,7 @@ class BdkFunctions: NSObject {
                     blockChainSocket5: blockChainSocket5!,
                     retry:retry!,
                     timeOut: timeOut!,
-                    blockChain: blockChain ?? defaultBlockChain
+                    blockChainName: blockChainName ?? defaultBlockChain
                 )
                 let addressInfo = try! self.wallet.getAddress(addressIndex: AddressIndex.new)
                 let responseObject = [
@@ -227,11 +227,11 @@ class BdkFunctions: NSObject {
         
 
     func getNewAddress() -> String{
-        let addressInfo = try! self.wallet.getAddress(addressIndex:AddressIndex.new)
+        let addressInfo = try! self.wallet.getAddress(addressIndex:AddressIndex.new)
         return addressInfo.address
     }
-    func getLastUnusedAddress() -> String{
-        let addressInfo = try! self.wallet.getAddress(addressIndex:AddressIndex.lastUnused)
+    func getLastUnusedAddress() -> String{
+        let addressInfo = try! self.wallet.getAddress(addressIndex:AddressIndex.lastUnused)
         return addressInfo.address
     }
     
@@ -301,6 +301,7 @@ class BdkFunctions: NSObject {
            do {
                let txBuilder = TxBuilder().addRecipient(address: recipient, amount: UInt64(truncating: amount))
                let psbt = try txBuilder.finish(wallet: wallet)
+               try wallet.sign(psbt: psbt)
                try blockChain.broadcast(psbt: psbt)
                let txid = psbt.txid()
                return  txid;
