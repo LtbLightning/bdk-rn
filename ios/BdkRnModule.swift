@@ -168,6 +168,24 @@ class BdkRnModule: NSObject {
             reject("Confirmed transactions error", error.localizedDescription, error)
         }
     }
+    
+    @objc
+    func getLastUnusedAddress(_
+                              resolve: @escaping RCTPromiseResolveBlock,
+                              reject: @escaping RCTPromiseRejectBlock
+    ) {
+        let address = bdkFunctions.getLastUnusedAddress()
+        return resolve(address)
+    }
+
+    @objc
+    func getWallet(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        do {
+            return try resolve(bdkFunctions.getWallet())
+        } catch let error {
+            reject("Get Balance Error", error.localizedDescription, error)
+        }
+    }
 
 }
 
