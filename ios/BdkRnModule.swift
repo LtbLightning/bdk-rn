@@ -22,7 +22,8 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            return try resolve(bdkFunctions.genSeed(password: password))
+            let response = try bdkFunctions.genSeed(password: password)
+            resolve(response)
         } catch let error {
             reject("Generate Seed Error", error.localizedDescription, error)
         }
@@ -82,7 +83,7 @@ class BdkRnModule: NSObject {
                 timeOut: timeOut,
                 blockChain: blockChain
             )
-            return resolve(responseObject)
+            resolve(responseObject)
         } catch let error {
             reject("Retore Wallet Error", error.localizedDescription, error)
         }
@@ -97,7 +98,8 @@ class BdkRnModule: NSObject {
     @objc
     func getBalance(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         do {
-            return try resolve(bdkFunctions.getBalance())
+            let response = try bdkFunctions.getBalance()
+            resolve(response)
         } catch let error {
             reject("Get Balance Error", error.localizedDescription, error)
         }
@@ -112,10 +114,10 @@ class BdkRnModule: NSObject {
     ) {
         do {
             let responseObject = try bdkFunctions.broadcastTx(recipient, amount: amount)
-            return resolve(responseObject)
+            resolve(responseObject)
         } catch let error {
-            let description = "\(error)"
-            return reject("Broadcast tracsaction Error: ", description, error)
+            let details = "\(error)"
+            reject("Broadcast Error", details, error)
         }
     }
     
@@ -125,15 +127,45 @@ class BdkRnModule: NSObject {
                               reject: @escaping RCTPromiseRejectBlock
     ) {
         let address = bdkFunctions.getLastUnusedAddress()
-        return resolve(address)
+        resolve(address)
     }
 
     @objc
-    func getWallet(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    func getWallet(_
+                   resolve: @escaping RCTPromiseResolveBlock,
+                   reject: @escaping RCTPromiseRejectBlock
+    ) {
         do {
-            return try resolve(bdkFunctions.getWallet())
+            let response = try bdkFunctions.getWallet()
+            resolve(response)
         } catch let error {
             reject("Get Balance Error", error.localizedDescription, error)
+        }
+    }
+
+    @objc
+    func genPendingTransactions(_
+                                resolve: @escaping RCTPromiseResolveBlock,
+                                reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let response = try bdkFunctions.transactionsList(pending: true)
+            resolve(response)
+        } catch let error {
+            reject("Pending transactions error", error.localizedDescription, error)
+        }
+    }
+
+    @objc
+    func getConfirmedTransactions(_
+                                  resolve: @escaping RCTPromiseResolveBlock,
+                                  reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let response = try bdkFunctions.transactionsList()
+            resolve(response)
+        } catch let error {
+            reject("Confirmed transactions error", error.localizedDescription, error)
         }
     }
 

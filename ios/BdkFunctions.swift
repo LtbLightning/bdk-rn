@@ -254,8 +254,41 @@ class BdkFunctions: NSObject {
         }
     
     /// Todo the following functions correct
-    func confirmedTransactionsList() throws -> Array<[String: Any?]> {
-        return []
+    func transactionsList(pending: Bool? = false) throws -> [Any] {
+        do {
+            let transactions = try wallet.getTransactions()
+            
+            var confirmedTransactions: [Any] = []
+            var pendingTransactions: [Any] = []
+            for tx in transactions {
+                // Confirmed transactions
+                if case let .confirmed(details, confirmation) = tx {
+                    let responseObject = [
+                        "fee": details.fee!,
+                        "received": details.received,
+                        "sent": details.sent,
+                        "txid": details.txid,
+                        "block_height": confirmation.height,
+                        "block_timestamp": confirmation.timestamp,
+                    ] as [String : Any]
+                    confirmedTransactions.append(responseObject)
+                }
+                // Pending transactions
+                if case let .unconfirmed(details) = tx {
+                    let responseObject = [
+                        "fee": details.fee!,
+                        "received": details.received,
+                        "sent": details.sent,
+                        "txid": details.txid,
+                    ] as [String : Any]
+                    pendingTransactions.append(responseObject)
+                }
+            }
+            
+            return pending==true ? pendingTransactions : confirmedTransactions
+        } catch {
+                throw error
+            }
     }
     
     
@@ -268,7 +301,6 @@ class BdkFunctions: NSObject {
            do {
                let txBuilder = TxBuilder().addRecipient(address: recipient, amount: UInt64(truncating: amount))
                let psbt = try txBuilder.finish(wallet: wallet)
-               try wallet.sign(psbt: psbt)
                try blockChain.broadcast(psbt: psbt)
                let txid = psbt.txid()
                return  txid;
