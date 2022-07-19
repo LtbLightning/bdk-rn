@@ -39,7 +39,7 @@ class BdkFunctions: NSObject {
     }
 
 
-    private func _seed(
+    private func seed(
         recover: Bool = false,
         mnemonic: String?,
         password: String? = nil
@@ -130,16 +130,16 @@ class BdkFunctions: NSObject {
 
     func genSeed(password: String? = nil) throws -> String {
         do {
-            let seed = try _seed(recover: false, mnemonic: "")
+            let seed = try seed(recover: false, mnemonic: "")
             return seed.mnemonic
         } catch {
             throw error
         }
     }
 
-    func genDescriptor(mnemonic: String, password: String? = nil) throws -> String {
+    func createDescriptor(mnemonic: String, password: String? = nil) throws -> String {
         do {
-            let keys: ExtendedKeyInfo = try _seed(recover: true, mnemonic: mnemonic, password: password)
+            let keys: ExtendedKeyInfo = try seed(recover: true, mnemonic: mnemonic, password: password)
             return keys.xprv
         } catch {
             throw error
@@ -157,7 +157,7 @@ class BdkFunctions: NSObject {
         blockChainName: String?
     ) throws -> [String: Any?] {
         do {
-            let keys: ExtendedKeyInfo = try _seed(recover: true, mnemonic: mnemonic, password: password)
+            let keys: ExtendedKeyInfo = try seed(recover: true, mnemonic: mnemonic, password: password)
             let wallet = try createRestoreWallet(
                 keys: keys,
                 network: network!,
@@ -183,7 +183,6 @@ class BdkFunctions: NSObject {
 
     func getWallet()throws -> [String: Any?] {
         do {
-
             let addressInfo = try! self.wallet.getAddress(addressIndex: AddressIndex.new)
             let responseObject = [
                 "address": addressInfo.address,

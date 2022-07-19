@@ -3,6 +3,7 @@
 //  BdkRnModule
 //
 
+
 #import <React/RCTBridgeModule.h>
 
 @interface RCT_EXTERN_MODULE(BdkRnModule, NSObject)
@@ -44,6 +45,6 @@ RCT_EXTERN_METHOD(
                   reject:(RCTPromiseRejectBlock)reject
                   )
 
-RCT_EXTERN_METHOD(genPendingTransactions:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(getPendingTransactions:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(getConfirmedTransactions:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 @end

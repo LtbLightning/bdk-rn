@@ -30,17 +30,17 @@ class BdkRnModule: NSObject {
     }
     
     @objc
-    func genDescriptor(_
+    func createDescriptor(_
         mnemonic: String,
         password: String? = nil,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let response = try bdkFunctions.genDescriptor(mnemonic:mnemonic, password: password)
+            let response = try bdkFunctions.createDescriptor(mnemonic:mnemonic, password: password)
             resolve(response)
         } catch let error {
-            reject("Generate Seed Error", error.localizedDescription, error)
+            reject("Create descriptor error", error.localizedDescription, error)
         }
     }
 
@@ -129,7 +129,7 @@ class BdkRnModule: NSObject {
     }
 
     @objc
-    func genPendingTransactions(_
+    func getPendingTransactions(_
                                 resolve: @escaping RCTPromiseResolveBlock,
                                 reject: @escaping RCTPromiseRejectBlock
     ) {

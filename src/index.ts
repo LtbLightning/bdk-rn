@@ -23,12 +23,12 @@ class BdkInterface {
   }
 
   /**
-   * Gen descriptor from seed and password
+   * Create descriptor from seed and password
    * @return {Promise<Response>}
    */
-  async genDescriptor(mnemonic: string, password: string = ''): Promise<Response> {
+  async createDescriptor(mnemonic: string, password: string = ''): Promise<Response> {
     try {
-      const descriptor = await this._bdk.genDescriptor(mnemonic, password);
+      const descriptor = await this._bdk.createDescriptor(mnemonic, password);
       return success(descriptor);
     } catch (e: any) {
       return failure(e);
@@ -112,9 +112,9 @@ class BdkInterface {
    * Get pending transactions
    * @return {Promise<Response>}
    */
-  async genPendingTransactions(): Promise<Response> {
+  async getPendingTransactions(): Promise<Response> {
     try {
-      const response = await this._bdk.genPendingTransactions();
+      const response = await this._bdk.getPendingTransactions();
       return success(response);
     } catch (e: any) {
       return failure(e);
