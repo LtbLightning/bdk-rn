@@ -8,30 +8,15 @@ declare class BdkInterface {
      */
     genSeed(password?: string): Promise<Response>;
     /**
-     * Check if wallet exists or not
+     * Gen descriptor from seed and password
      * @return {Promise<Response>}
      */
-    walletExists(): Promise<Response>;
+    genDescriptor(mnemonic: string, password?: string): Promise<Response>;
     /**
-     * unlock wallet
+     * Init wallet
      * @return {Promise<Response>}
      */
-    unlockWallet(): Promise<Response>;
-    /**
-     * Create new wallet
-     * @return {Promise<Response>}
-     */
-    createWallet(mnemonic?: string, password?: string, network?: string, blockChainConfigUrl?: string, blockChainSocket5?: string, retry?: string, timeOut?: string, blockChain?: string): Promise<Response>;
-    /**
-     * Restore wallet
-     * @return {Promise<Response>}
-     */
-    restoreWallet(mnemonic: string, password?: string, network?: string, blockChainConfigUrl?: string, blockChainSocket5?: string, retry?: string, timeOut?: string, blockChain?: string): Promise<Response>;
-    /**
-     * Reset wallet
-     * @return {Promise<Response>}
-     */
-    resetWallet(): Promise<Response>;
+    initWallet(mnemonic: string, password?: string, network?: string, blockChainConfigUrl?: string, blockChainSocket5?: string, retry?: string, timeOut?: string, blockChain?: string): Promise<Response>;
     /**
      * Get new address
      * @return {Promise<Response>}

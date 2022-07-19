@@ -1,9 +1,6 @@
 import { NativeModules } from 'react-native';
-import { failure, getItem, removeItem, setItem, success, _exists } from './lib/utils';
+import { failure, success, _exists } from './lib/utils';
 import { createWalletResponse, Response } from './lib/interfaces';
-
-const MnemonicPhraseKey = 'mnemonic';
-const PasswordKey = 'passowrd';
 
 class BdkInterface {
   public _bdk: any;
@@ -26,72 +23,23 @@ class BdkInterface {
   }
 
   /**
-   * Check if wallet exists or not
+   * Gen descriptor from seed and password
    * @return {Promise<Response>}
    */
-  async walletExists(): Promise<Response> {
+  async genDescriptor(mnemonic: string, password: string = ''): Promise<Response> {
     try {
-      const phrase = await getItem(MnemonicPhraseKey);
-      return success(phrase != null);
+      const descriptor = await this._bdk.genDescriptor(mnemonic, password);
+      return success(descriptor);
     } catch (e: any) {
       return failure(e);
     }
   }
 
   /**
-   * unlock wallet
+   * Init wallet
    * @return {Promise<Response>}
    */
-  async unlockWallet(): Promise<Response> {
-    try {
-      const phrase = (await getItem(MnemonicPhraseKey)) ?? '';
-      if (!_exists(phrase)) throw 'No saved seed phrase found.';
-      const data = await this.restoreWallet(phrase);
-      if (!data.error) return success('Wallet unlocked');
-      else return failure('Wallet Unlock failed');
-    } catch (e: any) {
-      return failure(e);
-    }
-  }
-
-  /**
-   * Create new wallet
-   * @return {Promise<Response>}
-   */
-  async createWallet(
-    mnemonic: string = '',
-    password: string = '',
-    network: string = '',
-    blockChainConfigUrl: string = '',
-    blockChainSocket5: string = '',
-    retry: string = '',
-    timeOut: string = '',
-    blockChain: string = ''
-  ): Promise<Response> {
-    try {
-      const wallet: createWalletResponse = await this._bdk.createWallet(
-        mnemonic,
-        password,
-        network,
-        blockChainConfigUrl,
-        blockChainSocket5,
-        retry,
-        timeOut,
-        blockChain
-      );
-      await setItem(MnemonicPhraseKey, wallet.mnemonic);
-      await setItem(PasswordKey, password);
-      return success(wallet);
-    } catch (e: any) {
-      return failure(e);
-    }
-  }
-
-  /**
-   * Restore wallet
-   * @return {Promise<Response>}
-   */
-  async restoreWallet(
+  async initWallet(
     mnemonic: string,
     password: string = '',
     network: string = '',
@@ -103,7 +51,7 @@ class BdkInterface {
   ): Promise<Response> {
     try {
       if (!_exists(mnemonic)) throw 'Required mnemonic parameter is emtpy.';
-      const wallet = await this._bdk.restoreWallet(
+      const wallet = await this._bdk.initWallet(
         mnemonic,
         password,
         network,
@@ -113,23 +61,7 @@ class BdkInterface {
         timeOut,
         blockChain
       );
-      await setItem(MnemonicPhraseKey, mnemonic);
-      await setItem(PasswordKey, password);
       return success(wallet);
-    } catch (e: any) {
-      return failure(e);
-    }
-  }
-
-  /**
-   * Reset wallet
-   * @return {Promise<Response>}
-   */
-  async resetWallet(): Promise<Response> {
-    try {
-      await removeItem(MnemonicPhraseKey);
-      await removeItem(PasswordKey);
-      return success(true);
     } catch (e: any) {
       return failure(e);
     }

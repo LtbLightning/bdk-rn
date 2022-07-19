@@ -10,21 +10,9 @@
 RCT_EXTERN_METHOD(getNewAddress:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(getLastUnusedAddress:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(getBalance:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
-RCT_EXTERN_METHOD(
-    createWallet: (nonnull NSString*)mnemonic
-    password:(nonnull NSString *)password    
-    network:(nonnull NSString *)network
-    blockChainConfigUrl:(nonnull NSString *)blockChainConfigUrl
-    blockChainSocket5:(nonnull NSString *)blockChainSocket5
-    retry:(nonnull NSString *)retry
-    timeOut:(nonnull NSString *)timeOut
-    blockChain:(nonnull NSString *)blockChain
-    resolve: (RCTPromiseResolveBlock)resolve 
-    reject:(RCTPromiseRejectBlock)reject
-)
 
 RCT_EXTERN_METHOD(
-    restoreWallet: (nonnull NSString*)mnemonic
+    initWallet: (nonnull NSString*)mnemonic
     password:(nonnull NSString *)password  
     network:(nonnull NSString *)network
     blockChainConfigUrl:(nonnull NSString *)blockChainConfigUrl
@@ -41,6 +29,13 @@ RCT_EXTERN_METHOD(
                   resolve: (RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject
                   )
+
+RCT_EXTERN_METHOD(
+    genDescriptor: (nonnull NSString*)mnemonic
+    password:(nonnull NSString *)password
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
 
 RCT_EXTERN_METHOD(
                   broadcastTx: (nonnull NSString *)recipient

@@ -28,39 +28,24 @@ class BdkRnModule: NSObject {
             reject("Generate Seed Error", error.localizedDescription, error)
         }
     }
-
+    
     @objc
-    func createWallet(_
-        mnemonic: String? = "",
+    func genDescriptor(_
+        mnemonic: String,
         password: String? = nil,
-        network: String? = nil,
-        blockChainConfigUrl: String? = nil,
-        blockChainSocket5: String? = nil,
-        retry: String? = nil,
-        timeOut: String? = nil,
-        blockChain: String? = nil,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let responseObject = try bdkFunctions.createWallet(
-                mnemonic: mnemonic,
-                password: password,
-                network: network,
-                blockChainConfigUrl: blockChainConfigUrl,
-                blockChainSocket5: blockChainSocket5,
-                retry: retry,
-                timeOut: timeOut,
-                blockChainName: blockChain
-            )
-            resolve(responseObject)
+            let response = try bdkFunctions.genDescriptor(mnemonic:mnemonic, password: password)
+            resolve(response)
         } catch let error {
-            reject("Create Wallet Error", error.localizedDescription, error)
+            reject("Generate Seed Error", error.localizedDescription, error)
         }
     }
 
     @objc
-    func restoreWallet(_
+    func initWallet(_
         mnemonic: String,
         password: String? = nil,
         network: String? = nil,
@@ -73,7 +58,7 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let responseObject = try bdkFunctions.restoreWallet(
+            let responseObject = try bdkFunctions.initWallet(
                 mnemonic: mnemonic,
                 password: password,
                 network: network,
