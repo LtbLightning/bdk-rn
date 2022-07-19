@@ -8,10 +8,10 @@ declare class BdkInterface {
      */
     genSeed(password?: string): Promise<Response>;
     /**
-     * Gen descriptor from seed and password
+     * Create descriptor from seed and password
      * @return {Promise<Response>}
      */
-    genDescriptor(mnemonic: string, password?: string): Promise<Response>;
+    createDescriptor(mnemonic: string, password?: string): Promise<Response>;
     /**
      * Init wallet
      * @return {Promise<Response>}
@@ -36,7 +36,7 @@ declare class BdkInterface {
      * Get pending transactions
      * @return {Promise<Response>}
      */
-    genPendingTransactions(): Promise<Response>;
+    getPendingTransactions(): Promise<Response>;
     /**
      * Get pending transactions
      * @return {Promise<Response>}
