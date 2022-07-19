@@ -20,7 +20,8 @@ RCT_EXTERN_METHOD(
     blockChainSocket5:(nonnull NSString *)blockChainSocket5
     retry:(nonnull NSString *)retry
     timeOut:(nonnull NSString *)timeOut
-    blockChain:(nonnull NSString *)blockChain
+    blockChainName:(nonnull NSString *)blockChainName
+    descriptor:(nonnull NSString *)descriptor
     resolve: (RCTPromiseResolveBlock)resolve 
     reject:(RCTPromiseRejectBlock)reject
 )
@@ -32,7 +33,7 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
-    genDescriptor: (nonnull NSString*)mnemonic
+    createDescriptor: (nonnull NSString*)mnemonic
     password:(nonnull NSString *)password
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject

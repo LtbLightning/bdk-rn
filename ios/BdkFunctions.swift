@@ -67,8 +67,8 @@ class BdkFunctions: NSObject {
     }
 
 
-    private func createDefaultDescriptor(keys: ExtendedKeyInfo) -> String {
-        return ("wpkh(" + keys.xprv + "/84'/1'/0'/0/*)")
+    private func createDefaultDescriptor(xprv: String) -> String {
+        return ("wpkh(" + xprv + "/84'/1'/0'/0/*)")
     }
 
     private func createChangeDescriptor(descriptor: String) -> String {
@@ -76,7 +76,7 @@ class BdkFunctions: NSObject {
     }
 
     private func createRestoreWallet(
-        keys: ExtendedKeyInfo,
+        defaultDescriptor: String,
         network: String,
         blockChainConfigUrl: String?,
         blockChainSocket5: String?,
@@ -85,7 +85,7 @@ class BdkFunctions: NSObject {
         blockChainName: String?
     ) throws -> Wallet {
         do {
-            let descriptor: String = createDefaultDescriptor(keys: keys)
+            let descriptor: String = createDefaultDescriptor(xprv: defaultDescriptor)
             let changeDescriptor: String = createChangeDescriptor(descriptor: descriptor)
             let config: BlockchainConfig = createDatabaseConfig(blockChainConfigUrl: blockChainConfigUrl, blockChainSocket5: blockChainSocket5, retry: retry, timeOut: timeOut, blockChainName: blockChainName)
             let walletNetwork: Network = setNetwork(networkStr: network)
@@ -154,12 +154,16 @@ class BdkFunctions: NSObject {
         blockChainSocket5: String?,
         retry: String?,
         timeOut: String?,
-        blockChainName: String?
+        blockChainName: String?,
+        descriptor: String?
     ) throws -> [String: Any?] {
         do {
-            let keys: ExtendedKeyInfo = try seed(recover: true, mnemonic: mnemonic, password: password)
+            var newDescriptor = "";
+            if(descriptor == ""){
+                newDescriptor = try createDescriptor(mnemonic: mnemonic, password: password);
+            }
             let wallet = try createRestoreWallet(
-                keys: keys,
+                defaultDescriptor: descriptor ?? newDescriptor,
                 network: network!,
                 blockChainConfigUrl: blockChainConfigUrl!,
                 blockChainSocket5: blockChainSocket5!,
@@ -170,8 +174,7 @@ class BdkFunctions: NSObject {
             let addressInfo = try! self.wallet.getAddress(addressIndex: AddressIndex.new)
             let responseObject = [
                 "address": addressInfo.address,
-                "balance": try! wallet.getBalance(),
-                "mnemonic": keys.mnemonic,
+                "balance": try! wallet.getBalance()
             ] as [String: Any]
             return responseObject
         }

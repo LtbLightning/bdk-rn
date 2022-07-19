@@ -1,4 +1,4 @@
-import { Response } from './lib/interfaces';
+import { BroadcastTransactionRequest, CreateDescriptorRequest, GenSeedRequest, InitWalletRequest, Response } from './lib/interfaces';
 declare class BdkInterface {
     _bdk: any;
     constructor();
@@ -6,17 +6,17 @@ declare class BdkInterface {
      * Gen seed of 12 words
      * @return {Promise<Response>}
      */
-    genSeed(password?: string): Promise<Response>;
+    genSeed(args: GenSeedRequest): Promise<Response>;
     /**
      * Create descriptor from seed and password
      * @return {Promise<Response>}
      */
-    createDescriptor(mnemonic: string, password?: string): Promise<Response>;
+    createDescriptor(args: CreateDescriptorRequest): Promise<Response>;
     /**
      * Init wallet
      * @return {Promise<Response>}
      */
-    initWallet(mnemonic: string, password?: string, network?: string, blockChainConfigUrl?: string, blockChainSocket5?: string, retry?: string, timeOut?: string, blockChain?: string): Promise<Response>;
+    initWallet(args: InitWalletRequest): Promise<Response>;
     /**
      * Get new address
      * @return {Promise<Response>}
@@ -31,7 +31,7 @@ declare class BdkInterface {
      * Broadcast Transaction
      * @return {Promise<Response>}
      */
-    broadcastTx(address: string, amount: number): Promise<Response>;
+    broadcastTx(args: BroadcastTransactionRequest): Promise<Response>;
     /**
      * Get pending transactions
      * @return {Promise<Response>}

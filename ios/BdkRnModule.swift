@@ -53,7 +53,8 @@ class BdkRnModule: NSObject {
         blockChainSocket5: String? = nil,
         retry: String? = nil,
         timeOut: String? = nil,
-        blockChain: String? = nil,
+        blockChainName: String? = nil,
+        descriptor: String? = nil,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
@@ -66,11 +67,12 @@ class BdkRnModule: NSObject {
                 blockChainSocket5: blockChainSocket5,
                 retry: retry,
                 timeOut: timeOut,
-                blockChainName: blockChain
+                blockChainName: blockChainName,
+                descriptor: descriptor
             )
             resolve(responseObject)
         } catch let error {
-            reject("Retore Wallet Error", error.localizedDescription, error)
+            reject("Init Wallet Error", error.localizedDescription, error)
         }
     }
 
