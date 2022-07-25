@@ -12,9 +12,15 @@ export interface GenSeedRequest {
   password?: string;
 }
 
-export interface CreateXprvRequest {
+export interface GenerateExtendedKeyRequest {
+  network?: string;
   mnemonic: string;
   password?: string;
+}
+export interface GenerateExtendedKeyResponse {
+  fingerprint: string;
+  mnemonic: string;
+  xprv: string;
 }
 
 export type WPKH = 'default' | null | '' | 'p2wpkh' | 'wpkh';
@@ -44,6 +50,11 @@ export interface CreateDescriptorRequest {
    * Required if useMnemonic: true
    */
   password?: string;
+
+  /**
+   * Required if useMnemonic: true
+   */
+  network?: 'bitcoin' | 'testnet' | 'signet' | 'regtest';
 
   /**
    * If want to use custom path instead of default(/84'/1'/0'/0/*)

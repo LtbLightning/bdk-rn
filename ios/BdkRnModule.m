@@ -33,7 +33,14 @@ RCT_EXTERN_METHOD(
                   )
 
 RCT_EXTERN_METHOD(
-    createXprv: (nonnull NSString*)mnemonic
+                  generateMnemonic: (nonnull NSNumber *)wordCount
+                  resolve: (RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject
+                  )
+
+RCT_EXTERN_METHOD(
+    getExtendedKeyInfo: (nonnull NSString*)network
+    mnemonic:(nonnull NSString *)mnemonic
     password:(nonnull NSString *)password
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject

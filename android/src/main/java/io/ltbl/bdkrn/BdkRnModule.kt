@@ -2,6 +2,7 @@ package io.ltbl.bdkrn
 
 import android.util.Log
 import com.facebook.react.bridge.*
+import org.bitcoindevkit.Network
 import java.io.FileDescriptor
 
 class BdkRnModule(reactContext: ReactApplicationContext) :
@@ -13,7 +14,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
 
     @ReactMethod
-    fun generateMnemonic(wordCount: Byte?, result: Promise) {
+    fun generateMnemonic(wordCount: Int = 12, result: Promise) {
         try {
             val mnemonic = BdkFunctions.generateMnemonic(wordCount)
             result.resolve(mnemonic)
@@ -33,12 +34,19 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun createXprv(mnemonic: String, password: String? = null, result: Promise) {
+    fun getExtendedKeyInfo(network: String, mnemonic: String, password: String? = null, result: Promise) {
         try {
-            val descriptor = BdkFunctions.createXprv(mnemonic, password)
-            result.resolve(descriptor)
+            var networkName: Network = Network.TESTNET;
+            when (network){
+                "bitcoin" -> networkName = Network.BITCOIN
+                "testnet" -> networkName = Network.TESTNET
+                "signet" -> networkName = Network.SIGNET
+                "regtest" -> networkName = Network.REGTEST
+            }
+            val responseObject = BdkFunctions.createExtendedKey(networkName, mnemonic, password)
+            result.resolve(Arguments.makeNativeMap(responseObject))
         } catch (error: Throwable) {
-            return result.reject("Create descriptor error", error.localizedMessage, error)
+            return result.reject("Get extended keys error", error.localizedMessage, error)
         }
     }
 

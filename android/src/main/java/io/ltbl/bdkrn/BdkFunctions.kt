@@ -81,8 +81,8 @@ object BdkFunctions {
         try {
             var newDescriptor = "";
             if(descriptor == ""){
-                newDescriptor = createXprv( mnemonic, password);
-                newDescriptor = createDefaultDescriptor(newDescriptor);
+                val keyInfo = seed(true, mnemonic, password)
+                newDescriptor = createDefaultDescriptor(keyInfo.xprv);
             }
             val finalDescriptor: String  = if(descriptor!="") descriptor else newDescriptor
             createRestoreWallet(
@@ -253,21 +253,6 @@ object BdkFunctions {
         return descriptor.replace("/84'/1'/0'/0/*", "/84'/1'/0'/1/*")
     }
 
-    fun generateMnemonic(
-        wordCount: Byte = 12
-    ): String {
-        when (wordCount) {
-            12 -> return WordCount.WORDS12
-            15 -> return WordCount.WORDS15
-            18 -> return WordCount.WORDS18
-            21 -> return WordCount.WORDS21
-            24 -> return WordCount.WORDS24
-            else -> {
-                return WordCount.WORDS12
-            }
-        }
-    }
-
     fun seed(
         recover: Boolean = false,
         mnemonic: String = "",
@@ -280,10 +265,35 @@ object BdkFunctions {
         ) else restoreExtendedKey(nodeNetwork, mnemonic, password)
     }
 
-    fun createXprv(mnemonic: String, password: String? = null): String {
+    fun generateMnemonic(
+        wordCount: Number = 12
+    ): String {
+        var number: WordCount;
+        when (wordCount) {
+            12 -> number = WordCount.WORDS12
+            15 -> number = WordCount.WORDS15
+            18 -> number = WordCount.WORDS18
+            21 -> number = WordCount.WORDS21
+            24 -> number = WordCount.WORDS24
+            else -> {
+                number = WordCount.WORDS12
+            }
+        }
         try {
-            val keys: ExtendedKeyInfo = seed(true, mnemonic, password)
-            return keys.xprv
+            return generateExtendedKey(Network.TESTNET, number, "").mnemonic;
+        } catch (error: Throwable){
+            throw error
+        }
+    }
+
+    fun createExtendedKey(network: Network, mnemonic: String, password: String? = null): Map<String, Any?> {
+        try {
+            val keysInfo: ExtendedKeyInfo = restoreExtendedKey(network, mnemonic, password)
+            val responseObject = mutableMapOf<String, Any?>()
+            responseObject["fingerprint"] = keysInfo.fingerprint
+            responseObject["mnemonic"] = keysInfo.mnemonic
+            responseObject["xprv"] = keysInfo.xprv
+            return responseObject
         } catch (error: Throwable) {
             throw error
         }

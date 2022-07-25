@@ -7,8 +7,9 @@ import {
   createWalletRequest,
   createWalletResponse,
   Response,
-  CreateXprvRequest,
   CreateDescriptorRequest,
+  GenerateExtendedKeyRequest,
+  GenerateExtendedKeyResponse,
 } from './lib/interfaces';
 
 class BdkInterface {
@@ -22,19 +23,24 @@ class BdkInterface {
    * Generate mnemonic seed phrase of specified entropy and length
    * @return {Promise<Response>}
    */
-   async generateMnemonic(args: GenerateMnemonicRequest): Promise<Response> {
+  async generateMnemonic(args: GenerateMnemonicRequest): Promise<Response> {
     try {
       const entropyToLength = {
-        '128':12,'160':15,'192':18,'224':21,'256':24
-      }
+        '128': 12,
+        '160': 15,
+        '192': 18,
+        '224': 21,
+        '256': 24,
+      };
       let entropy = undefined;
-      let wordCount = undefined
-      if (args.entropy && args.length) 
-        {wordCount = entropyToLength[args.entropy]}
-      else if(!args.entropy && !args.length ) 
-        {wordCount = 12}
-      else 
-        {wordCount = args.length}
+      let wordCount = undefined;
+      if (args.entropy && args.length) {
+        wordCount = entropyToLength[args.entropy];
+      } else if (!args.entropy && !args.length) {
+        wordCount = 12;
+      } else {
+        wordCount = args.length;
+      }
 
       const seed: string = await this._bdk.generateMnemonic(wordCount);
       return success(seed);
@@ -44,29 +50,30 @@ class BdkInterface {
   }
 
   /**
-   * Gen seed of 12 words
+   * Generate extended key from netowrk, seed and password
    * @return {Promise<Response>}
    */
-  async genSeed(args: GenSeedRequest): Promise<Response> {
+  async generateExtendedKey(args: GenerateExtendedKeyRequest): Promise<Response> {
     try {
-      const { password } = args;
-      const seed: string = await this._bdk.genSeed(password);
-      return success(seed);
+      const { network, mnemonic, password } = args;
+      const keyInfo: string = await this._bdk.getExtendedKeyInfo(network, mnemonic, password);
+      return success(keyInfo);
     } catch (e: any) {
       return failure(e);
     }
   }
 
   /**
-   * Create xprv from seed and password
+   * Generate extended key from netowrk, seed and password
    * @return {Promise<Response>}
    */
-  async createXprv(args: CreateXprvRequest): Promise<Response> {
+  async generateXprv(args: GenerateExtendedKeyRequest): Promise<Response> {
     try {
-      const { mnemonic, password } = args;
-      const descriptor: string = await this._bdk.createXprv(mnemonic, password);
-      return success(descriptor);
+      const { network, mnemonic, password } = args;
+      const keyInfo: GenerateExtendedKeyResponse = await this._bdk.getExtendedKeyInfo(network, mnemonic, password);
+      return success(keyInfo.xprv);
     } catch (e: any) {
+      console.log(e)
       return failure(e);
     }
   }
@@ -77,12 +84,12 @@ class BdkInterface {
    */
   async createDescriptor(args: CreateDescriptorRequest): Promise<Response> {
     try {
-      const { type, useMnemonic, mnemonic, password, publicKeys, thresold } = args;
+      const { type, useMnemonic, mnemonic, password, network, publicKeys, thresold } = args;
       let xprv = args.xprv;
       let path = args.path;
       if (useMnemonic) {
         if (!_exists(mnemonic)) throw 'Mnemonic seed is required';
-        xprv = await (await this.createXprv({ mnemonic, password })).data;
+        xprv = await (await this.generateXprv({ network, mnemonic, password })).data;
       }
       if (!useMnemonic && !_exists(xprv)) throw 'XPRV is required';
       if (!_exists(path)) path = "/84'/1'/0'/0/*";

@@ -12,6 +12,8 @@ A React Native version of the Bitcon Development Kit (https://bitcoindevkit.org/
 
 Using npm:
 
+Using npm:
+
 ```bash
 $ npm i git+https://github.com/LtbLightning/bdk-rn.git
 ```
@@ -63,8 +65,8 @@ _BdkRn.genSeed({password: ''})_
 | Method                                                  | Request Parameters                                           |
 | ------------------------------------------------------- | ------------------------------------------------------------ |
 | [generateMnemonic()](generateMnemonic())                | {entropy, length}                                            |
-| [genSeed()](#genseed)                                   | {password}                                                   |
-| [createXprv()](#createXprv)                             | {seed, password}                                             |
+| [generateExtendedKey()](#generateExtendedKey())         | {network, mnemonic, password}                                |
+| [createXprv()](#createXprv)                             | {network, mnemonic, password}                                |
 | [createWallet()](#createWallet)                         | {mnemonic,password,network,blockChainConfigUrl,blockChainSocket5,retry,timeOut,blockChainName,descriptor,useDescriptor} |
 | [getNewAddress()](#getnewaddress)                       | -                                                            |
 | [getBalance()](#getbalance)                             | -                                                            |
@@ -78,6 +80,7 @@ _BdkRn.genSeed({password: ''})_
 
 Generate random mnemonic seed phrase.
 Reference: https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki#generating-the-mnemonic
+
 This will generate a mnemonic sentence from the english word list. 
 The required entropy can be specified as the `entropy` parameter and can be in multiples of 32 from 128 to 256, 128 is used as default.
 A word count or length for can be specified instead as the `length` parameter and can be in multiples of 3 from 12 to 24. 12 is used as default.
@@ -97,24 +100,35 @@ const response = await BdkRn.generateMnemonic( {entropy: 192} );
 
 ---
 
-### genSeed()
+### generateExtendedKey()
 
-Generate random 12 words seed.
-https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki#generating-the-mnemonic
+This method will create a ExtendedKeyInfo object using the specified mnemonic seed phrase and password
+ExtendedKeyInfo creates a key object which encapsulates the mnemonic and adds a private key using the mnemonic and password.
+
+The extended key info object is required to be passed as an argument in some bdk methods.
 
 ```js
-const response = await BdkRn.genSeed({ password: '' });
-// daring erase travel point pull loud peanut apart attack lobster cross surprise
+const key = await BdkRn.generateExtendedKey({ 
+  	network: Network.TESTNET
+		mnemonic: 'daring erase travel point pull loud peanut apart attack lobster cross surprise', 
+  	password: '' 
+	});
+
+// {
+// 		fingerprint: 'ZgUK9QXJRYCwnCtYL',
+//		mnemonic: 'daring erase travel point pull loud peanut apart attack lobster cross surprise',
+//		xpriv: 'tprv8ZgxMBicQKsPd3G66kPkZEuJZgUK9QXJRYCwnCtYLJjEZmw8xFjCxGoyx533AL83XFcSQeuVmVeJbZai5RTBxDp71Abd2FPSyQumRL79BKw'
+// }
 ```
 
 ---
 
 ### createXprv()
 
-Create descriptor using seed and password.
+Create descriptor using mnemonic  phrase and password.
 
 ```js
-const response = await BdkRn.createXprv({ seed: '', password: '' });
+const response = await BdkRn.createXprv({ network: Network.TESTNET, mnemonic: '', password: '' });
 // tprv8ZgxMBicQKsPd3G66kPkZEuJZgUK9QXJRYCwnCtYLJjEZmw8xFjCxGoyx533AL83XFcSQeuVmVeJbZai5RTBxDp71Abd2FPSyQumRL79BKw
 ```
 
@@ -126,38 +140,38 @@ Initialize wallet, returns new address and current balance.
 
 _*useDescriptor*_ is ethier true or false. Need to pass value in _descriptor_ field if set True else need to pass value in _mnemonic_.
 
-_Init with mnemonic_
+_createWallet with mnemonic_
 
 ```js
 const response = await BdkRn.createWallet({
   mnemonic: 'daring erase travel point pull loud peanut apart attack lobster cross surprise',
   password: '',
+	descriptor: '',
+  useDescriptor: false,
   network: '',
   blockChainConfigUrl: '',
   blockChainSocket5: '',
   retry: '',
   timeOut: '',
-  blockChainName: '',
-  descriptor: '',
-  useDescriptor: false,
+  blockChainName: ''
 });
 ```
 
-_Init with descriptor_
+_createWallet with descriptor_
 
 ```js
 const response = await BdkRn.createWallet({
   mnemonic: '',
+  descriptor:
+    'tprv8ZgxMBicQKsPd3G66kPkZEuJZgUK9QXJRYCwnCtYLJjEZmw8xFjCxGoyx533AL83XFcSQeuVmVeJbZai5RTBxDp71Abd2FPSyQumRL79BKw',
+  useDescriptor: true,
   password: '',
   network: '',
   blockChainConfigUrl: '',
   blockChainSocket5: '',
   retry: '',
   timeOut: '',
-  blockChainName: '',
-  descriptor:
-    'tprv8ZgxMBicQKsPd3G66kPkZEuJZgUK9QXJRYCwnCtYLJjEZmw8xFjCxGoyx533AL83XFcSQeuVmVeJbZai5RTBxDp71Abd2FPSyQumRL79BKw',
-  useDescriptor: true,
+  blockChainName: ''
 });
 ```
 

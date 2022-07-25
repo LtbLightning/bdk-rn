@@ -126,20 +126,15 @@ class BdkFunctions: NSObject {
         }
     }
 
-
-    func genSeed(password: String? = nil) throws -> String {
+    func createExtendedKey(network: Network, mnemonic: String, password: String? = nil) throws -> [String: Any?] {
         do {
-            let seed = try seed(recover: false, mnemonic: "")
-            return seed.mnemonic
-        } catch {
-            throw error
-        }
-    }
-
-    func createXprv(mnemonic: String, password: String? = nil) throws -> String {
-        do {
-            let keys: ExtendedKeyInfo = try seed(recover: true, mnemonic: mnemonic, password: password)
-            return keys.xprv
+            let keysInfo: ExtendedKeyInfo = try restoreExtendedKey(network: network, mnemonic: mnemonic, password: password)
+            let responseObject = [
+                "fingerprint": keysInfo.fingerprint,
+                "mnemonic": keysInfo.mnemonic,
+                "xprv": keysInfo.xprv
+            ] as [String: Any]
+            return responseObject
         } catch {
             throw error
         }
@@ -159,8 +154,8 @@ class BdkFunctions: NSObject {
         do {
             var newDescriptor = "";
             if(descriptor == ""){
-                newDescriptor = try createXprv(mnemonic: mnemonic, password: password);
-                newDescriptor = createDefaultDescriptor(xprv: newDescriptor)
+                let keyInfo = try seed(recover: true, mnemonic: mnemonic, password: password)
+                newDescriptor = createDefaultDescriptor(xprv: keyInfo.xprv)
             } else {
                 newDescriptor = descriptor ?? ""
             }
@@ -219,7 +214,6 @@ class BdkFunctions: NSObject {
         do {
 
             try! self.wallet.sync(blockchain: Blockchain.init(config: blockchainConfig), progress: BdkProgress())
-
             let balance = try self.wallet.getBalance()
             return String(balance)
         }

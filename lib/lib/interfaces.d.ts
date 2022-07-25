@@ -5,13 +5,19 @@ export interface Response {
 export interface GenerateMnemonicRequest {
     entropy?: 128 | 160 | 192 | 224 | 256;
     length?: 12 | 15 | 18 | 21 | 24;
-  }
+}
 export interface GenSeedRequest {
     password?: string;
 }
-export interface CreateXprvRequest {
+export interface GenerateExtendedKeyRequest {
+    network?: string;
     mnemonic: string;
     password?: string;
+}
+export interface GenerateExtendedKeyResponse {
+    fingerprint: string;
+    mnemonic: string;
+    xprv: string;
 }
 export declare type WPKH = 'default' | null | '' | 'p2wpkh' | 'wpkh';
 export declare type P2PKH = 'p2pkh' | 'pkh';
@@ -35,6 +41,10 @@ export interface CreateDescriptorRequest {
      * Required if useMnemonic: true
      */
     password?: string;
+    /**
+     * Required if useMnemonic: true
+     */
+    network?: 'bitcoin' | 'testnet' | 'signet' | 'regtest';
     /**
      * If want to use custom path instead of default(/84'/1'/0'/0/*)
      */
