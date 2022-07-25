@@ -38,7 +38,7 @@ import BdkRn from 'bdk-rn';
 
 // ...
 
-await BdkRn.walletExists();
+await BdkRn.genSeed({ password: '' });
 ```
 
 ## Library API
@@ -58,19 +58,18 @@ Promise<Response> = {
 
 Following methods can be used with this module. All methods can be called by **_BdkRn_** object. Parameters with asterisk(\*)\*\* are mandatory.
 
-_BdkRn.walletExists()_ OR _BdkRn.genSeed()_
+_BdkRn.genSeed({password: ''})_
 
-| Method                            | Request Parameters                                |
-| --------------------------------- | ------------------------------------------------- |
-| [genSeed()](#genseed)             | password                                          |
-| [walletExists()](#walletexists)   | -                                                 |
-| [unlockWallet()](#unlockwallet)   | -                                                 |
-| [createWallet()](#createwallet)   | mnemonic, password                                |
-| [restoreWallet()](#restorewallet) | mnemonic\*, password                              |
-| [resetWallet()](#resetwallet)     | -                                                 |
-| [getNewAddress()](#getnewaddress) | -                                                 |
-| [getBalance()](#getbalance)       | -                                                 |
-| [broadcastTx()](#broadcasttx)     | address*(recipient wallet address), amount*(sats) |
+| Method                                  | Request Parameters                                                                                                      |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| [genSeed()](#genseed)                   | {password}                                                                                                              |
+| [createDescriptor()](#createdescriptor) | {seed, password}                                                                                                        |
+| [initWallet()](#initwallet)             | {mnemonic,password,network,blockChainConfigUrl,blockChainSocket5,retry,timeOut,blockChainName,descriptor,useDescriptor} |
+| [getNewAddress()](#getnewaddress)       | -                                                                                                                       |
+| [getBalance()](#getbalance)             | -                                                                                                                       |
+| [broadcastTx()](#broadcasttx)           | {address, amount}                                                                                                       |
+| [getPendingTransactions()](#getpendingtransactions)             | {address, amount}                                                                                                       |
+| [getConfirmedTransactions()](#getconfirmedtransactions)            | {address, amount}                                                                                                       |
 
 ---
 
@@ -79,68 +78,62 @@ _BdkRn.walletExists()_ OR _BdkRn.genSeed()_
 Generate random 12 words seed.
 
 ```js
-const response = await BdkRn.genSeed();
+const response = await BdkRn.genSeed({ password: '' });
 // daring erase travel point pull loud peanut apart attack lobster cross surprise
 ```
 
 ---
 
-### walletExists()
+### createDescriptor()
 
-Check if wallet already exists or not.
+Create descriptor using seed and password.
 
 ```js
-const response = await BdkRn.walletExists();
-// true | false
+const response = await BdkRn.createDescriptor({ seed: '', password: '' });
+// tprv8ZgxMBicQKsPd3G66kPkZEuJZgUK9QXJRYCwnCtYLJjEZmw8xFjCxGoyx533AL83XFcSQeuVmVeJbZai5RTBxDp71Abd2FPSyQumRL79BKw
 ```
 
 ---
 
-### unlockWallet()
+### initWallet()
 
-Unlock wallet if already exists.
+Initialize wallet, returns new address and current balance.
+
+_*useDescriptor*_ is ethier true or false. Need to pass value in _descriptor_ field if set True else need to pass value in _mnemonic_.
+
+_Init with mnemonic_
 
 ```js
-const response = await BdkRn.unlockWallet();
-// true | false
+const response = await BdkRn.initWallet({
+  mnemonic: 'daring erase travel point pull loud peanut apart attack lobster cross surprise',
+  password: '',
+  network: '',
+  blockChainConfigUrl: '',
+  blockChainSocket5: '',
+  retry: '',
+  timeOut: '',
+  blockChainName: '',
+  descriptor: '',
+  useDescriptor: false,
+});
 ```
 
----
-
-### createWallet()
-
-Create new wallet.
-
-User can specify their custom mnemonic and password OR can generate from genSeed() method and pass to createWallet.
-If mnemonic and password are not passed then mnemonic will be generate automatically and empty password will be applied to createWallet.
-Return mnemonic and new address after successful of createWallet.
+_Init with descriptor_
 
 ```js
-const response = await BdkRn.createWallet(mnemonic, password);
-```
-
-Returned response example:
-
-```js
-{
-  "data": {
-    "address": "tb1qxg8g8cdzgs09cttu3y7lc33udqc4wsesunjnhe",
-    "mnemonic": "clown habit life issue grief knee wide flash club sea card control"
-  },
-  "error": false
-}
-```
-
----
-
-### restoreWallet()
-
-_mnemonic is required param. password is optional but must applied if passed while createWallet_.
-
-Restore existing wallet and return new wallet address and current balance.
-
-```js
-const response = await BdkRn.restoreWallet(mnemonic, password);
+const response = await BdkRn.initWallet({
+  mnemonic: '',
+  password: '',
+  network: '',
+  blockChainConfigUrl: '',
+  blockChainSocket5: '',
+  retry: '',
+  timeOut: '',
+  blockChainName: '',
+  descriptor:
+    'tprv8ZgxMBicQKsPd3G66kPkZEuJZgUK9QXJRYCwnCtYLJjEZmw8xFjCxGoyx533AL83XFcSQeuVmVeJbZai5RTBxDp71Abd2FPSyQumRL79BKw',
+  useDescriptor: true,
+});
 ```
 
 Returned response example:
@@ -153,17 +146,6 @@ Returned response example:
   },
   "error": false
 }
-```
-
----
-
-### resetWallet()
-
-Wipe out everything from app either created new wallet or restored existing one.
-
-```js
-const response = await BdkRn.resetWallet();
-// true | false
 ```
 
 ---
@@ -203,9 +185,9 @@ Used to send sats to given address.
 Required params: address, amount
 
 ```js
-let address = 'tb1qhmk3ftsyctxf2st2fwnprwc0gl708f685t0j3t'; // Wallet address
-let amount = '2000'; // amount in satoshis
-const response = await BdkRn.broadcastTx(address, amount);
+let address: string = 'tb1qhmk3ftsyctxf2st2fwnprwc0gl708f685t0j3t'; // Wallet address
+let amount: number = 2000; // amount in satoshis
+const response = await BdkRn.broadcastTx({ address, amount });
 ```
 
 ```js
@@ -213,6 +195,34 @@ const response = await BdkRn.broadcastTx(address, amount);
   "data": "1162badd3d98b97b1c6bb7fc160b7789163c0fcaef99ad841ad8febeb1395864", // transaction id
   "error": false
 }
+```
+
+---
+
+### getPendingTransactions()
+
+Get pending transactions
+
+```js
+const response = await BdkRn.getPendingTransactions();
+```
+
+```js
+[{}];
+```
+
+---
+
+### getConfirmedTransactions()
+
+Get confirmed transactions
+
+```js
+const response = await BdkRn.getConfirmedTransactions();
+```
+
+```js
+[{}];
 ```
 
 ---
