@@ -1,7 +1,13 @@
-import { BroadcastTransactionRequest, GenSeedRequest, createWalletRequest, Response, CreateXprvRequest, CreateDescriptorRequest } from './lib/interfaces';
+import { BroadcastTransactionRequest, GenerateMnemonicRequest, GenSeedRequest, createWalletRequest, Response, CreateXprvRequest, CreateDescriptorRequest } from './lib/interfaces';
 declare class BdkInterface {
     _bdk: any;
     constructor();
+    /**
+     * Generate mnemonic seed phrase of specified entropy or length
+     * Use 12 word length by default
+     * @return {Promise<Response>}
+     */
+     generateMnemonic(args: GenerateMnemonicRequest): Promise<Response>;
     /**
      * Gen seed of 12 words
      * @return {Promise<Response>}

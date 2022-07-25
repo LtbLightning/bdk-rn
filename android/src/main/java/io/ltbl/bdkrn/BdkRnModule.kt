@@ -11,6 +11,17 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         return hashMapOf("count" to 1)
     }
 
+
+    @ReactMethod
+    fun generateMnemonic(wordCount: Byte?, result: Promise) {
+        try {
+            val mnemonic = BdkFunctions.generateMnemonic(wordCount)
+            result.resolve(mnemonic)
+        } catch (error: Throwable) {
+            return result.reject("Generate Mnemonic Error", error.localizedMessage, error)
+        }
+    }
+
     @ReactMethod
     fun genSeed(password: String?, result: Promise) {
         try {

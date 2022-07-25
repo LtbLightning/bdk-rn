@@ -3,6 +3,7 @@ import { failure, success, _exists } from './lib/utils';
 import {
   BroadcastTransactionRequest,
   GenSeedRequest,
+  GenerateMnemonicRequest,
   createWalletRequest,
   createWalletResponse,
   Response,
@@ -15,6 +16,31 @@ class BdkInterface {
 
   constructor() {
     this._bdk = NativeModules.BdkRnModule;
+  }
+
+  /**
+   * Generate mnemonic seed phrase of specified entropy and length
+   * @return {Promise<Response>}
+   */
+   async generateMnemonic(args: GenerateMnemonicRequest): Promise<Response> {
+    try {
+      const entropyToLength = {
+        '128':12,'160':15,'192':18,'224':21,'256':24
+      }
+      let entropy = undefined;
+      let wordCount = undefined
+      if (args.entropy && args.length) 
+        {wordCount = entropyToLength[args.entropy]}
+      else if(!args.entropy && !args.length ) 
+        {wordCount = 12}
+      else 
+        {wordCount = args.length}
+
+      const seed: string = await this._bdk.generateMnemonic(wordCount);
+      return success(seed);
+    } catch (e: any) {
+      return failure(e);
+    }
   }
 
   /**

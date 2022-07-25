@@ -253,6 +253,21 @@ object BdkFunctions {
         return descriptor.replace("/84'/1'/0'/0/*", "/84'/1'/0'/1/*")
     }
 
+    fun generateMnemonic(
+        wordCount: Byte = 12
+    ): String {
+        when (wordCount) {
+            12 -> return WordCount.WORDS12
+            15 -> return WordCount.WORDS15
+            18 -> return WordCount.WORDS18
+            21 -> return WordCount.WORDS21
+            24 -> return WordCount.WORDS24
+            else -> {
+                return WordCount.WORDS12
+            }
+        }
+    }
+
     fun seed(
         recover: Boolean = false,
         mnemonic: String = "",

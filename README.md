@@ -60,22 +60,47 @@ Following methods can be used with this module. All methods can be called by **_
 
 _BdkRn.genSeed({password: ''})_
 
-| Method                                  | Request Parameters                                                                                                      |
-| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| [genSeed()](#genseed)                   | {password}                                                                                                              |
-| [createXprv()](#createXprv) | {seed, password}                                                                                                        |
-| [createWallet()](#createWallet)             | {mnemonic,password,network,blockChainConfigUrl,blockChainSocket5,retry,timeOut,blockChainName,descriptor,useDescriptor} |
-| [getNewAddress()](#getnewaddress)       | -                                                                                                                       |
-| [getBalance()](#getbalance)             | -                                                                                                                       |
-| [broadcastTx()](#broadcasttx)           | {address, amount}                                                                                                       |
-| [getPendingTransactions()](#getpendingtransactions)             | {address, amount}                                                                                                       |
-| [getConfirmedTransactions()](#getconfirmedtransactions)            | {address, amount}                                                                                                       |
+| Method                                                  | Request Parameters                                           |
+| ------------------------------------------------------- | ------------------------------------------------------------ |
+| [generateMnemonic()](generateMnemonic())                | {entropy, length}                                            |
+| [genSeed()](#genseed)                                   | {password}                                                   |
+| [createXprv()](#createXprv)                             | {seed, password}                                             |
+| [createWallet()](#createWallet)                         | {mnemonic,password,network,blockChainConfigUrl,blockChainSocket5,retry,timeOut,blockChainName,descriptor,useDescriptor} |
+| [getNewAddress()](#getnewaddress)                       | -                                                            |
+| [getBalance()](#getbalance)                             | -                                                            |
+| [broadcastTx()](#broadcasttx)                           | {address, amount}                                            |
+| [getPendingTransactions()](#getpendingtransactions)     | {address, amount}                                            |
+| [getConfirmedTransactions()](#getconfirmedtransactions) | {address, amount}                                            |
+
+---
+
+### generateMnemomic()
+
+Generate random mnemonic seed phrase.
+Reference: https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki#generating-the-mnemonic
+This will generate a mnemonic sentence from the english word list. 
+The required entropy can be specified as the `entropy` parameter and can be in multiples of 32 from 128 to 256, 128 is used as default.
+A word count or length for can be specified instead as the `length` parameter and can be in multiples of 3 from 12 to 24. 12 is used as default.
+
+When both entropy and length are specified, entropy is used and length is ignored.
+
+```js
+// using default values
+const response = await BdkRn.generateMnemonic();
+// daring erase travel point pull loud peanut apart attack lobster cross surprise
+
+// Specifying entropy of 192 which is the same as specifying length as 18
+const response = await BdkRn.generateMnemonic( {entropy: 192} );
+// daring erase travel point pull loud peanut apart attack lobster cross surprise actress dolphin gift journey mystery save
+
+```
 
 ---
 
 ### genSeed()
 
 Generate random 12 words seed.
+https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki#generating-the-mnemonic
 
 ```js
 const response = await BdkRn.genSeed({ password: '' });

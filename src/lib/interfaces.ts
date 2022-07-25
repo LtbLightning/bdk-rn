@@ -3,9 +3,15 @@ export interface Response {
   data: any;
 }
 
+export interface GenerateMnemonicRequest {
+  entropy?: 128 | 160 | 192 | 224 | 256;
+  length?: 12 | 15 | 18 | 21 | 24;
+}
+
 export interface GenSeedRequest {
   password?: string;
 }
+
 export interface CreateXprvRequest {
   mnemonic: string;
   password?: string;
