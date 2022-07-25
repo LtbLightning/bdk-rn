@@ -64,7 +64,7 @@ _BdkRn.genSeed({password: ''})_
 
 | Method                                                  | Request Parameters                                           |
 | ------------------------------------------------------- | ------------------------------------------------------------ |
-| [generateMnemonic()](generateMnemonic())                | {entropy, length}                                            |
+| [generateMnemonic()](#generateMnemonic())                | {entropy, length}                                            |
 | [generateExtendedKey()](#generateExtendedKey())         | {network, mnemonic, password}                                |
 | [createXprv()](#createXprv)                             | {network, mnemonic, password}                                |
 | [createWallet()](#createWallet)                         | {mnemonic,password,network,blockChainConfigUrl,blockChainSocket5,retry,timeOut,blockChainName,descriptor,useDescriptor} |
