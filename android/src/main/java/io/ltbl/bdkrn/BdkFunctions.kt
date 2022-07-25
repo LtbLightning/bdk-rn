@@ -35,7 +35,7 @@ object BdkFunctions {
     private fun initWallet(): BdkWallet {
         val key: ExtendedKeyInfo = seed(false, "default mnemonic", "password")
         createRestoreWallet(
-            key,
+            key.xprv,
             null,
             "",
             "",
@@ -47,12 +47,12 @@ object BdkFunctions {
     }
 
     private fun createRestoreWallet(
-        keys: ExtendedKeyInfo, network: String?,
+        defaultDescriptor: String, network: String?,
         blockChainConfigUrl: String, blockChainSocket5: String?,
         retry: String?, timeOut: String?, blockChainName: String?
     ) {
         try {
-            val descriptor: String = createDefaultDescriptor(keys)
+            val descriptor: String = createDefaultDescriptor(defaultDescriptor)
             val changeDescriptor: String = createChangeDescriptorFromDescriptor(descriptor)
             val config = createDatabaseConfig(
                 blockChainConfigUrl,
@@ -76,18 +76,21 @@ object BdkFunctions {
     fun initWallet(
         mnemonic: String, password: String?, network: String?,
         blockChainConfigUrl: String, blockChainSocket5: String?,
-        retry: String?, timeOut: String?, blockChainName: String?
+        retry: String?, timeOut: String?, blockChainName: String?, descriptor: String = ""
     ): Map<String, Any?> {
         try {
-            val keys: ExtendedKeyInfo = seed(true, mnemonic, password)
+            var newDescriptor = "";
+            if(descriptor == ""){
+                newDescriptor = createDescriptor( mnemonic, password);
+            }
+            val finalDescriptor: String  = if(descriptor!="") descriptor else newDescriptor
             createRestoreWallet(
-                keys, network, blockChainConfigUrl, blockChainSocket5, retry,
+                finalDescriptor, network, blockChainConfigUrl, blockChainSocket5, retry,
                 timeOut, blockChainName
             )
             val responseObject = mutableMapOf<String, Any?>()
             responseObject["address"] = getNewAddress()
             responseObject["balance"] = wallet.getBalance().toString()
-            Log.i(responseObject.toString(), "Progress Log Restore Success")
             return responseObject
         } catch (error: Throwable) {
             throw(error)
@@ -114,7 +117,6 @@ object BdkFunctions {
 
     fun getBalance(): String {
         try {
-            Log.i(wallet.getBalance().toString(), "Progress Log Balance")
             return this.wallet.getBalance().toString()
         } catch (error: Throwable) {
             throw(error)
@@ -186,9 +188,7 @@ object BdkFunctions {
     fun resetWallet(): Boolean {
         try {
             wallet.destroy()
-            Log.i(wallet.toString(), "Progress Log resetWallet Success")
             return true
-
         } catch (error: Throwable) {
             throw(error)
         }
@@ -205,8 +205,8 @@ object BdkFunctions {
     // Bitcoin js functions
 
     //Generate a SegWit address descriptor
-    private fun createDefaultDescriptor(keys: ExtendedKeyInfo): String {
-        return "wpkh(" + keys.xprv + "/84'/1'/0'/0/*)"
+    private fun createDefaultDescriptor(xprv: String): String {
+        return "wpkh(" + xprv + "/84'/1'/0'/0/*)"
     }
 
     // Generate a SegWit P2SH address descriptor

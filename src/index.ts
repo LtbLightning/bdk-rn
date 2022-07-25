@@ -64,6 +64,8 @@ class BdkInterface {
       } = args;
       if (useDescriptor && !_exists(descriptor)) throw 'Required descriptor parameter is emtpy.';
       if (!useDescriptor && !_exists(mnemonic)) throw 'Required mnemonic parameter is emtpy.';
+      if (useDescriptor && descriptor?.split(' ').length > 1) throw 'Descriptor is not valid.';
+
       const wallet: InitWalletResponse = await this._bdk.initWallet(
         mnemonic,
         password,

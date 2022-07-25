@@ -2,6 +2,7 @@ package io.ltbl.bdkrn
 
 import android.util.Log
 import com.facebook.react.bridge.*
+import java.io.FileDescriptor
 
 class BdkRnModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -40,6 +41,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         retry: String?,
         timeOut: String?,
         blockChain: String?,
+        descriptor: String = "",
         result: Promise
     ) {
         try {
@@ -52,7 +54,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     blockChainSocket5,
                     retry,
                     timeOut,
-                    blockChain
+                    blockChain,
+                    descriptor
                 )
             result.resolve(Arguments.makeNativeMap(responseObject))
         } catch (error: Throwable) {
