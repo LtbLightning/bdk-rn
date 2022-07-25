@@ -1,4 +1,4 @@
-import { BroadcastTransactionRequest, CreateDescriptorRequest, GenSeedRequest, InitWalletRequest, Response } from './lib/interfaces';
+import { BroadcastTransactionRequest, GenSeedRequest, createWalletRequest, Response, CreateXprvRequest, CreateDescriptorRequest } from './lib/interfaces';
 declare class BdkInterface {
     _bdk: any;
     constructor();
@@ -8,7 +8,12 @@ declare class BdkInterface {
      */
     genSeed(args: GenSeedRequest): Promise<Response>;
     /**
-     * Create descriptor from seed and password
+     * Create xprv from seed and password
+     * @return {Promise<Response>}
+     */
+    createXprv(args: CreateXprvRequest): Promise<Response>;
+    /**
+     * Create descriptor based on different parameters
      * @return {Promise<Response>}
      */
     createDescriptor(args: CreateDescriptorRequest): Promise<Response>;
@@ -16,7 +21,7 @@ declare class BdkInterface {
      * Init wallet
      * @return {Promise<Response>}
      */
-    initWallet(args: InitWalletRequest): Promise<Response>;
+    createWallet(args: createWalletRequest): Promise<Response>;
     /**
      * Get new address
      * @return {Promise<Response>}

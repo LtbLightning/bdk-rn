@@ -30,14 +30,14 @@ class BdkRnModule: NSObject {
     }
     
     @objc
-    func createDescriptor(_
+    func createXprv(_
         mnemonic: String,
         password: String? = nil,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let response = try bdkFunctions.createDescriptor(mnemonic:mnemonic, password: password)
+            let response = try bdkFunctions.createXprv(mnemonic:mnemonic, password: password)
             resolve(response)
         } catch let error {
             reject("Create descriptor error", error.localizedDescription, error)
@@ -45,7 +45,7 @@ class BdkRnModule: NSObject {
     }
 
     @objc
-    func initWallet(_
+    func createWallet(_
         mnemonic: String,
         password: String? = nil,
         network: String? = nil,
@@ -59,7 +59,7 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let responseObject = try bdkFunctions.initWallet(
+            let responseObject = try bdkFunctions.createWallet(
                 mnemonic: mnemonic,
                 password: password,
                 network: network,

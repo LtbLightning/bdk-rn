@@ -34,8 +34,9 @@ object BdkFunctions {
     // use
     private fun initWallet(): BdkWallet {
         val key: ExtendedKeyInfo = seed(false, "default mnemonic", "password")
+        val descriptor = createDefaultDescriptor(key.xprv)
         createRestoreWallet(
-            key.xprv,
+            descriptor,
             null,
             "",
             "",
@@ -47,12 +48,11 @@ object BdkFunctions {
     }
 
     private fun createRestoreWallet(
-        defaultDescriptor: String, network: String?,
+        descriptor: String, network: String?,
         blockChainConfigUrl: String, blockChainSocket5: String?,
         retry: String?, timeOut: String?, blockChainName: String?
     ) {
         try {
-            val descriptor: String = createDefaultDescriptor(defaultDescriptor)
             val changeDescriptor: String = createChangeDescriptorFromDescriptor(descriptor)
             val config = createDatabaseConfig(
                 blockChainConfigUrl,
@@ -73,7 +73,7 @@ object BdkFunctions {
         }
     }
 
-    fun initWallet(
+    fun createWallet(
         mnemonic: String, password: String?, network: String?,
         blockChainConfigUrl: String, blockChainSocket5: String?,
         retry: String?, timeOut: String?, blockChainName: String?, descriptor: String = ""
@@ -81,7 +81,8 @@ object BdkFunctions {
         try {
             var newDescriptor = "";
             if(descriptor == ""){
-                newDescriptor = createDescriptor( mnemonic, password);
+                newDescriptor = createXprv( mnemonic, password);
+                newDescriptor = createDefaultDescriptor(newDescriptor);
             }
             val finalDescriptor: String  = if(descriptor!="") descriptor else newDescriptor
             createRestoreWallet(
@@ -209,6 +210,8 @@ object BdkFunctions {
         return "wpkh(" + xprv + "/84'/1'/0'/0/*)"
     }
 
+
+
     // Generate a SegWit P2SH address descriptor
     private fun createP2SHP2WPKHDescriptor(
         mnemonic: String = "",
@@ -233,6 +236,7 @@ object BdkFunctions {
         val keys: ExtendedKeyInfo = seed(true, mnemonic, password)
         return "sh(multi(2" + keys.xprv + "," + recipientPublicKey + "/84'/1'/0'/0/*))"
     }
+
 
     private fun createP2SH3of4MultisigDescriptor(
         mnemonic: String = "",
@@ -261,7 +265,7 @@ object BdkFunctions {
         ) else restoreExtendedKey(nodeNetwork, mnemonic, password)
     }
 
-    fun createDescriptor(mnemonic: String, password: String? = null): String {
+    fun createXprv(mnemonic: String, password: String? = null): String {
         try {
             val keys: ExtendedKeyInfo = seed(true, mnemonic, password)
             return keys.xprv

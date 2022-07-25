@@ -22,9 +22,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun createDescriptor(mnemonic: String, password: String? = null, result: Promise) {
+    fun createXprv(mnemonic: String, password: String? = null, result: Promise) {
         try {
-            val descriptor = BdkFunctions.createDescriptor(mnemonic, password)
+            val descriptor = BdkFunctions.createXprv(mnemonic, password)
             result.resolve(descriptor)
         } catch (error: Throwable) {
             return result.reject("Create descriptor error", error.localizedMessage, error)
@@ -32,7 +32,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun initWallet(
+    fun createWallet(
         mnemonic: String,
         password: String?,
         network: String?,
@@ -46,7 +46,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     ) {
         try {
             val responseObject =
-                BdkFunctions.initWallet(
+                BdkFunctions.createWallet(
                     mnemonic,
                     password,
                     network,

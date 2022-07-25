@@ -76,7 +76,7 @@ class BdkFunctions: NSObject {
     }
 
     private func createRestoreWallet(
-        defaultDescriptor: String,
+        descriptor: String,
         network: String,
         blockChainConfigUrl: String?,
         blockChainSocket5: String?,
@@ -85,7 +85,6 @@ class BdkFunctions: NSObject {
         blockChainName: String?
     ) throws -> Wallet {
         do {
-            let descriptor: String = createDefaultDescriptor(xprv: defaultDescriptor)
             let changeDescriptor: String = createChangeDescriptor(descriptor: descriptor)
             let config: BlockchainConfig = createDatabaseConfig(blockChainConfigUrl: blockChainConfigUrl, blockChainSocket5: blockChainSocket5, retry: retry, timeOut: timeOut, blockChainName: blockChainName)
             let walletNetwork: Network = setNetwork(networkStr: network)
@@ -137,7 +136,7 @@ class BdkFunctions: NSObject {
         }
     }
 
-    func createDescriptor(mnemonic: String, password: String? = nil) throws -> String {
+    func createXprv(mnemonic: String, password: String? = nil) throws -> String {
         do {
             let keys: ExtendedKeyInfo = try seed(recover: true, mnemonic: mnemonic, password: password)
             return keys.xprv
@@ -146,7 +145,7 @@ class BdkFunctions: NSObject {
         }
     }
 
-    func initWallet(
+    func createWallet(
         mnemonic: String,
         password: String? = nil,
         network: String?,
@@ -160,10 +159,13 @@ class BdkFunctions: NSObject {
         do {
             var newDescriptor = "";
             if(descriptor == ""){
-                newDescriptor = try createDescriptor(mnemonic: mnemonic, password: password);
+                newDescriptor = try createXprv(mnemonic: mnemonic, password: password);
+                newDescriptor = createDefaultDescriptor(xprv: newDescriptor)
+            } else {
+                newDescriptor = descriptor ?? ""
             }
             let wallet = try createRestoreWallet(
-                defaultDescriptor: descriptor ?? newDescriptor,
+                descriptor: newDescriptor,
                 network: network!,
                 blockChainConfigUrl: blockChainConfigUrl!,
                 blockChainSocket5: blockChainSocket5!,

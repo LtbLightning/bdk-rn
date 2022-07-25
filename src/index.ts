@@ -2,11 +2,12 @@ import { NativeModules } from 'react-native';
 import { failure, success, _exists } from './lib/utils';
 import {
   BroadcastTransactionRequest,
-  CreateDescriptorRequest,
   GenSeedRequest,
-  InitWalletRequest,
-  InitWalletResponse,
+  createWalletRequest,
+  createWalletResponse,
   Response,
+  CreateXprvRequest,
+  CreateDescriptorRequest,
 } from './lib/interfaces';
 
 class BdkInterface {
@@ -31,13 +32,65 @@ class BdkInterface {
   }
 
   /**
-   * Create descriptor from seed and password
+   * Create xprv from seed and password
+   * @return {Promise<Response>}
+   */
+  async createXprv(args: CreateXprvRequest): Promise<Response> {
+    try {
+      const { mnemonic, password } = args;
+      const descriptor: string = await this._bdk.createXprv(mnemonic, password);
+      return success(descriptor);
+    } catch (e: any) {
+      return failure(e);
+    }
+  }
+
+  /**
+   * Create descriptor based on different parameters
    * @return {Promise<Response>}
    */
   async createDescriptor(args: CreateDescriptorRequest): Promise<Response> {
     try {
-      const { mnemonic, password } = args;
-      const descriptor: string = await this._bdk.createDescriptor(mnemonic, password);
+      const { type, useMnemonic, mnemonic, password, publicKeys, thresold } = args;
+      let xprv = args.xprv;
+      let path = args.path;
+      if (useMnemonic) {
+        if (!_exists(mnemonic)) throw 'Mnemonic seed is required';
+        xprv = await (await this.createXprv({ mnemonic, password })).data;
+      }
+      if (!useMnemonic && !_exists(xprv)) throw 'XPRV is required';
+      if (!_exists(path)) path = "/84'/1'/0'/0/*";
+
+      let descriptor = '';
+      if (type != 'multi') {
+        let method = '';
+        switch (type) {
+          case 'default':
+          case null:
+          case '':
+          case 'p2wpkh':
+          case 'wpkh':
+            method = 'wpkh';
+            break;
+
+          case 'p2pkh':
+          case 'pkh':
+            method = 'pkh';
+            break;
+
+          case 'shp2wpkh':
+          case 'p2shp2wpkh':
+            method = 'sh(wpkh';
+            break;
+        }
+        descriptor = `${method}(${xprv}${path})`;
+      } else {
+        if (!_exists(thresold) || !_exists(publicKeys) || (_exists(publicKeys) && publicKeys?.length == 0))
+          throw 'Thresold or publicKeys values are invalid.';
+        if (thresold == 0 || thresold > publicKeys?.length + 1) throw 'Thresold value in invalid.';
+
+        descriptor = `sh(multi(${thresold}${xprv},${publicKeys?.join(',')}${path}`;
+      }
       return success(descriptor);
     } catch (e: any) {
       return failure(e);
@@ -48,7 +101,7 @@ class BdkInterface {
    * Init wallet
    * @return {Promise<Response>}
    */
-  async initWallet(args: InitWalletRequest): Promise<Response> {
+  async createWallet(args: createWalletRequest): Promise<Response> {
     try {
       const {
         mnemonic,
@@ -66,7 +119,7 @@ class BdkInterface {
       if (!useDescriptor && !_exists(mnemonic)) throw 'Required mnemonic parameter is emtpy.';
       if (useDescriptor && descriptor?.split(' ').length > 1) throw 'Descriptor is not valid.';
 
-      const wallet: InitWalletResponse = await this._bdk.initWallet(
+      const wallet: createWalletResponse = await this._bdk.createWallet(
         mnemonic,
         password,
         network,

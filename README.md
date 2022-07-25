@@ -63,8 +63,8 @@ _BdkRn.genSeed({password: ''})_
 | Method                                  | Request Parameters                                                                                                      |
 | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | [genSeed()](#genseed)                   | {password}                                                                                                              |
-| [createDescriptor()](#createdescriptor) | {seed, password}                                                                                                        |
-| [initWallet()](#initwallet)             | {mnemonic,password,network,blockChainConfigUrl,blockChainSocket5,retry,timeOut,blockChainName,descriptor,useDescriptor} |
+| [createXprv()](#createXprv) | {seed, password}                                                                                                        |
+| [createWallet()](#createWallet)             | {mnemonic,password,network,blockChainConfigUrl,blockChainSocket5,retry,timeOut,blockChainName,descriptor,useDescriptor} |
 | [getNewAddress()](#getnewaddress)       | -                                                                                                                       |
 | [getBalance()](#getbalance)             | -                                                                                                                       |
 | [broadcastTx()](#broadcasttx)           | {address, amount}                                                                                                       |
@@ -84,18 +84,18 @@ const response = await BdkRn.genSeed({ password: '' });
 
 ---
 
-### createDescriptor()
+### createXprv()
 
 Create descriptor using seed and password.
 
 ```js
-const response = await BdkRn.createDescriptor({ seed: '', password: '' });
+const response = await BdkRn.createXprv({ seed: '', password: '' });
 // tprv8ZgxMBicQKsPd3G66kPkZEuJZgUK9QXJRYCwnCtYLJjEZmw8xFjCxGoyx533AL83XFcSQeuVmVeJbZai5RTBxDp71Abd2FPSyQumRL79BKw
 ```
 
 ---
 
-### initWallet()
+### createWallet()
 
 Initialize wallet, returns new address and current balance.
 
@@ -104,7 +104,7 @@ _*useDescriptor*_ is ethier true or false. Need to pass value in _descriptor_ fi
 _Init with mnemonic_
 
 ```js
-const response = await BdkRn.initWallet({
+const response = await BdkRn.createWallet({
   mnemonic: 'daring erase travel point pull loud peanut apart attack lobster cross surprise',
   password: '',
   network: '',
@@ -121,7 +121,7 @@ const response = await BdkRn.initWallet({
 _Init with descriptor_
 
 ```js
-const response = await BdkRn.initWallet({
+const response = await BdkRn.createWallet({
   mnemonic: '',
   password: '',
   network: '',
