@@ -12,7 +12,6 @@ A React Native version of the Bitcon Development Kit (https://bitcoindevkit.org/
 
 Using npm:
 
-Using npm:
 
 ```bash
 $ npm i git+https://github.com/LtbLightning/bdk-rn.git
@@ -64,8 +63,8 @@ _BdkRn.genSeed({password: ''})_
 
 | Method                                                  | Request Parameters                                           |
 | ------------------------------------------------------- | ------------------------------------------------------------ |
-| [generateMnemonic()](#generateMnemonic)                 | {entropy, length}                                            |
-| [createExtendedKey()](createExtendedKey())              | {network, mnemonic, password}                                |
+| [generateMnemonic()](#generatemnemomic)                 | {entropy, length}                                            |
+| [createExtendedKey()](#createextendedkey)               | {network, mnemonic, password}                                |
 | [generateXprv()](#generatexprv)                         | {network, mnemonic, password}                                |
 | [createDescriptor()](#createdescriptor)                 | {type, useMnemonic, mnemonic, password, network, publicKeys, thresold} |
 | [createWallet()](#createWallet)                         | {mnemonic,password,network,blockChainConfigUrl,blockChainSocket5,retry,timeOut,blockChainName,descriptor,useDescriptor} |
