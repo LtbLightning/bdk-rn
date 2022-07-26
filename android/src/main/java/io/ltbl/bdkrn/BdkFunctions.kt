@@ -258,7 +258,7 @@ object BdkFunctions {
         mnemonic: String = "",
         password: String? = null
     ): ExtendedKeyInfo {
-        return if (!recover) generateExtendedKey(
+        return if (!recover) createExtendedKey(
             nodeNetwork,
             WordCount.WORDS12,
             password
@@ -280,13 +280,13 @@ object BdkFunctions {
             }
         }
         try {
-            return generateExtendedKey(Network.TESTNET, number, "").mnemonic;
+            return createExtendedKey(Network.TESTNET, number, "").mnemonic;
         } catch (error: Throwable){
             throw error
         }
     }
 
-    fun createExtendedKey(network: Network, mnemonic: String, password: String? = null): Map<String, Any?> {
+    fun extendedKeyInfo(network: Network, mnemonic: String, password: String? = null): Map<String, Any?> {
         try {
             val keysInfo: ExtendedKeyInfo = restoreExtendedKey(network, mnemonic, password)
             val responseObject = mutableMapOf<String, Any?>()

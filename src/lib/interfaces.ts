@@ -12,12 +12,12 @@ export interface GenSeedRequest {
   password?: string;
 }
 
-export interface GenerateExtendedKeyRequest {
+export interface CreateExtendedKeyRequest {
   network?: string;
   mnemonic: string;
   password?: string;
 }
-export interface GenerateExtendedKeyResponse {
+export interface CreateExtendedKeyResponse {
   fingerprint: string;
   mnemonic: string;
   xprv: string;
@@ -28,7 +28,7 @@ export type P2PKH = 'p2pkh' | 'pkh';
 export type SHP2WPKH = 'shp2wpkh' | 'p2shp2wpkh';
 
 export interface CreateDescriptorRequest {
-  type: WPKH | P2PKH | SHP2WPKH | 'multi';
+  type: WPKH | P2PKH | SHP2WPKH | 'MULTI';
 
   /**
    * Set useMnemonic: true, if want to create desciptor using mnemonic* and password*.
@@ -62,7 +62,7 @@ export interface CreateDescriptorRequest {
   path?: string;
 
   /**
-   * required if type is multi
+   * required if type is MULTI
    * can't be 0 or grator than number public keys
    * */
   thresold?: number;

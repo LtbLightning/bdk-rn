@@ -30,7 +30,7 @@ class BdkRnModule: NSObject {
                 case 24: number = WordCount.words24
                 default: WordCount.words12
             }
-            let response = try generateExtendedKey(network: Network.testnet, wordCount: number, password: "")
+            let response = try createExtendedKey(network: Network.testnet, wordCount: number, password: "")
             resolve(response.mnemonic)
         } catch let error {
             reject("Generate mnemonic Error", error.localizedDescription, error)
@@ -54,7 +54,7 @@ class BdkRnModule: NSObject {
             case "regtest": networkName = Network.regtest
             default: networkName = Network.testnet
             }
-            let response = try bdkFunctions.createExtendedKey(network: networkName, mnemonic:mnemonic, password: password)
+            let response = try bdkFunctions.extendedKeyInfo(network: networkName, mnemonic:mnemonic, password: password)
             resolve(response)
         } catch let error {
             reject("Get extended keys error", error.localizedDescription, error)

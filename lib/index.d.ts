@@ -1,4 +1,4 @@
-import { BroadcastTransactionRequest, GenerateMnemonicRequest, createWalletRequest, Response, CreateDescriptorRequest, GenerateExtendedKeyRequest } from './lib/interfaces';
+import { BroadcastTransactionRequest, GenerateMnemonicRequest, createWalletRequest, Response, CreateDescriptorRequest, CreateExtendedKeyRequest } from './lib/interfaces';
 declare class BdkInterface {
     _bdk: any;
     constructor();
@@ -11,12 +11,12 @@ declare class BdkInterface {
      * Generate extended key from netowrk, seed and password
      * @return {Promise<Response>}
      */
-    generateExtendedKey(args: GenerateExtendedKeyRequest): Promise<Response>;
+    createExtendedKey(args: CreateExtendedKeyRequest): Promise<Response>;
     /**
      * Generate extended key from netowrk, seed and password
      * @return {Promise<Response>}
      */
-    generateXprv(args: GenerateExtendedKeyRequest): Promise<Response>;
+    generateXprv(args: CreateExtendedKeyRequest): Promise<Response>;
     /**
      * Create descriptor based on different parameters
      * @return {Promise<Response>}

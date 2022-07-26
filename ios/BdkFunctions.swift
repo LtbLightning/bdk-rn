@@ -46,7 +46,7 @@ class BdkFunctions: NSObject {
     ) throws -> ExtendedKeyInfo {
         do {
             if(!recover) {
-                return try generateExtendedKey(network: wallet.getNetwork(), wordCount: WordCount.words12, password: password)
+                return try createExtendedKey(network: wallet.getNetwork(), wordCount: WordCount.words12, password: password)
             }
             else {
                 return try restoreExtendedKey(network: wallet.getNetwork(), mnemonic: mnemonic ?? "", password: password)
@@ -126,7 +126,7 @@ class BdkFunctions: NSObject {
         }
     }
 
-    func createExtendedKey(network: Network, mnemonic: String, password: String? = nil) throws -> [String: Any?] {
+    func extendedKeyInfo(network: Network, mnemonic: String, password: String? = nil) throws -> [String: Any?] {
         do {
             let keysInfo: ExtendedKeyInfo = try restoreExtendedKey(network: network, mnemonic: mnemonic, password: password)
             let responseObject = [

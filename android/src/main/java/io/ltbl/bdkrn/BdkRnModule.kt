@@ -43,7 +43,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 "signet" -> networkName = Network.SIGNET
                 "regtest" -> networkName = Network.REGTEST
             }
-            val responseObject = BdkFunctions.createExtendedKey(networkName, mnemonic, password)
+            val responseObject = BdkFunctions.extendedKeyInfo(networkName, mnemonic, password)
             result.resolve(Arguments.makeNativeMap(responseObject))
         } catch (error: Throwable) {
             return result.reject("Get extended keys error", error.localizedMessage, error)

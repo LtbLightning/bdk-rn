@@ -8,8 +8,8 @@ import {
   createWalletResponse,
   Response,
   CreateDescriptorRequest,
-  GenerateExtendedKeyRequest,
-  GenerateExtendedKeyResponse,
+  CreateExtendedKeyRequest,
+  CreateExtendedKeyResponse,
 } from './lib/interfaces';
 
 class BdkInterface {
@@ -53,7 +53,7 @@ class BdkInterface {
    * Generate extended key from netowrk, seed and password
    * @return {Promise<Response>}
    */
-  async generateExtendedKey(args: GenerateExtendedKeyRequest): Promise<Response> {
+  async createExtendedKey(args: CreateExtendedKeyRequest): Promise<Response> {
     try {
       const { network, mnemonic, password } = args;
       const keyInfo: string = await this._bdk.getExtendedKeyInfo(network, mnemonic, password);
@@ -67,10 +67,10 @@ class BdkInterface {
    * Generate extended key from netowrk, seed and password
    * @return {Promise<Response>}
    */
-  async generateXprv(args: GenerateExtendedKeyRequest): Promise<Response> {
+  async generateXprv(args: CreateExtendedKeyRequest): Promise<Response> {
     try {
       const { network, mnemonic, password } = args;
-      const keyInfo: GenerateExtendedKeyResponse = await this._bdk.getExtendedKeyInfo(network, mnemonic, password);
+      const keyInfo: CreateExtendedKeyResponse = await this._bdk.getExtendedKeyInfo(network, mnemonic, password);
       return success(keyInfo.xprv);
     } catch (e: any) {
       console.log(e)
@@ -95,7 +95,7 @@ class BdkInterface {
       if (!_exists(path)) path = "/84'/1'/0'/0/*";
 
       let descriptor = '';
-      if (type != 'multi') {
+      if (type != 'MULTI') {
         let method = '';
         switch (type) {
           case 'default':

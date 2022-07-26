@@ -64,9 +64,10 @@ _BdkRn.genSeed({password: ''})_
 
 | Method                                                  | Request Parameters                                           |
 | ------------------------------------------------------- | ------------------------------------------------------------ |
-| [generateMnemonic()](#generateMnemonic())                | {entropy, length}                                            |
-| [generateExtendedKey()](#generateExtendedKey())         | {network, mnemonic, password}                                |
-| [createXprv()](#createXprv)                             | {network, mnemonic, password}                                |
+| [generateMnemonic()](#generateMnemonic)                 | {entropy, length}                                            |
+| [createExtendedKey()](createExtendedKey())              | {network, mnemonic, password}                                |
+| [generateXprv()](#generatexprv)                         | {network, mnemonic, password}                                |
+| [createDescriptor()](#createdescriptor)                 | {type, useMnemonic, mnemonic, password, network, publicKeys, thresold} |
 | [createWallet()](#createWallet)                         | {mnemonic,password,network,blockChainConfigUrl,blockChainSocket5,retry,timeOut,blockChainName,descriptor,useDescriptor} |
 | [getNewAddress()](#getnewaddress)                       | -                                                            |
 | [getBalance()](#getbalance)                             | -                                                            |
@@ -80,8 +81,7 @@ _BdkRn.genSeed({password: ''})_
 
 Generate random mnemonic seed phrase.
 Reference: https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki#generating-the-mnemonic
-
-This will generate a mnemonic sentence from the english word list. 
+This will generate a mnemonic sentence from the english word list.
 The required entropy can be specified as the `entropy` parameter and can be in multiples of 32 from 128 to 256, 128 is used as default.
 A word count or length for can be specified instead as the `length` parameter and can be in multiples of 3 from 12 to 24. 12 is used as default.
 
@@ -93,25 +93,24 @@ const response = await BdkRn.generateMnemonic();
 // daring erase travel point pull loud peanut apart attack lobster cross surprise
 
 // Specifying entropy of 192 which is the same as specifying length as 18
-const response = await BdkRn.generateMnemonic( {entropy: 192} );
+const response = await BdkRn.generateMnemonic({ entropy: 192 });
 // daring erase travel point pull loud peanut apart attack lobster cross surprise actress dolphin gift journey mystery save
-
 ```
 
 ---
 
-### generateExtendedKey()
+### createExtendedKey()
 
-This method will create a ExtendedKeyInfo object using the specified mnemonic seed phrase and password
+This method will create a extendedKeyInfo object using the specified mnemonic seed phrase and password
 ExtendedKeyInfo creates a key object which encapsulates the mnemonic and adds a private key using the mnemonic and password.
 
 The extended key info object is required to be passed as an argument in some bdk methods.
 
 ```js
-const key = await BdkRn.generateExtendedKey({ 
+const key = await BdkRn.createExtendedKey({
   	network: Network.TESTNET
-		mnemonic: 'daring erase travel point pull loud peanut apart attack lobster cross surprise', 
-  	password: '' 
+		mnemonic: 'daring erase travel point pull loud peanut apart attack lobster cross surprise',
+  	password: ''
 	});
 
 // {
@@ -123,13 +122,42 @@ const key = await BdkRn.generateExtendedKey({
 
 ---
 
-### createXprv()
+### generateXprv()
 
-Create descriptor using mnemonic  phrase and password.
+generate xprv using mnemonic phrase and password.
 
 ```js
 const response = await BdkRn.createXprv({ network: Network.TESTNET, mnemonic: '', password: '' });
 // tprv8ZgxMBicQKsPd3G66kPkZEuJZgUK9QXJRYCwnCtYLJjEZmw8xFjCxGoyx533AL83XFcSQeuVmVeJbZai5RTBxDp71Abd2FPSyQumRL79BKw
+```
+
+---
+
+### createDescriptor()
+
+Create a variety of descriptors using xprv or mnemonic.
+
+`useMnemonic` can be true or false. `mnemonic_` and `*password*` are mandatory when `useMnemonic` is set to `true` else need to pass value in `xprv`.
+
+`type` is a string and can be one of `WPKH, P2PKH, p2pkh, pkh, SHP2WPKH, shp2wpkh, p2shp2wpkh, MULTI`. `WPKH` is used as default.
+
+If `type` is `MULTI` then need to specufy the signature  `thresold` and `publicKeys` array.
+`path` is optional, `84'/1'/0'/0/*` is used by default 
+
+```js
+const args = {
+  type: '',
+  useMnemonic: true,
+  mnemonic: 'tackle pause sort ten task vast candy skill retire upset lend captain',
+  password: '',
+  path: '',
+  network: '',
+  publicKeys: [],
+  thresold: 4,
+  xprv: '',
+};
+const response = await BdkRn.createDescriptor(args);
+// wpkh(tprv8ZgxMBicQKsPd3G66kPkZEuJZgUK9QXJRYCwnCtYLJjEZmw8xFjCxGoyx533AL83XFcSQeuVmVeJbZai5RTBxDp71Abd2FPSyQumRL79BKw/84'/1'/0'/0/*)
 ```
 
 ---
@@ -146,14 +174,14 @@ _createWallet with mnemonic_
 const response = await BdkRn.createWallet({
   mnemonic: 'daring erase travel point pull loud peanut apart attack lobster cross surprise',
   password: '',
-	descriptor: '',
+  descriptor: '',
   useDescriptor: false,
   network: '',
   blockChainConfigUrl: '',
   blockChainSocket5: '',
   retry: '',
   timeOut: '',
-  blockChainName: ''
+  blockChainName: '',
 });
 ```
 
@@ -171,7 +199,7 @@ const response = await BdkRn.createWallet({
   blockChainSocket5: '',
   retry: '',
   timeOut: '',
-  blockChainName: ''
+  blockChainName: '',
 });
 ```
 
