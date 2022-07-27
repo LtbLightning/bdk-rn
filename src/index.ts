@@ -1,9 +1,16 @@
 import { NativeModules } from 'react-native';
-import { failure, getItem, removeItem, setItem, success, _exists } from './lib/utils';
-import { createWalletResponse, Response } from './lib/interfaces';
-
-const MnemonicPhraseKey = 'mnemonic';
-const PasswordKey = 'passowrd';
+import { failure, success, _exists } from './lib/utils';
+import {
+  BroadcastTransactionRequest,
+  GenSeedRequest,
+  GenerateMnemonicRequest,
+  createWalletRequest,
+  createWalletResponse,
+  Response,
+  CreateDescriptorRequest,
+  CreateExtendedKeyRequest,
+  CreateExtendedKeyResponse,
+} from './lib/interfaces';
 
 class BdkInterface {
   public _bdk: any;
@@ -13,12 +20,29 @@ class BdkInterface {
   }
 
   /**
-   * Gen seed of 12 words
+   * Generate mnemonic seed phrase of specified entropy and length
    * @return {Promise<Response>}
    */
-  async genSeed(password: string = ''): Promise<Response> {
+  async generateMnemonic(args: GenerateMnemonicRequest): Promise<Response> {
     try {
-      const seed = await this._bdk.genSeed(password);
+      const entropyToLength = {
+        '128': 12,
+        '160': 15,
+        '192': 18,
+        '224': 21,
+        '256': 24,
+      };
+      let entropy = undefined;
+      let wordCount = undefined;
+      if (args.entropy && args.length) {
+        wordCount = entropyToLength[args.entropy];
+      } else if (!args.entropy && !args.length) {
+        wordCount = 12;
+      } else {
+        wordCount = args.length;
+      }
+
+      const seed: string = await this._bdk.generateMnemonic(wordCount);
       return success(seed);
     } catch (e: any) {
       return failure(e);
@@ -26,49 +50,108 @@ class BdkInterface {
   }
 
   /**
-   * Check if wallet exists or not
+   * Generate extended key from netowrk, seed and password
    * @return {Promise<Response>}
    */
-  async walletExists(): Promise<Response> {
+  async createExtendedKey(args: CreateExtendedKeyRequest): Promise<Response> {
     try {
-      const phrase = await getItem(MnemonicPhraseKey);
-      return success(phrase != null);
+      const { network, mnemonic, password } = args;
+      const keyInfo: string = await this._bdk.getExtendedKeyInfo(network, mnemonic, password);
+      return success(keyInfo);
     } catch (e: any) {
       return failure(e);
     }
   }
 
   /**
-   * unlock wallet
+   * Generate extended key from netowrk, seed and password
    * @return {Promise<Response>}
    */
-  async unlockWallet(): Promise<Response> {
+  async generateXprv(args: CreateExtendedKeyRequest): Promise<Response> {
     try {
-      const phrase = (await getItem(MnemonicPhraseKey)) ?? '';
-      if (!_exists(phrase)) throw 'No saved seed phrase found.';
-      const data = await this.restoreWallet(phrase);
-      if (!data.error) return success('Wallet unlocked');
-      else return failure('Wallet Unlock failed');
+      const { network, mnemonic, password } = args;
+      const keyInfo: CreateExtendedKeyResponse = await this._bdk.getExtendedKeyInfo(network, mnemonic, password);
+      return success(keyInfo.xprv);
+    } catch (e: any) {
+      console.log(e)
+      return failure(e);
+    }
+  }
+
+  /**
+   * Create descriptor based on different parameters
+   * @return {Promise<Response>}
+   */
+  async createDescriptor(args: CreateDescriptorRequest): Promise<Response> {
+    try {
+      const { type, useMnemonic, mnemonic, password, network, publicKeys, thresold } = args;
+      let xprv = args.xprv;
+      let path = args.path;
+      if (useMnemonic) {
+        if (!_exists(mnemonic)) throw 'Mnemonic seed is required';
+        xprv = await (await this.generateXprv({ network, mnemonic, password })).data;
+      }
+      if (!useMnemonic && !_exists(xprv)) throw 'XPRV is required';
+      if (!_exists(path)) path = "/84'/1'/0'/0/*";
+
+      let descriptor = '';
+      if (type != 'MULTI') {
+        let method = '';
+        switch (type) {
+          case 'default':
+          case null:
+          case '':
+          case 'p2wpkh':
+          case 'wpkh':
+            method = 'wpkh';
+            break;
+
+          case 'p2pkh':
+          case 'pkh':
+            method = 'pkh';
+            break;
+
+          case 'shp2wpkh':
+          case 'p2shp2wpkh':
+            method = 'sh(wpkh';
+            break;
+        }
+        descriptor = `${method}(${xprv}${path})`;
+      } else {
+        if (!_exists(thresold) || !_exists(publicKeys) || (_exists(publicKeys) && publicKeys?.length == 0))
+          throw 'Thresold or publicKeys values are invalid.';
+        if (thresold == 0 || thresold > publicKeys?.length + 1) throw 'Thresold value in invalid.';
+
+        descriptor = `sh(multi(${thresold}${xprv},${publicKeys?.join(',')}${path}`;
+      }
+      return success(descriptor);
     } catch (e: any) {
       return failure(e);
     }
   }
 
   /**
-   * Create new wallet
+   * Init wallet
    * @return {Promise<Response>}
    */
-  async createWallet(
-    mnemonic: string = '',
-    password: string = '',
-    network: string = '',
-    blockChainConfigUrl: string = '',
-    blockChainSocket5: string = '',
-    retry: string = '',
-    timeOut: string = '',
-    blockChain: string = ''
-  ): Promise<Response> {
+  async createWallet(args: createWalletRequest): Promise<Response> {
     try {
+      const {
+        mnemonic,
+        descriptor,
+        useDescriptor,
+        password,
+        network,
+        blockChainConfigUrl,
+        blockChainSocket5,
+        retry,
+        timeOut,
+        blockChainName,
+      } = args;
+      if (useDescriptor && !_exists(descriptor)) throw 'Required descriptor parameter is emtpy.';
+      if (!useDescriptor && !_exists(mnemonic)) throw 'Required mnemonic parameter is emtpy.';
+      if (useDescriptor && descriptor?.split(' ').length > 1) throw 'Descriptor is not valid.';
+
       const wallet: createWalletResponse = await this._bdk.createWallet(
         mnemonic,
         password,
@@ -77,59 +160,10 @@ class BdkInterface {
         blockChainSocket5,
         retry,
         timeOut,
-        blockChain
+        blockChainName,
+        useDescriptor ? descriptor : ''
       );
-      await setItem(MnemonicPhraseKey, wallet.mnemonic);
-      await setItem(PasswordKey, password);
       return success(wallet);
-    } catch (e: any) {
-      return failure(e);
-    }
-  }
-
-  /**
-   * Restore wallet
-   * @return {Promise<Response>}
-   */
-  async restoreWallet(
-    mnemonic: string,
-    password: string = '',
-    network: string = '',
-    blockChainConfigUrl: string = '',
-    blockChainSocket5: string = '',
-    retry: string = '',
-    timeOut: string = '',
-    blockChain: string = ''
-  ): Promise<Response> {
-    try {
-      if (!_exists(mnemonic)) throw 'Required mnemonic parameter is emtpy.';
-      const wallet = await this._bdk.restoreWallet(
-        mnemonic,
-        password,
-        network,
-        blockChainConfigUrl,
-        blockChainSocket5,
-        retry,
-        timeOut,
-        blockChain
-      );
-      await setItem(MnemonicPhraseKey, mnemonic);
-      await setItem(PasswordKey, password);
-      return success(wallet);
-    } catch (e: any) {
-      return failure(e);
-    }
-  }
-
-  /**
-   * Reset wallet
-   * @return {Promise<Response>}
-   */
-  async resetWallet(): Promise<Response> {
-    try {
-      await removeItem(MnemonicPhraseKey);
-      await removeItem(PasswordKey);
-      return success(true);
     } catch (e: any) {
       return failure(e);
     }
@@ -141,7 +175,7 @@ class BdkInterface {
    */
   async getNewAddress(): Promise<Response> {
     try {
-      const address = await this._bdk.getNewAddress();
+      const address: string = await this._bdk.getNewAddress();
       return success(address);
     } catch (e: any) {
       return failure(e);
@@ -154,7 +188,7 @@ class BdkInterface {
    */
   async getBalance(): Promise<Response> {
     try {
-      const balance = await this._bdk.getBalance();
+      const balance: string = await this._bdk.getBalance();
       return success(balance);
     } catch (e: any) {
       return failure(e);
@@ -165,8 +199,9 @@ class BdkInterface {
    * Broadcast Transaction
    * @return {Promise<Response>}
    */
-  async broadcastTx(address: string, amount: number): Promise<Response> {
+  async broadcastTx(args: BroadcastTransactionRequest): Promise<Response> {
     try {
+      const { address, amount } = args;
       if (!_exists(address) || !_exists(amount)) throw 'Required address or amount parameters are missing.';
       if (isNaN(amount)) throw 'Entered amount is invalid';
       const tx = await this._bdk.broadcastTx(address, amount);
@@ -180,9 +215,9 @@ class BdkInterface {
    * Get pending transactions
    * @return {Promise<Response>}
    */
-  async genPendingTransactions(): Promise<Response> {
+  async getPendingTransactions(): Promise<Response> {
     try {
-      const response = await this._bdk.genPendingTransactions();
+      const response = await this._bdk.getPendingTransactions();
       return success(response);
     } catch (e: any) {
       return failure(e);

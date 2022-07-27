@@ -1,37 +1,32 @@
-import { Response } from './lib/interfaces';
+import { BroadcastTransactionRequest, GenerateMnemonicRequest, createWalletRequest, Response, CreateDescriptorRequest, CreateExtendedKeyRequest } from './lib/interfaces';
 declare class BdkInterface {
     _bdk: any;
     constructor();
     /**
-     * Gen seed of 12 words
+     * Generate mnemonic seed phrase of specified entropy and length
      * @return {Promise<Response>}
      */
-    genSeed(password?: string): Promise<Response>;
+    generateMnemonic(args: GenerateMnemonicRequest): Promise<Response>;
     /**
-     * Check if wallet exists or not
+     * Generate extended key from netowrk, seed and password
      * @return {Promise<Response>}
      */
-    walletExists(): Promise<Response>;
+    createExtendedKey(args: CreateExtendedKeyRequest): Promise<Response>;
     /**
-     * unlock wallet
+     * Generate extended key from netowrk, seed and password
      * @return {Promise<Response>}
      */
-    unlockWallet(): Promise<Response>;
+    generateXprv(args: CreateExtendedKeyRequest): Promise<Response>;
     /**
-     * Create new wallet
+     * Create descriptor based on different parameters
      * @return {Promise<Response>}
      */
-    createWallet(mnemonic?: string, password?: string, network?: string, blockChainConfigUrl?: string, blockChainSocket5?: string, retry?: string, timeOut?: string, blockChain?: string): Promise<Response>;
+    createDescriptor(args: CreateDescriptorRequest): Promise<Response>;
     /**
-     * Restore wallet
+     * Init wallet
      * @return {Promise<Response>}
      */
-    restoreWallet(mnemonic: string, password?: string, network?: string, blockChainConfigUrl?: string, blockChainSocket5?: string, retry?: string, timeOut?: string, blockChain?: string): Promise<Response>;
-    /**
-     * Reset wallet
-     * @return {Promise<Response>}
-     */
-    resetWallet(): Promise<Response>;
+    createWallet(args: createWalletRequest): Promise<Response>;
     /**
      * Get new address
      * @return {Promise<Response>}
@@ -46,12 +41,12 @@ declare class BdkInterface {
      * Broadcast Transaction
      * @return {Promise<Response>}
      */
-    broadcastTx(address: string, amount: number): Promise<Response>;
+    broadcastTx(args: BroadcastTransactionRequest): Promise<Response>;
     /**
      * Get pending transactions
      * @return {Promise<Response>}
      */
-    genPendingTransactions(): Promise<Response>;
+    getPendingTransactions(): Promise<Response>;
     /**
      * Get pending transactions
      * @return {Promise<Response>}

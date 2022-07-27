@@ -16,29 +16,62 @@ class BdkRnModule: NSObject {
     }
 
     @objc
-    func genSeed(_
+    func generateMnemonic(_
+        wordCount: NSNumber? = 12,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            var number = WordCount.words12
+            switch (wordCount) {
+                case 15: number = WordCount.words15
+                case 18: number = WordCount.words18
+                case 21: number = WordCount.words21
+                case 24: number = WordCount.words24
+                default: WordCount.words12
+            }
+            let response = try createExtendedKey(network: Network.testnet, wordCount: number, password: "")
+            resolve(response.mnemonic)
+        } catch let error {
+            reject("Generate mnemonic Error", error.localizedDescription, error)
+        }
+    }
+    
+    @objc
+    func getExtendedKeyInfo(_
+        network: String,
+        mnemonic: String,
         password: String? = nil,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let response = try bdkFunctions.genSeed(password: password)
+            var networkName: Network;
+            switch network {
+            case "bitcoin": networkName = Network.bitcoin
+            case "testnet": networkName = Network.testnet
+            case "signet": networkName = Network.signet
+            case "regtest": networkName = Network.regtest
+            default: networkName = Network.testnet
+            }
+            let response = try bdkFunctions.extendedKeyInfo(network: networkName, mnemonic:mnemonic, password: password)
             resolve(response)
         } catch let error {
-            reject("Generate Seed Error", error.localizedDescription, error)
+            reject("Get extended keys error", error.localizedDescription, error)
         }
     }
 
     @objc
     func createWallet(_
-        mnemonic: String? = "",
+        mnemonic: String,
         password: String? = nil,
         network: String? = nil,
         blockChainConfigUrl: String? = nil,
         blockChainSocket5: String? = nil,
         retry: String? = nil,
         timeOut: String? = nil,
-        blockChain: String? = nil,
+        blockChainName: String? = nil,
+        descriptor: String? = nil,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
@@ -51,41 +84,12 @@ class BdkRnModule: NSObject {
                 blockChainSocket5: blockChainSocket5,
                 retry: retry,
                 timeOut: timeOut,
-                blockChainName: blockChain
+                blockChainName: blockChainName,
+                descriptor: descriptor
             )
             resolve(responseObject)
         } catch let error {
-            reject("Create Wallet Error", error.localizedDescription, error)
-        }
-    }
-
-    @objc
-    func restoreWallet(_
-        mnemonic: String,
-        password: String? = nil,
-        network: String? = nil,
-        blockChainConfigUrl: String? = nil,
-        blockChainSocket5: String? = nil,
-        retry: String? = nil,
-        timeOut: String? = nil,
-        blockChain: String? = nil,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        do {
-            let responseObject = try bdkFunctions.restoreWallet(
-                mnemonic: mnemonic,
-                password: password,
-                network: network,
-                blockChainConfigUrl: blockChainConfigUrl,
-                blockChainSocket5: blockChainSocket5,
-                retry: retry,
-                timeOut: timeOut,
-                blockChainName: blockChain
-            )
-            resolve(responseObject)
-        } catch let error {
-            reject("Retore Wallet Error", error.localizedDescription, error)
+            reject("Init Wallet Error", error.localizedDescription, error)
         }
     }
 
@@ -144,7 +148,7 @@ class BdkRnModule: NSObject {
     }
 
     @objc
-    func genPendingTransactions(_
+    func getPendingTransactions(_
                                 resolve: @escaping RCTPromiseResolveBlock,
                                 reject: @escaping RCTPromiseRejectBlock
     ) {
