@@ -73,7 +73,7 @@ class BdkInterface {
       const keyInfo: CreateExtendedKeyResponse = await this._bdk.getExtendedKeyInfo(network, mnemonic, password);
       return success(keyInfo.xprv);
     } catch (e: any) {
-      console.log(e)
+      console.log(e);
       return failure(e);
     }
   }
@@ -88,7 +88,7 @@ class BdkInterface {
       let xprv = args.xprv;
       let path = args.path;
       if (useMnemonic) {
-        if (!_exists(mnemonic)) throw 'Mnemonic seed is required';
+        if (!mnemonic) throw 'Mnemonic seed is required';
         xprv = await (await this.generateXprv({ network, mnemonic, password })).data;
       }
       if (!useMnemonic && !_exists(xprv)) throw 'XPRV is required';
@@ -118,7 +118,7 @@ class BdkInterface {
         }
         descriptor = `${method}(${xprv}${path})`;
       } else {
-        if (!_exists(thresold) || !_exists(publicKeys) || (_exists(publicKeys) && publicKeys?.length == 0))
+        if (!thresold || !publicKeys || (publicKeys && publicKeys?.length == 0))
           throw 'Thresold or publicKeys values are invalid.';
         if (thresold == 0 || thresold > publicKeys?.length + 1) throw 'Thresold value in invalid.';
 
@@ -150,7 +150,7 @@ class BdkInterface {
       } = args;
       if (useDescriptor && !_exists(descriptor)) throw 'Required descriptor parameter is emtpy.';
       if (!useDescriptor && !_exists(mnemonic)) throw 'Required mnemonic parameter is emtpy.';
-      if (useDescriptor && descriptor?.split(' ').length > 1) throw 'Descriptor is not valid.';
+      if (useDescriptor && descriptor?.includes(' ')) throw 'Descriptor is not valid.';
 
       const wallet: createWalletResponse = await this._bdk.createWallet(
         mnemonic,
