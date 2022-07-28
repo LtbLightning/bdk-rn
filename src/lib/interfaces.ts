@@ -88,8 +88,6 @@ export interface createWalletRequest {
 
 export interface createWalletResponse {
   address: string;
-  mnemonic: string;
-  balance: string;
 }
 export interface BroadcastTransactionRequest {
   address: string;
