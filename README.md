@@ -65,7 +65,7 @@ _BdkRn.genSeed({password: ''})_
 | ------------------------------------------------------- | ------------------------------------------------------------ |
 | [generateMnemonic()](#generatemnemomic)                 | {entropy, length}                                            |
 | [createExtendedKey()](#createextendedkey)               | {network, mnemonic, password}                                |
-| [generateXprv()](#generatexprv)                         | {network, mnemonic, password}                                |
+| [createXprv()](#createxprv)                         | {network, mnemonic, password}                                |
 | [createDescriptor()](#createdescriptor)                 | {type, useMnemonic, mnemonic, password, network, publicKeys, thresold} |
 | [createWallet()](#createWallet)                         | {mnemonic,password,network,blockChainConfigUrl,blockChainSocket5,retry,timeOut,blockChainName,descriptor,useDescriptor} |
 | [getNewAddress()](#getnewaddress)                       | -                                                            |
@@ -74,7 +74,7 @@ _BdkRn.genSeed({password: ''})_
 | [getPendingTransactions()](#getpendingtransactions)     | {address, amount}                                            |
 | [getConfirmedTransactions()](#getconfirmedtransactions) | {address, amount}                                            |
 
----
+
 
 ### generateMnemomic()
 
@@ -121,9 +121,9 @@ const key = await BdkRn.createExtendedKey({
 
 ---
 
-### generateXprv()
+### createXprv()
 
-generate xprv using mnemonic phrase and password.
+create xprv using mnemonic phrase and password.
 
 ```js
 const response = await BdkRn.createXprv({ network: Network.TESTNET, mnemonic: '', password: '' });

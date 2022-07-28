@@ -64,10 +64,10 @@ class BdkInterface {
   }
 
   /**
-   * Generate extended key from netowrk, seed and password
+   * Create xprv from netowrk, seed and password
    * @return {Promise<Response>}
    */
-  async generateXprv(args: CreateExtendedKeyRequest): Promise<Response> {
+  async createXprv(args: CreateExtendedKeyRequest): Promise<Response> {
     try {
       const { network, mnemonic, password } = args;
       const keyInfo: CreateExtendedKeyResponse = await this._bdk.getExtendedKeyInfo(network, mnemonic, password);
@@ -88,8 +88,8 @@ class BdkInterface {
       let xprv = args.xprv;
       let path = args.path;
       if (useMnemonic) {
-        if (!mnemonic) throw 'Mnemonic seed is required';
-        xprv = await (await this.generateXprv({ network, mnemonic, password })).data;
+        if (!_exists(mnemonic)) throw 'Mnemonic seed is required';
+        xprv = await (await this.createXprv({ network, mnemonic, password })).data;
       }
       if (!useMnemonic && !_exists(xprv)) throw 'XPRV is required';
       if (!_exists(path)) path = "/84'/1'/0'/0/*";
@@ -164,6 +164,19 @@ class BdkInterface {
         useDescriptor ? descriptor : ''
       );
       return success(wallet);
+    } catch (e: any) {
+      return failure(e);
+    }
+  }
+
+  /**
+   * Sync wallet
+   * @return {Promise<Response>}
+   */
+  async syncWallet(): Promise<Response> {
+    try {
+      const response: string = await this._bdk.syncWallet();
+      return success(response);
     } catch (e: any) {
       return failure(e);
     }

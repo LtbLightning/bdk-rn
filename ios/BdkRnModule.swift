@@ -30,7 +30,7 @@ class BdkRnModule: NSObject {
                 case 24: number = WordCount.words24
                 default: WordCount.words12
             }
-            let response = try createExtendedKey(network: Network.testnet, wordCount: number, password: "")
+            let response = try generateExtendedKey(network: Network.testnet, wordCount: number, password: "")
             resolve(response.mnemonic)
         } catch let error {
             reject("Generate mnemonic Error", error.localizedDescription, error)
@@ -97,6 +97,12 @@ class BdkRnModule: NSObject {
     func getNewAddress(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         let address = bdkFunctions.getNewAddress()
         return resolve(address)
+    }
+    
+    @objc
+    func syncWallet(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        bdkFunctions.syncWallet()
+        return resolve("wallet sync complete")
     }
 
     @objc

@@ -13,10 +13,10 @@ declare class BdkInterface {
      */
     createExtendedKey(args: CreateExtendedKeyRequest): Promise<Response>;
     /**
-     * Generate extended key from netowrk, seed and password
+     * Create xprv from netowrk, seed and password
      * @return {Promise<Response>}
      */
-    generateXprv(args: CreateExtendedKeyRequest): Promise<Response>;
+    createXprv(args: CreateExtendedKeyRequest): Promise<Response>;
     /**
      * Create descriptor based on different parameters
      * @return {Promise<Response>}
@@ -27,6 +27,11 @@ declare class BdkInterface {
      * @return {Promise<Response>}
      */
     createWallet(args: createWalletRequest): Promise<Response>;
+    /**
+     * Sync wallet
+     * @return {Promise<Response>}
+     */
+    syncWallet(): Promise<Response>;
     /**
      * Get new address
      * @return {Promise<Response>}

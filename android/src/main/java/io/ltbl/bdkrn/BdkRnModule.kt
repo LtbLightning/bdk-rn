@@ -93,6 +93,16 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun syncWallet(result: Promise) {
+        try {
+            BdkFunctions.syncWallet()
+            result.resolve("wallet sync complete")
+        } catch (error: Throwable) {
+            return result.reject("Get address Error", error.localizedMessage, error)
+        }
+    }
+
+    @ReactMethod
     fun getBalance(result: Promise) {
         try {
             val balance: String = BdkFunctions.getBalance()
