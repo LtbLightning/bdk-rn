@@ -3,7 +3,6 @@
 //  BdkRnModule
 //
 
-
 #import <React/RCTBridgeModule.h>
 
 @interface RCT_EXTERN_MODULE(BdkRnModule, NSObject)
@@ -11,6 +10,7 @@
 RCT_EXTERN_METHOD(getNewAddress:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(getLastUnusedAddress:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(getBalance:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(syncWallet:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 
 RCT_EXTERN_METHOD(
     createWallet: (nonnull NSString*)mnemonic

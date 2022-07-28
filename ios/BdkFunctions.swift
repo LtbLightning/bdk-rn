@@ -12,7 +12,7 @@ class BdkFunctions: NSObject {
     let databaseConfig = DatabaseConfig.memory
     let defaultBlockChainConfigUrl: String = "ssl://electrum.blockstream.info:60002"
     let defaultBlockChain = "ELECTRUM"
-    let blockchainConfig = BlockchainConfig.electrum(
+    var blockchainConfig = BlockchainConfig.electrum(
         config: ElectrumConfig(
             url: "ssl://electrum.blockstream.info:60002",
             socks5: nil,
@@ -29,12 +29,10 @@ class BdkFunctions: NSObject {
 
         self.wallet = try! Wallet.init(descriptor: defaultDescriptor, changeDescriptor: defaultChangeDescriptor, network: Network.testnet, databaseConfig: databaseConfig)
 
-        try? self.wallet.sync(blockchain: blockChain, progress: BdkProgress())
-
     }
 
 
-    func sync(config: BlockchainConfig?) {
+    func syncWallet(config: BlockchainConfig? = nil) {
         try? self.wallet.sync(blockchain: Blockchain.init(config: config ?? blockchainConfig), progress: BdkProgress())
     }
 
@@ -46,7 +44,7 @@ class BdkFunctions: NSObject {
     ) throws -> ExtendedKeyInfo {
         do {
             if(!recover) {
-                return try createExtendedKey(network: wallet.getNetwork(), wordCount: WordCount.words12, password: password)
+                return try generateExtendedKey(network: wallet.getNetwork(), wordCount: WordCount.words12, password: password)
             }
             else {
                 return try restoreExtendedKey(network: wallet.getNetwork(), mnemonic: mnemonic ?? "", password: password)
@@ -86,14 +84,13 @@ class BdkFunctions: NSObject {
     ) throws -> Wallet {
         do {
             let changeDescriptor: String = createChangeDescriptor(descriptor: descriptor)
-            let config: BlockchainConfig = createDatabaseConfig(blockChainConfigUrl: blockChainConfigUrl, blockChainSocket5: blockChainSocket5, retry: retry, timeOut: timeOut, blockChainName: blockChainName)
+            let blockchainConfig: BlockchainConfig = createDatabaseConfig(blockChainConfigUrl: blockChainConfigUrl, blockChainSocket5: blockChainSocket5, retry: retry, timeOut: timeOut, blockChainName: blockChainName)
             let walletNetwork: Network = setNetwork(networkStr: network)
             self.wallet = try Wallet.init(
                 descriptor: descriptor,
                 changeDescriptor: changeDescriptor,
                 network: walletNetwork,
                 databaseConfig: databaseConfig)
-            self.sync(config: config)
             return self.wallet
         } catch {
             throw error
@@ -212,8 +209,6 @@ class BdkFunctions: NSObject {
 
     func getBalance() throws -> String {
         do {
-
-            try! self.wallet.sync(blockchain: Blockchain.init(config: blockchainConfig), progress: BdkProgress())
             let balance = try self.wallet.getBalance()
             return String(balance)
         }

@@ -74,7 +74,7 @@ _BdkRn.genSeed({password: ''})_
 | [getPendingTransactions()](#getpendingtransactions)     | {address, amount}                                            |
 | [getConfirmedTransactions()](#getconfirmedtransactions) | {address, amount}                                            |
 
----
+
 
 ### generateMnemomic()
 

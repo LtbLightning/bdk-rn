@@ -73,7 +73,7 @@ class BdkInterface {
       const keyInfo: CreateExtendedKeyResponse = await this._bdk.getExtendedKeyInfo(network, mnemonic, password);
       return success(keyInfo.xprv);
     } catch (e: any) {
-      console.log(e)
+      console.log(e);
       return failure(e);
     }
   }
@@ -164,6 +164,19 @@ class BdkInterface {
         useDescriptor ? descriptor : ''
       );
       return success(wallet);
+    } catch (e: any) {
+      return failure(e);
+    }
+  }
+
+  /**
+   * Sync wallet
+   * @return {Promise<Response>}
+   */
+  async syncWallet(): Promise<Response> {
+    try {
+      const response: string = await this._bdk.syncWallet();
+      return success(response);
     } catch (e: any) {
       return failure(e);
     }

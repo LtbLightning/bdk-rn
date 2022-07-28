@@ -12,7 +12,7 @@ object BdkFunctions {
     private val databaseConfig = DatabaseConfig.Memory
     val defaultBlockChainConfigUrl = "ssl://electrum.blockstream.info:60002"
     val defaultBlockChain = "ELECTRUM"
-    private val defaultBlockchainConfig =
+    private var defaultBlockchainConfig =
         BlockchainConfig.Electrum(
             ElectrumConfig(defaultBlockChainConfigUrl, null, 5u, null, 10u)
         )
@@ -27,7 +27,6 @@ object BdkFunctions {
     //Init wallet
     init {
         initWallet()
-        sync(defaultBlockchainConfig)
     }
 
     // Default wallet for initialization, which must be replaced with custom wallet for personal
@@ -54,20 +53,19 @@ object BdkFunctions {
     ) {
         try {
             val changeDescriptor: String = createChangeDescriptorFromDescriptor(descriptor)
-            val config = createDatabaseConfig(
+            defaultBlockchainConfig = createDatabaseConfig(
                 blockChainConfigUrl,
                 blockChainSocket5,
                 retry,
                 timeOut,
                 blockChainName ?: defaultBlockChain
-            )
+            ) as BlockchainConfig.Electrum
             this.wallet = BdkWallet(
                 descriptor,
                 changeDescriptor,
                 setNetwork(network),
                 databaseConfig
             )
-            sync(config)
         } catch (error: Error) {
             throw error
         }
@@ -91,7 +89,6 @@ object BdkFunctions {
             )
             val responseObject = mutableMapOf<String, Any?>()
             responseObject["address"] = getNewAddress()
-            responseObject["balance"] = wallet.getBalance().toString()
             return responseObject
         } catch (error: Throwable) {
             throw(error)
@@ -258,7 +255,7 @@ object BdkFunctions {
         mnemonic: String = "",
         password: String? = null
     ): ExtendedKeyInfo {
-        return if (!recover) createExtendedKey(
+        return if (!recover) generateExtendedKey(
             nodeNetwork,
             WordCount.WORDS12,
             password
@@ -280,7 +277,7 @@ object BdkFunctions {
             }
         }
         try {
-            return createExtendedKey(Network.TESTNET, number, "").mnemonic;
+            return generateExtendedKey(Network.TESTNET, number, "").mnemonic;
         } catch (error: Throwable){
             throw error
         }
@@ -299,7 +296,7 @@ object BdkFunctions {
         }
     }
 
-    fun sync(config: BlockchainConfig?): Unit {
+    fun syncWallet(config: BlockchainConfig? = null): Unit {
         this.blockChain = Blockchain(config ?: defaultBlockchainConfig)
         this.wallet.sync(this.blockChain, ProgressLog)
     }
@@ -308,8 +305,9 @@ object BdkFunctions {
         blockChainConfigUrl: String, blockChainSocket5: String?,
         retry: String?, timeOut: String?, blockChain: String?
     ): BlockchainConfig {
-        return when (blockChain) {
-            "ELECTRUM" -> BlockchainConfig.Electrum(
+        val test: BlockchainConfig;
+        when (blockChain) {
+            "ELECTRUM" -> test = BlockchainConfig.Electrum(
                 ElectrumConfig(
                     blockChainConfigUrl ?: defaultBlockChainConfigUrl,
                     blockChainSocket5 ?: null,
@@ -318,7 +316,7 @@ object BdkFunctions {
                     10u
                 )
             )
-            "ESPLORA" -> BlockchainConfig.Esplora(
+            "ESPLORA" -> test = BlockchainConfig.Esplora(
                 EsploraConfig(
                     blockChainConfigUrl ?: defaultBlockChainConfigUrl,
                     blockChainSocket5 ?: null,
@@ -328,10 +326,10 @@ object BdkFunctions {
                 )
             )
             else -> {
-                return defaultBlockchainConfig
+                test = defaultBlockchainConfig
             }
         }
-
+        return test
     }
 
     private fun setNetwork(networkStr: String?): Network {

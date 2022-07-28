@@ -1,6 +1,6 @@
 {
   "name": "bdk-rn",
-  "version": "0.0.38",
+  "version": "0.0.39",
   "description": "bdk-rn",
   "homepage": "https://github.com/LtbLightning",
   "main": "src/index.ts",

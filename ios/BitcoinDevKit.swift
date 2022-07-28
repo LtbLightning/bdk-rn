@@ -769,7 +769,7 @@ extension BlockchainConfig: Equatable, Hashable {}
 
 
 
-public func createExtendedKey( network: Network,  wordCount: WordCount,  password: String? ) throws -> ExtendedKeyInfo {
+public func generateExtendedKey( network: Network,  wordCount: WordCount,  password: String? ) throws -> ExtendedKeyInfo {
     let _retval = try
     
     

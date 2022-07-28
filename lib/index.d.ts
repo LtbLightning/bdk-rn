@@ -28,6 +28,11 @@ declare class BdkInterface {
      */
     createWallet(args: createWalletRequest): Promise<Response>;
     /**
+     * Sync wallet
+     * @return {Promise<Response>}
+     */
+    syncWallet(): Promise<Response>;
+    /**
      * Get new address
      * @return {Promise<Response>}
      */
