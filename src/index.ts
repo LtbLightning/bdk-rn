@@ -118,7 +118,7 @@ class BdkInterface {
         }
         descriptor = `${method}(${xprv}${path})`;
       } else {
-        if (!_exists(thresold) || !_exists(publicKeys) || (_exists(publicKeys) && publicKeys?.length == 0))
+        if (!thresold || !publicKeys || (publicKeys && publicKeys?.length == 0))
           throw 'Thresold or publicKeys values are invalid.';
         if (thresold == 0 || thresold > publicKeys?.length + 1) throw 'Thresold value in invalid.';
 
@@ -150,7 +150,7 @@ class BdkInterface {
       } = args;
       if (useDescriptor && !_exists(descriptor)) throw 'Required descriptor parameter is emtpy.';
       if (!useDescriptor && !_exists(mnemonic)) throw 'Required mnemonic parameter is emtpy.';
-      if (useDescriptor && descriptor?.split(' ').length > 1) throw 'Descriptor is not valid.';
+      if (useDescriptor && descriptor?.includes(' ')) throw 'Descriptor is not valid.';
 
       const wallet: createWalletResponse = await this._bdk.createWallet(
         mnemonic,
