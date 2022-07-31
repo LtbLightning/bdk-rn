@@ -52,7 +52,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun createWallet(
-        mnemonic: String,
+        mnemonic: String?,
         password: String?,
         network: String?,
         blockChainConfigUrl: String,
