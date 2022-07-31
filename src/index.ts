@@ -2,7 +2,6 @@ import { NativeModules } from 'react-native';
 import { failure, success, _exists } from './lib/utils';
 import {
   BroadcastTransactionRequest,
-  GenSeedRequest,
   GenerateMnemonicRequest,
   createWalletRequest,
   createWalletResponse,
@@ -23,7 +22,7 @@ class BdkInterface {
    * Generate mnemonic seed phrase of specified entropy and length
    * @return {Promise<Response>}
    */
-  async generateMnemonic(args: GenerateMnemonicRequest): Promise<Response> {
+  async generateMnemonic(args: GenerateMnemonicRequest = { length: 12 }): Promise<Response> {
     try {
       const entropyToLength = {
         '128': 12,
@@ -100,6 +99,7 @@ class BdkInterface {
         switch (type) {
           case 'default':
           case null:
+          case undefined:
           case '':
           case 'p2wpkh':
           case 'wpkh':
@@ -120,9 +120,9 @@ class BdkInterface {
       } else {
         if (!thresold || !publicKeys || (publicKeys && publicKeys?.length == 0))
           throw 'Thresold or publicKeys values are invalid.';
-        if (thresold == 0 || thresold > publicKeys?.length + 1) throw 'Thresold value in invalid.';
+        if (thresold == 0 || thresold > publicKeys?.length + 1) throw 'Thresold value is invalid.';
 
-        descriptor = `sh(multi(${thresold}${xprv},${publicKeys?.join(',')}${path}`;
+        descriptor = `sh(multi(${thresold}${xprv},${publicKeys?.join(',')}${path}))`;
       }
       return success(descriptor);
     } catch (e: any) {

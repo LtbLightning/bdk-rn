@@ -6,12 +6,9 @@ export interface GenerateMnemonicRequest {
     entropy?: 128 | 160 | 192 | 224 | 256;
     length?: 12 | 15 | 18 | 21 | 24;
 }
-export interface GenSeedRequest {
-    password?: string;
-}
 export interface CreateExtendedKeyRequest {
     network?: string;
-    mnemonic: string;
+    mnemonic?: string;
     password?: string;
 }
 export interface CreateExtendedKeyResponse {
@@ -19,11 +16,11 @@ export interface CreateExtendedKeyResponse {
     mnemonic: string;
     xprv: string;
 }
-export declare type WPKH = 'default' | null | '' | 'p2wpkh' | 'wpkh';
+export declare type WPKH = 'default' | null | '' | 'p2wpkh' | 'wpkh' | undefined;
 export declare type P2PKH = 'p2pkh' | 'pkh';
 export declare type SHP2WPKH = 'shp2wpkh' | 'p2shp2wpkh';
 export interface CreateDescriptorRequest {
-    type: WPKH | P2PKH | SHP2WPKH | 'MULTI';
+    type?: WPKH | P2PKH | SHP2WPKH | 'MULTI';
     /**
      * Set useMnemonic: true, if want to create desciptor using mnemonic* and password*.
      * Set useMnemonic: false, if want to create descriptor using xprv*

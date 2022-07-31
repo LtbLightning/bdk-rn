@@ -63,7 +63,7 @@ class BdkRnModule: NSObject {
 
     @objc
     func createWallet(_
-        mnemonic: String,
+        mnemonic: String? = nil,
         password: String? = nil,
         network: String? = nil,
         blockChainConfigUrl: String? = nil,

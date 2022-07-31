@@ -6,7 +6,7 @@ declare class BdkInterface {
      * Generate mnemonic seed phrase of specified entropy and length
      * @return {Promise<Response>}
      */
-    generateMnemonic(args: GenerateMnemonicRequest): Promise<Response>;
+    generateMnemonic(args?: GenerateMnemonicRequest): Promise<Response>;
     /**
      * Generate extended key from netowrk, seed and password
      * @return {Promise<Response>}

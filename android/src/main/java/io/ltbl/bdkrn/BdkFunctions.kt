@@ -72,7 +72,7 @@ object BdkFunctions {
     }
 
     fun createWallet(
-        mnemonic: String, password: String?, network: String?,
+        mnemonic: String?, password: String?, network: String?,
         blockChainConfigUrl: String, blockChainSocket5: String?,
         retry: String?, timeOut: String?, blockChainName: String?, descriptor: String = ""
     ): Map<String, Any?> {
