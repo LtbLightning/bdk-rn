@@ -149,8 +149,9 @@ class BdkInterface {
         blockChainName,
       } = args;
       if (useDescriptor && !_exists(descriptor)) throw 'Required descriptor parameter is emtpy.';
-      if (!useDescriptor && !_exists(mnemonic)) throw 'Required mnemonic parameter is emtpy.';
       if (useDescriptor && descriptor?.includes(' ')) throw 'Descriptor is not valid.';
+      if (!useDescriptor && (!_exists(mnemonic) || !_exists(network)))
+        throw 'One or more required parameters are emtpy(Mnemonic, Network).';
 
       const wallet: createWalletResponse = await this._bdk.createWallet(
         mnemonic,
