@@ -20,7 +20,7 @@ $ npm i git+https://github.com/LtbLightning/bdk-rn.git
 Using yarn:
 
 ```bash
-$ yarn add https://github.com/LtbLightning/bdk-rn.git
+$ yarn add bdk-rn@https://github.com/LtbLightning/bdk-rn.git
 ```
 
 
