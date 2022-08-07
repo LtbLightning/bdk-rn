@@ -14,7 +14,7 @@ Using npm:
 
 
 ```bash
-$ npm i git+https://github.com/LtbLightning/bdk-rn.git
+$ npm i --save git+https://github.com/LtbLightning/bdk-rn.git
 ```
 
 Using yarn:
@@ -59,22 +59,21 @@ Promise<Response> = {
 
 Following methods can be used with this module. All methods can be called by **_BdkRn_** object. Parameters with asterisk(\*)\*\* are mandatory.
 
-_BdkRn.genSeed({password: ''})_
+_BdkRn.generateMnemonic()_
 
-| Method                                                  | Request Parameters                                           |
-| ------------------------------------------------------- | ------------------------------------------------------------ |
-| [generateMnemonic()](#generatemnemomic)                 | {entropy, length}                                            |
-| [createExtendedKey()](#createextendedkey)               | {network, mnemonic, password}                                |
-| [createXprv()](#createxprv)                         | {network, mnemonic, password}                                |
-| [createDescriptor()](#createdescriptor)                 | {type, useMnemonic, mnemonic, password, network, publicKeys, thresold} |
-| [createWallet()](#createWallet)                         | {mnemonic,password,network,blockChainConfigUrl,blockChainSocket5,retry,timeOut,blockChainName,descriptor,useDescriptor} |
-| [getNewAddress()](#getnewaddress)                       | -                                                            |
-| [getBalance()](#getbalance)                             | -                                                            |
-| [broadcastTx()](#broadcasttx)                           | {address, amount}                                            |
-| [getPendingTransactions()](#getpendingtransactions)     | {address, amount}                                            |
-| [getConfirmedTransactions()](#getconfirmedtransactions) | {address, amount}                                            |
-
-
+| Method                                                  | Request Parameters                                                                                        |
+| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| [generateMnemonic()](#generatemnemomic)                 | {entropy, length}                                                                                         |
+| [createExtendedKey()](#createextendedkey)               | {network, mnemonic, password}                                                                             |
+| [createXprv()](#createxprv)                             | {network, mnemonic, password}                                                                             |
+| [createDescriptor()](#createdescriptor)                 | {type, mnemonic, password, network, publicKeys, thresold}                                                 |
+| [createWallet()](#createwallet)                         | {mnemonic,password,network,blockChainConfigUrl,blockChainSocket5,retry,timeOut,blockChainName,descriptor} |
+| [getNewAddress()](#getnewaddress)                       | -                                                                                                         |
+| [getBalance()](#getbalance)                             | -                                                                                                         |
+| [broadcastTx()](#broadcasttx)                           | {address, amount}                                                                                         |
+| [getPendingTransactions()](#getpendingtransactions)     | -                                                                                                         |
+| [getConfirmedTransactions()](#getconfirmedtransactions) | -                                                                                                         |
+| [getTransactions()](#gettransactions)                   | -                                                                                                         |
 
 ### generateMnemomic()
 
@@ -136,17 +135,16 @@ const response = await BdkRn.createXprv({ network: Network.TESTNET, mnemonic: ''
 
 Create a variety of descriptors using xprv or mnemonic.
 
-`useMnemonic` can be true or false. `mnemonic_` and `*password*` are mandatory when `useMnemonic` is set to `true` else need to pass value in `xprv`.
+`xprv` will be used if passed otherwise `mnemonic*`, `network*` and `password` will be used.
 
 `type` is a string and can be one of `WPKH, P2PKH, p2pkh, pkh, SHP2WPKH, shp2wpkh, p2shp2wpkh, MULTI`. `WPKH` is used as default.
 
-If `type` is `MULTI` then need to specufy the signature  `thresold` and `publicKeys` array.
-`path` is optional, `84'/1'/0'/0/*` is used by default 
+If `type` is `MULTI` then need to specufy the signature `thresold` and `publicKeys` array.
+`path` is optional, `84'/1'/0'/0/*` is used by default
 
 ```js
 const args = {
   type: '',
-  useMnemonic: true,
   mnemonic: 'tackle pause sort ten task vast candy skill retire upset lend captain',
   password: '',
   path: '',
@@ -165,7 +163,7 @@ const response = await BdkRn.createDescriptor(args);
 
 Initialize wallet, returns new address and current balance.
 
-_*useDescriptor*_ is ethier true or false. Need to pass value in _descriptor_ field if set True else need to pass value in _mnemonic_.
+`descriptor` will be used if passed otherwise `mnemonic*`, `network*` and `password` will be used.
 
 _createWallet with mnemonic_
 
@@ -174,7 +172,6 @@ const response = await BdkRn.createWallet({
   mnemonic: 'daring erase travel point pull loud peanut apart attack lobster cross surprise',
   password: '',
   descriptor: '',
-  useDescriptor: false,
   network: '',
   blockChainConfigUrl: '',
   blockChainSocket5: '',
@@ -191,7 +188,6 @@ const response = await BdkRn.createWallet({
   mnemonic: '',
   descriptor:
     'tprv8ZgxMBicQKsPd3G66kPkZEuJZgUK9QXJRYCwnCtYLJjEZmw8xFjCxGoyx533AL83XFcSQeuVmVeJbZai5RTBxDp71Abd2FPSyQumRL79BKw',
-  useDescriptor: true,
   password: '',
   network: '',
   blockChainConfigUrl: '',
@@ -289,6 +285,20 @@ const response = await BdkRn.getConfirmedTransactions();
 
 ```js
 [{}];
+```
+
+---
+
+### getTransactions()
+
+Get all confirmed and pending transactions
+
+```js
+const response = await BdkRn.getTransactions();
+```
+
+```js
+{confirmed: [], pending: []};
 ```
 
 ---

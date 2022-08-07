@@ -6,8 +6,9 @@ export interface GenerateMnemonicRequest {
     entropy?: 128 | 160 | 192 | 224 | 256;
     length?: 12 | 15 | 18 | 21 | 24;
 }
+export declare type NetworkType = 'bitcoin' | 'testnet' | 'signet' | 'regtest';
 export interface CreateExtendedKeyRequest {
-    network?: string;
+    network?: NetworkType;
     mnemonic?: string;
     password?: string;
 }
@@ -22,26 +23,21 @@ export declare type SHP2WPKH = 'shp2wpkh' | 'p2shp2wpkh';
 export interface CreateDescriptorRequest {
     type?: WPKH | P2PKH | SHP2WPKH | 'MULTI';
     /**
-     * Set useMnemonic: true, if want to create desciptor using mnemonic* and password*.
-     * Set useMnemonic: false, if want to create descriptor using xprv*
-     */
-    useMnemonic: boolean;
-    /**
-     * Required if useMnemonic: false
+     * Required if xprv flow is chosen
      */
     xprv?: string;
     /**
-     * Required if useMnemonic: true
+     * Required if mnemonic flow is chosen
      */
     mnemonic?: string;
     /**
-     * Required if useMnemonic: true
+     * Optional and only if mnemonic flow is chosen
      */
     password?: string;
     /**
-     * Required if useMnemonic: true
+     * Required if mnemonic flow is chosen
      */
-    network?: 'bitcoin' | 'testnet' | 'signet' | 'regtest';
+    network?: NetworkType;
     /**
      * If want to use custom path instead of default(/84'/1'/0'/0/*)
      */
@@ -59,9 +55,8 @@ export interface CreateDescriptorRequest {
 export interface createWalletRequest {
     mnemonic?: string;
     descriptor?: string;
-    useDescriptor?: boolean;
     password?: string;
-    network?: string;
+    network?: NetworkType;
     blockChainConfigUrl?: string;
     blockChainSocket5?: string;
     retry?: string;
@@ -74,4 +69,22 @@ export interface createWalletResponse {
 export interface BroadcastTransactionRequest {
     address: string;
     amount: number;
+}
+export interface ConfirmedTransaction {
+    txid: string;
+    block_timestamp: number;
+    sent: number;
+    block_height: number;
+    received: number;
+    fee: number;
+}
+export interface PendingTransaction {
+    txid: string;
+    sent: number;
+    received: number;
+    fee: number;
+}
+export interface TransactionsResponse {
+    confirmed: Array<ConfirmedTransaction>;
+    pending: Array<PendingTransaction>;
 }
