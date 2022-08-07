@@ -57,6 +57,11 @@ declare class BdkInterface {
      * @return {Promise<Response>}
      */
     getConfirmedTransactions(): Promise<Response>;
+    /**
+     * Get all transactions
+     * @return {Promise<Response>}
+     */
+    getTransactions(): Promise<Response>;
 }
 declare const BdkRn: BdkInterface;
 export default BdkRn;
