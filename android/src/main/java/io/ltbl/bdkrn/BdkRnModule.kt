@@ -93,6 +93,17 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun getLastUnusedAddress(result: Promise) {
+        try {
+            val address: String = BdkFunctions.getLastUnusedAddress()
+            result.resolve(address)
+        } catch (error: Throwable) {
+            return result.reject("Get address Error", error.localizedMessage, error)
+        }
+    }
+
+
+    @ReactMethod
     fun syncWallet(result: Promise) {
         try {
             BdkFunctions.syncWallet()
@@ -161,4 +172,3 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         }
     }
 }
-

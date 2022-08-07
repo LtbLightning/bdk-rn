@@ -1,15 +1,16 @@
-import { NativeModules } from 'react-native';
-import { failure, success, _exists } from './lib/utils';
 import {
   BroadcastTransactionRequest,
-  GenerateMnemonicRequest,
-  createWalletRequest,
-  createWalletResponse,
-  Response,
   CreateDescriptorRequest,
   CreateExtendedKeyRequest,
   CreateExtendedKeyResponse,
+  GenerateMnemonicRequest,
+  Response,
+  createWalletRequest,
+  createWalletResponse,
 } from './lib/interfaces';
+import { _exists, failure, success } from './lib/utils';
+
+import { NativeModules } from 'react-native';
 
 class BdkInterface {
   public _bdk: any;
@@ -190,6 +191,19 @@ class BdkInterface {
   async getNewAddress(): Promise<Response> {
     try {
       const address: string = await this._bdk.getNewAddress();
+      return success(address);
+    } catch (e: any) {
+      return failure(e);
+    }
+  }
+
+  /**
+   * Get last unused address
+   * @return {Promise<Response>}
+   */
+  async getLastUnusedAddress(): Promise<Response> {
+    try {
+      const address: string = await this._bdk.getLastUnusedAddress();
       return success(address);
     } catch (e: any) {
       return failure(e);

@@ -1,4 +1,4 @@
-import { BroadcastTransactionRequest, GenerateMnemonicRequest, createWalletRequest, Response, CreateDescriptorRequest, CreateExtendedKeyRequest } from './lib/interfaces';
+import { BroadcastTransactionRequest, CreateDescriptorRequest, CreateExtendedKeyRequest, GenerateMnemonicRequest, Response, createWalletRequest } from './lib/interfaces';
 declare class BdkInterface {
     _bdk: any;
     constructor();
@@ -37,6 +37,11 @@ declare class BdkInterface {
      * @return {Promise<Response>}
      */
     getNewAddress(): Promise<Response>;
+    /**
+     * Get last unused address
+     * @return {Promise<Response>}
+     */
+    getLastUnusedAddress(): Promise<Response>;
     /**
      * Get wallet balance
      * @return {Promise<Response>}
