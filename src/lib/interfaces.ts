@@ -56,7 +56,7 @@ export interface CreateDescriptorRequest {
    * required if type is MULTI
    * can't be 0 or grator than number public keys
    * */
-  thresold?: number;
+  threshold?: number;
 
   /**
    * Array of public keys
