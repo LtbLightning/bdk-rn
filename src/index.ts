@@ -86,7 +86,7 @@ class BdkInterface {
    */
   async createDescriptor(args: CreateDescriptorRequest): Promise<Response> {
     try {
-      const {type, mnemonic, password, network, publicKeys, thresold} = args;
+      const {type, mnemonic, password, network, publicKeys, threshold} = args;
       let xprv = args.xprv;
       let path = args.path;
 
@@ -127,11 +127,11 @@ class BdkInterface {
         }
         descriptor = `${method}(${xprv}${path})`;
       } else {
-        if (!thresold || !publicKeys || (publicKeys && publicKeys?.length == 0))
+        if (!threshold || !publicKeys || (publicKeys && publicKeys?.length == 0))
           throw 'Thresold or publicKeys values are invalid.';
-        if (thresold == 0 || thresold > publicKeys?.length + 1) throw 'Thresold value is invalid.';
+        if (threshold == 0 || threshold > publicKeys?.length + 1) throw 'Thresold value is invalid.';
 
-        descriptor = `sh(multi(${thresold}${xprv},${publicKeys?.join(',')}${path}))`;
+        descriptor = `sh(multi(${threshold}${xprv},${publicKeys?.join(',')}${path}))`;
       }
       return success(descriptor);
     } catch (e: any) {
