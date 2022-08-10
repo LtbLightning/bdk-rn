@@ -1,5 +1,5 @@
-import {NativeModules} from 'react-native';
-import {failure, success, _exists} from './lib/utils';
+import { NativeModules } from 'react-native';
+import { failure, success, _exists } from './lib/utils';
 import {
   BroadcastTransactionRequest,
   GenerateMnemonicRequest,
@@ -25,7 +25,7 @@ class BdkInterface {
    * Generate mnemonic seed phrase of specified entropy and length
    * @return {Promise<Response>}
    */
-  async generateMnemonic(args: GenerateMnemonicRequest = {length: 12}): Promise<Response> {
+  async generateMnemonic(args: GenerateMnemonicRequest = { length: 12 }): Promise<Response> {
     try {
       const entropyToLength = {
         '128': 12,
@@ -43,8 +43,10 @@ class BdkInterface {
       } else {
         wordCount = args.length;
       }
+      let { network } = args;
+      if (_exists(network)) network = 'testnet';
 
-      const seed: string = await this._bdk.generateMnemonic(wordCount);
+      const seed: string = await this._bdk.generateMnemonic(wordCount, network);
       return success(seed);
     } catch (e: any) {
       return failure(e);
@@ -57,7 +59,7 @@ class BdkInterface {
    */
   async createExtendedKey(args: CreateExtendedKeyRequest): Promise<Response> {
     try {
-      const {network, mnemonic, password} = args;
+      const { network, mnemonic, password } = args;
       const keyInfo: string = await this._bdk.getExtendedKeyInfo(network, mnemonic, password);
       return success(keyInfo);
     } catch (e: any) {
@@ -71,7 +73,7 @@ class BdkInterface {
    */
   async createXprv(args: CreateExtendedKeyRequest): Promise<Response> {
     try {
-      const {network, mnemonic, password} = args;
+      const { network, mnemonic, password } = args;
       const keyInfo: CreateExtendedKeyResponse = await this._bdk.getExtendedKeyInfo(network, mnemonic, password);
       return success(keyInfo.xprv);
     } catch (e: any) {
@@ -86,7 +88,7 @@ class BdkInterface {
    */
   async createDescriptor(args: CreateDescriptorRequest): Promise<Response> {
     try {
-      const {type, mnemonic, password, network, publicKeys, thresold} = args;
+      const { type, mnemonic, password, network, publicKeys, threshold } = args;
       let xprv = args.xprv;
       let path = args.path;
 
@@ -97,7 +99,7 @@ class BdkInterface {
       if (useMnemonic) {
         if (!_exists(mnemonic) || !_exists(network))
           throw 'One or more required parameters are emtpy(Mnemonic, Network).';
-        xprv = await (await this.createXprv({network, mnemonic, password})).data;
+        xprv = await (await this.createXprv({ network, mnemonic, password })).data;
       }
       if (!useMnemonic && !_exists(xprv)) throw 'XPRV is required';
       if (!_exists(path)) path = "/84'/1'/0'/0/*";
@@ -126,11 +128,11 @@ class BdkInterface {
             break;
         }
       } else {
-        if (!thresold || !publicKeys || (publicKeys && publicKeys?.length == 0))
+        if (!threshold || !publicKeys || (publicKeys && publicKeys?.length == 0))
           throw 'Thresold or publicKeys values are invalid.';
-        if (thresold == 0 || thresold > publicKeys?.length + 1) throw 'Thresold value is invalid.';
+        if (threshold == 0 || threshold > publicKeys?.length + 1) throw 'Thresold value is invalid.';
 
-        descriptor = `sh(multi(${thresold}${xprv},${publicKeys?.join(',')}${path}))`;
+        descriptor = `sh(multi(${threshold}${xprv},${publicKeys?.join(',')}${path}))`;
       }
       return success(descriptor);
     } catch (e: any) {
@@ -174,7 +176,7 @@ class BdkInterface {
         retry ?? '',
         timeOut ?? '',
         blockChainName ?? '',
-        descriptor ?? '',
+        descriptor ?? ''
       );
       return success(wallet);
     } catch (e: any) {
@@ -227,7 +229,7 @@ class BdkInterface {
    */
   async broadcastTx(args: BroadcastTransactionRequest): Promise<Response> {
     try {
-      const {address, amount} = args;
+      const { address, amount } = args;
       if (!_exists(address) || !_exists(amount)) throw 'Required address or amount parameters are missing.';
       if (isNaN(amount)) throw 'Entered amount is invalid';
       const tx = await this._bdk.broadcastTx(address, amount);
@@ -271,7 +273,7 @@ class BdkInterface {
     try {
       const confirmed: Array<ConfirmedTransaction> = await this._bdk.getConfirmedTransactions();
       const pending: Array<PendingTransaction> = await this._bdk.getPendingTransactions();
-      const response: TransactionsResponse = {confirmed, pending};
+      const response: TransactionsResponse = { confirmed, pending };
       return success(response);
     } catch (e: any) {
       return failure(e);

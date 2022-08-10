@@ -32,64 +32,54 @@ object BdkFunctions {
     // Default wallet for initialization, which must be replaced with custom wallet for personal
     // use
     private fun initWallet(): BdkWallet {
-        val key: ExtendedKeyInfo = seed(false, "default mnemonic", "password")
+        val netWork = setNetwork();
+        val key: ExtendedKeyInfo = generateExtendedKey(netWork, WordCount.WORDS12,"")
         val descriptor = createDefaultDescriptor(key.xprv)
-        createRestoreWallet(
-            descriptor,
-            null,
-            "",
-            "",
-            "",
-            "",
-            ""
+        val changeDescriptor = createChangeDescriptorFromDescriptor(descriptor)
+
+        this.wallet = BdkWallet(
+          descriptor,
+          changeDescriptor,
+          netWork,
+          databaseConfig
         )
         return this.wallet
     }
 
-    private fun createRestoreWallet(
-        descriptor: String, network: String?,
-        blockChainConfigUrl: String, blockChainSocket5: String?,
-        retry: String?, timeOut: String?, blockChainName: String?
-    ) {
-        try {
-            val changeDescriptor: String = createChangeDescriptorFromDescriptor(descriptor)
-            defaultBlockchainConfig = createDatabaseConfig(
-                blockChainConfigUrl,
-                blockChainSocket5,
-                retry,
-                timeOut,
-                blockChainName ?: defaultBlockChain
-            ) as BlockchainConfig.Electrum
-            this.wallet = BdkWallet(
-                descriptor,
-                changeDescriptor,
-                setNetwork(network),
-                databaseConfig
-            )
-        } catch (error: Error) {
-            throw error
-        }
-    }
-
-    fun createWallet(
+   fun createWallet(
         mnemonic: String = "", password: String?, network: String?,
         blockChainConfigUrl: String, blockChainSocket5: String?,
         retry: String?, timeOut: String?, blockChainName: String?, descriptor: String = ""
     ): Map<String, Any?> {
         try {
+            var networkName: Network = setNetwork(network);
             var newDescriptor = "";
             if(descriptor == ""){
-                val keyInfo = seed(true, mnemonic, password)
+                val keyInfo = restoreExtendedKey(networkName, mnemonic, password)
                 newDescriptor = createDefaultDescriptor(keyInfo.xprv);
             }
             val finalDescriptor: String  = if(descriptor!="") descriptor else newDescriptor
-            createRestoreWallet(
-                finalDescriptor, network, blockChainConfigUrl, blockChainSocket5, retry,
-                timeOut, blockChainName
+            val changeDescriptor: String = createChangeDescriptorFromDescriptor(finalDescriptor)
+
+
+            createBlockchainConfig(
+              blockChainConfigUrl,
+              blockChainSocket5,
+              retry,
+              timeOut,
+              blockChainName
             )
+            this.wallet = BdkWallet(
+              finalDescriptor,
+              changeDescriptor,
+              networkName,
+              databaseConfig
+            )
+
             val responseObject = mutableMapOf<String, Any?>()
             responseObject["address"] = getNewAddress()
             return responseObject
+
         } catch (error: Throwable) {
             throw(error)
         }
@@ -201,69 +191,17 @@ object BdkFunctions {
         }
     }
     // Bitcoin js functions
-
-    //Generate a SegWit address descriptor
     private fun createDefaultDescriptor(xprv: String): String {
         return "wpkh(" + xprv + "/84'/1'/0'/0/*)"
-    }
-
-
-
-    // Generate a SegWit P2SH address descriptor
-    private fun createP2SHP2WPKHDescriptor(
-        mnemonic: String = "",
-        password: String? = null
-    ): String {
-        val keys: ExtendedKeyInfo = seed(true, mnemonic, password)
-        return "sh(wpkh(" + keys.xprv + "/84'/1'/0'/0/*))"
-    }
-
-    //Generate a Static P2PKH descriptor
-    private fun createP2PKHDescriptor(mnemonic: String = "", password: String? = null): String {
-        val keys: ExtendedKeyInfo = seed(true, mnemonic, password)
-        return "pkh(" + keys.xprv + "/84'/1'/0'/0/*)"
-    }
-
-    //Generate a SegWit 2-of-2 P2SH multisig address descriptor
-    private fun createP2SH2of2MultisigDescriptor(
-        mnemonic: String = "",
-        password: String? = null,
-        recipientPublicKey: String
-    ): String {
-        val keys: ExtendedKeyInfo = seed(true, mnemonic, password)
-        return "sh(multi(2" + keys.xprv + "," + recipientPublicKey + "/84'/1'/0'/0/*))"
-    }
-
-
-    private fun createP2SH3of4MultisigDescriptor(
-        mnemonic: String = "",
-        password: String? = null,
-        recipientPublicKey1: String,
-        recipientPublicKey2: String,
-        recipientPublicKey3: String
-    ): String {
-        val keys: ExtendedKeyInfo = seed(true, mnemonic, password)
-        return "sh(multi(2" + keys.xprv + "," + recipientPublicKey1 + "," + recipientPublicKey2 + "," + recipientPublicKey3 + "/84'/1'/0'/0/*))"
     }
 
     private fun createChangeDescriptorFromDescriptor(descriptor: String): String {
         return descriptor.replace("/84'/1'/0'/0/*", "/84'/1'/0'/1/*")
     }
 
-    fun seed(
-        recover: Boolean = false,
-        mnemonic: String = "",
-        password: String? = null
-    ): ExtendedKeyInfo {
-        return if (!recover) generateExtendedKey(
-            nodeNetwork,
-            WordCount.WORDS12,
-            password
-        ) else restoreExtendedKey(nodeNetwork, mnemonic, password)
-    }
-
     fun generateMnemonic(
-        wordCount: Number = 12
+        wordCount: Int = 12,
+        network: String
     ): String {
         var number: WordCount;
         when (wordCount) {
@@ -277,7 +215,8 @@ object BdkFunctions {
             }
         }
         try {
-            return generateExtendedKey(Network.TESTNET, number, "").mnemonic;
+          var networkName: Network = setNetwork(network);
+          return generateExtendedKey(networkName, number, "").mnemonic;
         } catch (error: Throwable){
             throw error
         }
@@ -296,48 +235,52 @@ object BdkFunctions {
         }
     }
 
-    fun syncWallet(config: BlockchainConfig? = null): Unit {
-        this.blockChain = Blockchain(config ?: defaultBlockchainConfig)
+    fun syncWallet(): Unit {
+        this.blockChain = Blockchain(defaultBlockchainConfig)
         this.wallet.sync(this.blockChain, ProgressLog)
     }
 
-    private fun createDatabaseConfig(
+    private fun createBlockchainConfig(
         blockChainConfigUrl: String, blockChainSocket5: String?,
         retry: String?, timeOut: String?, blockChain: String?
-    ): BlockchainConfig {
-        val test: BlockchainConfig;
-        when (blockChain) {
-            "ELECTRUM" -> test = BlockchainConfig.Electrum(
-                ElectrumConfig(
-                    blockChainConfigUrl ?: defaultBlockChainConfigUrl,
-                    blockChainSocket5 ?: null,
-                    retry?.toUByte() ?: 5u,
-                    timeOut?.toUByte() ?: 5u,
-                    10u
-                )
+    ) {
+      try {
+        val updatedConfig: BlockchainConfig;
+        val _blockChainName = if (blockChain != "") blockChain else defaultBlockChain;
+        val _blockChainUrl = if (blockChainConfigUrl != "") blockChainConfigUrl else defaultBlockChainConfigUrl;
+        val _socks = if (blockChainSocket5 != "") blockChainSocket5 else null;
+        when (_blockChainName) {
+          "ELECTRUM" -> updatedConfig = BlockchainConfig.Electrum(
+            ElectrumConfig(
+              _blockChainUrl,
+              null, 5u, null, 10u
             )
-            "ESPLORA" -> test = BlockchainConfig.Esplora(
-                EsploraConfig(
-                    blockChainConfigUrl ?: defaultBlockChainConfigUrl,
-                    blockChainSocket5 ?: null,
-                    retry?.toUByte() ?: 5u,
-                    timeOut?.toULong() ?: 5u,
-                    10u
-                )
+          )
+          "ESPLORA" -> updatedConfig = BlockchainConfig.Esplora(
+            EsploraConfig(
+              _blockChainUrl,
+              _socks,
+              retry?.toUByte() ?: 5u,
+              timeOut?.toULong() ?: 5u,
+              10u
             )
-            else -> {
-                test = defaultBlockchainConfig
-            }
+          )
+          else -> {
+            updatedConfig = this.defaultBlockchainConfig
+          }
         }
-        return test
+        this.defaultBlockchainConfig = updatedConfig as BlockchainConfig.Electrum
+      } catch (e: Throwable){
+        throw e
+      }
     }
 
-    private fun setNetwork(networkStr: String?): Network {
+    fun setNetwork(networkStr: String? = "testnet"): Network {
         return when (networkStr) {
-            "TESTNET" -> Network.TESTNET
-            "BITCOIN" -> Network.BITCOIN
-            "REGTEST" -> Network.REGTEST
-            "SIGNET" -> Network.SIGNET
+            "testnet" -> Network.TESTNET
+            "bitcoin" -> Network.BITCOIN
+            "regtest" -> Network.REGTEST
+            "signet" -> Network.SIGNET
             else -> {
                 Network.TESTNET
             }
