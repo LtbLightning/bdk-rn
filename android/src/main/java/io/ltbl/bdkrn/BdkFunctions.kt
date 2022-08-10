@@ -263,7 +263,8 @@ object BdkFunctions {
     }
 
     fun generateMnemonic(
-        wordCount: Number = 12
+        wordCount: Number = 12,
+        network: String
     ): String {
         var number: WordCount;
         when (wordCount) {
@@ -277,7 +278,8 @@ object BdkFunctions {
             }
         }
         try {
-            return generateExtendedKey(Network.TESTNET, number, "").mnemonic;
+          var networkName: Network = setNetwork(network);
+          return generateExtendedKey(networkName, number, "").mnemonic;
         } catch (error: Throwable){
             throw error
         }
@@ -332,12 +334,12 @@ object BdkFunctions {
         return test
     }
 
-    private fun setNetwork(networkStr: String?): Network {
+    fun setNetwork(networkStr: String?): Network {
         return when (networkStr) {
-            "TESTNET" -> Network.TESTNET
-            "BITCOIN" -> Network.BITCOIN
-            "REGTEST" -> Network.REGTEST
-            "SIGNET" -> Network.SIGNET
+            "testnet" -> Network.TESTNET
+            "bitcoin" -> Network.BITCOIN
+            "regtest" -> Network.REGTEST
+            "signet" -> Network.SIGNET
             else -> {
                 Network.TESTNET
             }

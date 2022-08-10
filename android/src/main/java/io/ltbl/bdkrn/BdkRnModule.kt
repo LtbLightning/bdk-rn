@@ -14,9 +14,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
 
     @ReactMethod
-    fun generateMnemonic(wordCount: Int = 12, result: Promise) {
+    fun generateMnemonic(wordCount: Int = 12,  network: String = "testnet", result: Promise) {
         try {
-            val mnemonic = BdkFunctions.generateMnemonic(wordCount)
+            val mnemonic = BdkFunctions.generateMnemonic(wordCount, network)
             result.resolve(mnemonic)
         } catch (error: Throwable) {
             return result.reject("Generate Mnemonic Error", error.localizedMessage, error)
@@ -24,25 +24,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun genSeed(password: String?, result: Promise) {
-        try {
-            val seed = BdkFunctions.seed(false)
-            result.resolve(seed.mnemonic)
-        } catch (error: Throwable) {
-            return result.reject("Gen Seed Error", error.localizedMessage, error)
-        }
-    }
-
-    @ReactMethod
     fun getExtendedKeyInfo(network: String, mnemonic: String, password: String? = null, result: Promise) {
         try {
-            var networkName: Network = Network.TESTNET;
-            when (network){
-                "bitcoin" -> networkName = Network.BITCOIN
-                "testnet" -> networkName = Network.TESTNET
-                "signet" -> networkName = Network.SIGNET
-                "regtest" -> networkName = Network.REGTEST
-            }
+            var networkName: Network = BdkFunctions.setNetwork(network);
             val responseObject = BdkFunctions.extendedKeyInfo(networkName, mnemonic, password)
             result.resolve(Arguments.makeNativeMap(responseObject))
         } catch (error: Throwable) {

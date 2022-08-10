@@ -59,14 +59,14 @@ Promise<Response> = {
 
 Following methods can be used with this module. All methods can be called by **_BdkRn_** object. Parameters with asterisk(\*)\*\* are mandatory.
 
-_BdkRn.generateMnemonic()_
+_BdkRn.genSeed({password: ''})_
 
 | Method                                                  | Request Parameters                                                                                        |
 | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | [generateMnemonic()](#generatemnemomic)                 | {entropy, length}                                                                                         |
 | [createExtendedKey()](#createextendedkey)               | {network, mnemonic, password}                                                                             |
 | [createXprv()](#createxprv)                             | {network, mnemonic, password}                                                                             |
-| [createDescriptor()](#createdescriptor)                 | {type, mnemonic, password, network, publicKeys, threshold}                                                 |
+| [createDescriptor()](#createdescriptor)                 | {type, mnemonic, password, network, publicKeys, thresold}                                                 |
 | [createWallet()](#createwallet)                         | {mnemonic,password,network,blockChainConfigUrl,blockChainSocket5,retry,timeOut,blockChainName,descriptor} |
 | [getNewAddress()](#getnewaddress)                       | -                                                                                                         |
 | [getBalance()](#getbalance)                             | -                                                                                                         |
@@ -139,7 +139,7 @@ Create a variety of descriptors using xprv or mnemonic.
 
 `type` is a string and can be one of `WPKH, P2PKH, p2pkh, pkh, SHP2WPKH, shp2wpkh, p2shp2wpkh, MULTI`. `WPKH` is used as default.
 
-If `type` is `MULTI` then need to specify the signature `threshold` and `publicKeys` array.
+If `type` is `MULTI` then need to specufy the signature `thresold` and `publicKeys` array.
 `path` is optional, `84'/1'/0'/0/*` is used by default
 
 ```js
@@ -150,7 +150,7 @@ const args = {
   path: '',
   network: '',
   publicKeys: [],
-  threshold: 4,
+  thresold: 4,
   xprv: '',
 };
 const response = await BdkRn.createDescriptor(args);
@@ -225,7 +225,7 @@ const response = await BdkRn.getNewAddress();
 
 ### getBalance()
 
-Get balance of wallet.
+Get balace of wallet.
 
 ```js
 const response = await BdkRn.getBalance();

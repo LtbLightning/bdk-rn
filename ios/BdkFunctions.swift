@@ -6,6 +6,8 @@ class BdkProgress: Progress {
 }
 
 
+
+
 class BdkFunctions: NSObject {
     var wallet: Wallet
     var blockChain: Blockchain
@@ -54,12 +56,12 @@ class BdkFunctions: NSObject {
         }
     }
 
-    private func setNetwork(networkStr: String?) -> Network {
+    func setNetwork(networkStr: String?) -> Network {
         switch (networkStr) {
-        case "TESTNET": return Network.testnet
-        case "BITCOIN": return Network.bitcoin
-        case "REGTEST": return Network.regtest
-        case "SIGNET": return Network.signet
+        case "testnet": return Network.testnet
+        case "bitcoin": return Network.bitcoin
+        case "regtest": return Network.regtest
+        case "signet": return Network.signet
         default: return Network.testnet
         }
     }
@@ -163,7 +165,7 @@ class BdkFunctions: NSObject {
                 blockChainSocket5: blockChainSocket5!,
                 retry: retry!,
                 timeOut: timeOut!,
-                blockChainName: blockChainName ?? defaultBlockChain
+                blockChainName: blockChainName != "" ? blockChainName : defaultBlockChain
             )
             let addressInfo = try! self.wallet.getAddress(addressIndex: AddressIndex.new)
             let responseObject = [
