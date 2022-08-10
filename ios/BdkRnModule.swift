@@ -29,7 +29,7 @@ class BdkRnModule: NSObject {
                 case 18: number = WordCount.words18
                 case 21: number = WordCount.words21
                 case 24: number = WordCount.words24
-                default: WordCount.words12
+                default: number = WordCount.words12
             }
             let networkName: Network = bdkFunctions.setNetwork(networkStr: network)
             let response = try generateExtendedKey(network: networkName, wordCount: number, password: "")
@@ -84,7 +84,6 @@ class BdkRnModule: NSObject {
             )
             resolve(responseObject)
         } catch let error {
-            print(error)
             reject("Init Wallet Error", error.localizedDescription, error)
         }
     }

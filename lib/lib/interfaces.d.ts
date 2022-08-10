@@ -2,11 +2,12 @@ export interface Response {
     error: boolean;
     data: any;
 }
+export declare type NetworkType = 'bitcoin' | 'testnet' | 'signet' | 'regtest';
 export interface GenerateMnemonicRequest {
     entropy?: 128 | 160 | 192 | 224 | 256;
     length?: 12 | 15 | 18 | 21 | 24;
+    network?: NetworkType;
 }
-export declare type NetworkType = 'bitcoin' | 'testnet' | 'signet' | 'regtest';
 export interface CreateExtendedKeyRequest {
     network?: NetworkType;
     mnemonic?: string;
@@ -46,7 +47,7 @@ export interface CreateDescriptorRequest {
      * required if type is MULTI
      * can't be 0 or grator than number public keys
      * */
-    thresold?: number;
+    threshold?: number;
     /**
      * Array of public keys
      */
