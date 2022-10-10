@@ -1,7 +1,7 @@
 {
   "name": "bdk-rn",
   "version": "0.1.0",
-  "description": "bdk-rn",
+  "description": "A React Native library for the Bitcon Development Kit (https://bitcoindevkit.org/)",
   "homepage": "https://github.com/LtbLightning/bdk-rn",
   "main": "src/index.ts",
   "types": "lib/index.d.ts",
