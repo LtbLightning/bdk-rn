@@ -1,8 +1,8 @@
 {
   "name": "bdk-rn",
-  "version": "0.0.46",
+  "version": "0.1.0",
   "description": "bdk-rn",
-  "homepage": "https://github.com/LtbLightning",
+  "homepage": "https://github.com/LtbLightning/bdk-rn",
   "main": "src/index.ts",
   "types": "lib/index.d.ts",
   "author": "Bitcoin Zavior <BitcoinZavior@gmail.com>",
