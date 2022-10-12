@@ -1265,6 +1265,11 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
+"@synonymdev/result@0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@synonymdev/result/-/result-0.0.2.tgz#c526743e4f1d3ec1d24a1952281b5daa77ba3fbc"
+  integrity sha512-Ni5qknulcf350qfPVTw3DWXqT2i6K68BoFc18zlqIAj9YA2RUOIJsKTdemX31i3wSma5LRHVcGLESVga16iAag==
+
 "@tootallnate/once@1":
   version "1.1.2"
   resolved "https://registry.npmjs.org/@tootallnate/once/-/once-1.1.2.tgz"
