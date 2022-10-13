@@ -107,7 +107,7 @@ class BdkInterface {
 
       let descriptor = '';
       if (type != 'MULTI') {
-        let method = '';
+        let descriptorArgs = `${xprv}${path}`;
         switch (type) {
           case 'default':
           case null:
@@ -115,20 +115,19 @@ class BdkInterface {
           case '':
           case 'p2wpkh':
           case 'wpkh':
-            method = 'wpkh';
+            descriptor = `wpkh(${descriptorArgs})`;
             break;
 
           case 'p2pkh':
           case 'pkh':
-            method = 'pkh';
+            descriptor = `pkh(${descriptorArgs})`;
             break;
 
           case 'shp2wpkh':
           case 'p2shp2wpkh':
-            method = 'sh(wpkh';
+            descriptor = `sh(wpkh(${descriptorArgs}))`;
             break;
         }
-        descriptor = `${method}(${xprv}${path})`;
       } else {
         if (!threshold || !publicKeys || (publicKeys && publicKeys?.length == 0))
           throw 'Threshold or publicKeys values are invalid.';
