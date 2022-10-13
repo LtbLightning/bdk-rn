@@ -50,22 +50,24 @@ All methods work in Android: ✅
 **All methods return response as follows:**
 
 ```js
-Promise<Response> = {
-  error: true | false; // Method call success return true else return false.
-  data: string | object | any; // Different response data based on method call.
+const result = BdkRn.generatemnemomic();
+if (result.isErr()) {
+    console.error(result.error.message); // "error message"
+    return;
 }
+const mnemonic = result.value;
 ```
 
 Following methods can be used with this module. All methods can be called by **_BdkRn_** object. Parameters with asterisk(\*)\*\* are mandatory.
 
-_BdkRn.generatemnemomic()_
+_BdkRn.generateMnemonic()_
 
 | Method                                                  | Request Parameters                                                                                        |
-| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| [generateMnemonic()](#generatemnemomic)                 | {entropy, length}                                                                                         |
+|---------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| [generateMnemonic()](#generatemnemonic)                 | {entropy, length}                                                                                         |
 | [createExtendedKey()](#createextendedkey)               | {network, mnemonic, password}                                                                             |
 | [createXprv()](#createxprv)                             | {network, mnemonic, password}                                                                             |
-| [createDescriptor()](#createdescriptor)                 | {type, mnemonic, password, network, publicKeys, threshold}                                                 |
+| [createDescriptor()](#createdescriptor)                 | {type, mnemonic, password, network, publicKeys, threshold}                                                |
 | [createWallet()](#createwallet)                         | {mnemonic,password,network,blockChainConfigUrl,blockChainSocket5,retry,timeOut,blockChainName,descriptor} |
 | [getNewAddress()](#getnewaddress)                       | -                                                                                                         |
 | [getBalance()](#getbalance)                             | -                                                                                                         |
@@ -74,7 +76,7 @@ _BdkRn.generatemnemomic()_
 | [getConfirmedTransactions()](#getconfirmedtransactions) | -                                                                                                         |
 | [getTransactions()](#gettransactions)                   | -                                                                                                         |
 
-### generateMnemomic()
+### generateMnemonic()
 
 Generate random mnemonic seed phrase.
 Reference: https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki#generating-the-mnemonic
@@ -105,9 +107,9 @@ The extended key info object is required to be passed as an argument in some bdk
 
 ```js
 const key = await BdkRn.createExtendedKey({
-  	network: Network.TESTNET
-		mnemonic: 'daring erase travel point pull loud peanut apart attack lobster cross surprise',
-  	password: ''
+  	    network: Network.TESTNET,
+	    mnemonic: 'daring erase travel point pull loud peanut apart attack lobster cross surprise',
+  	    password: '',
 	});
 
 // {
@@ -197,18 +199,6 @@ const response = await BdkRn.createWallet({
 });
 ```
 
-Returned response example:
-
-```js
-{
-  "data": {
-    "address": "tb1qxg8g8cdzgs09cttu3y7lc33udqc4wsesunjnhe",
-    "balance": "0" // in sats
-  },
-  "error": false
-}
-```
-
 ---
 
 ### getNewAddress()
@@ -228,13 +218,7 @@ Get balance of wallet.
 
 ```js
 const response = await BdkRn.getBalance();
-```
-
-```js
-{
-  "data": "8369", // balance in sats
-  "error": false
-}
+// 8369
 ```
 
 ---
@@ -249,13 +233,7 @@ Required params: address, amount
 let address: string = 'tb1qhmk3ftsyctxf2st2fwnprwc0gl708f685t0j3t'; // Wallet address
 let amount: number = 2000; // amount in satoshis
 const response = await BdkRn.broadcastTx({ address, amount });
-```
-
-```js
-{
-  "data": "1162badd3d98b97b1c6bb7fc160b7789163c0fcaef99ad841ad8febeb1395864", // transaction id
-  "error": false
-}
+// 1162badd3d98b97b1c6bb7fc160b7789163c0fcaef99ad841ad8febeb1395864
 ```
 
 ---
@@ -266,10 +244,7 @@ Get pending transactions
 
 ```js
 const response = await BdkRn.getPendingTransactions();
-```
-
-```js
-[{}];
+// [{ txid: '', sent: 0, received: 0, fee: 0 }]
 ```
 
 ---
@@ -280,10 +255,7 @@ Get confirmed transactions
 
 ```js
 const response = await BdkRn.getConfirmedTransactions();
-```
-
-```js
-[{}];
+// [{ txid: '', block_timestamp: 0, sent: 0, block_height: 0, received: 0, fee: 0 }]
 ```
 
 ---
@@ -294,10 +266,7 @@ Get all confirmed and pending transactions
 
 ```js
 const response = await BdkRn.getTransactions();
-```
-
-```js
-{confirmed: [], pending: []};
+// { confirmed: [], pending: [] }
 ```
 
 ---

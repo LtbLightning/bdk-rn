@@ -1,8 +1,8 @@
 {
   "name": "bdk-rn",
-  "version": "0.0.46",
-  "description": "bdk-rn",
-  "homepage": "https://github.com/LtbLightning",
+  "version": "0.1.0",
+  "description": "A React Native library for the Bitcon Development Kit (https://bitcoindevkit.org/)",
+  "homepage": "https://github.com/LtbLightning/bdk-rn",
   "main": "src/index.ts",
   "types": "lib/index.d.ts",
   "author": "Bitcoin Zavior <BitcoinZavior@gmail.com>",
@@ -67,6 +67,7 @@
     ]
   },
   "dependencies": {
+    "@synonymdev/result": "0.0.2",
     "adm-zip": "^0.5.9",
     "is_js": "^0.9.0",
     "request": "^2.88.2"

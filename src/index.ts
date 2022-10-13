@@ -1,18 +1,19 @@
+import { err, ok, Result } from '@synonymdev/result';
 import { NativeModules } from 'react-native';
-import { failure, success, _exists } from './lib/utils';
+
 import {
   BroadcastTransactionRequest,
-  GenerateMnemonicRequest,
-  createWalletRequest,
-  createWalletResponse,
-  Response,
+  ConfirmedTransaction,
   CreateDescriptorRequest,
   CreateExtendedKeyRequest,
   CreateExtendedKeyResponse,
-  ConfirmedTransaction,
+  createWalletRequest,
+  createWalletResponse,
+  GenerateMnemonicRequest,
   PendingTransaction,
   TransactionsResponse,
 } from './lib/interfaces';
+import { _exists } from './lib/utils';
 
 class BdkInterface {
   public _bdk: any;
@@ -23,9 +24,9 @@ class BdkInterface {
 
   /**
    * Generate mnemonic seed phrase of specified entropy and length
-   * @return {Promise<Response>}
+   * @return {Promise<Result<string>>}
    */
-  async generateMnemonic(args: GenerateMnemonicRequest = { length: 12 }): Promise<Response> {
+  async generateMnemonic(args: GenerateMnemonicRequest = { length: 12 }): Promise<Result<string>> {
     try {
       const entropyToLength = {
         '128': 12,
@@ -34,8 +35,7 @@ class BdkInterface {
         '224': 21,
         '256': 24,
       };
-      let entropy = undefined;
-      let wordCount = undefined;
+      let wordCount;
       if (args.entropy && args.length) {
         wordCount = entropyToLength[args.entropy];
       } else if (!args.entropy && !args.length) {
@@ -47,46 +47,46 @@ class BdkInterface {
       if (_exists(network)) network = 'testnet';
 
       const seed: string = await this._bdk.generateMnemonic(wordCount, network);
-      return success(seed);
+      return ok(seed);
     } catch (e: any) {
-      return failure(e);
+      return err(e);
     }
   }
 
   /**
-   * Generate extended key from netowrk, seed and password
-   * @return {Promise<Response>}
+   * Generate extended key from network, seed and password
+   * @return {Promise<Result<string>>}
    */
-  async createExtendedKey(args: CreateExtendedKeyRequest): Promise<Response> {
+  async createExtendedKey(args: CreateExtendedKeyRequest): Promise<Result<string>> {
     try {
       const { network, mnemonic, password } = args;
       const keyInfo: string = await this._bdk.getExtendedKeyInfo(network, mnemonic, password);
-      return success(keyInfo);
+      return ok(keyInfo);
     } catch (e: any) {
-      return failure(e);
+      return err(e);
     }
   }
 
   /**
-   * Create xprv from netowrk, seed and password
-   * @return {Promise<Response>}
+   * Create xprv from network, seed and password
+   * @return {Promise<Result<string>>}
    */
-  async createXprv(args: CreateExtendedKeyRequest): Promise<Response> {
+  async createXprv(args: CreateExtendedKeyRequest): Promise<Result<string>> {
     try {
       const { network, mnemonic, password } = args;
       const keyInfo: CreateExtendedKeyResponse = await this._bdk.getExtendedKeyInfo(network, mnemonic, password);
-      return success(keyInfo.xprv);
+      return ok(keyInfo.xprv);
     } catch (e: any) {
       console.log(e);
-      return failure(e);
+      return err(e);
     }
   }
 
   /**
    * Create descriptor based on different parameters
-   * @return {Promise<Response>}
+   * @return {Promise<Result<string>>}
    */
-  async createDescriptor(args: CreateDescriptorRequest): Promise<Response> {
+  async createDescriptor(args: CreateDescriptorRequest): Promise<Result<string>> {
     try {
       const { type, mnemonic, password, network, publicKeys, threshold } = args;
       let xprv = args.xprv;
@@ -98,8 +98,9 @@ class BdkInterface {
       const useMnemonic = !_exists(xprv);
       if (useMnemonic) {
         if (!_exists(mnemonic) || !_exists(network))
-          throw 'One or more required parameters are emtpy(Mnemonic, Network).';
-        xprv = await (await this.createXprv({ network, mnemonic, password })).data;
+          throw 'One or more required parameters are empty(Mnemonic, Network).';
+        const createXprvRes = await this.createXprv({ network, mnemonic, password });
+        if (createXprvRes.isOk()) xprv = createXprvRes.value;
       }
       if (!useMnemonic && !_exists(xprv)) throw 'XPRV is required';
       if (!_exists(path)) path = "/84'/1'/0'/0/*";
@@ -129,22 +130,22 @@ class BdkInterface {
         }
       } else {
         if (!threshold || !publicKeys || (publicKeys && publicKeys?.length == 0))
-          throw 'Thresold or publicKeys values are invalid.';
-        if (threshold == 0 || threshold > publicKeys?.length + 1) throw 'Thresold value is invalid.';
+          throw 'Threshold or publicKeys values are invalid.';
+        if (threshold == 0 || threshold > publicKeys?.length + 1) throw 'Threshold value is invalid.';
 
         descriptor = `sh(multi(${threshold}${xprv},${publicKeys?.join(',')}${path}))`;
       }
-      return success(descriptor);
+      return ok(descriptor);
     } catch (e: any) {
-      return failure(e);
+      return err(e);
     }
   }
 
   /**
    * Init wallet
-   * @return {Promise<Response>}
+   * @return {Promise<Result<createWalletResponse>>}
    */
-  async createWallet(args: createWalletRequest): Promise<Response> {
+  async createWallet(args: createWalletRequest): Promise<Result<createWalletResponse>> {
     try {
       const {
         mnemonic,
@@ -165,7 +166,7 @@ class BdkInterface {
       const useDescriptor = _exists(descriptor);
       if (useDescriptor && descriptor?.includes(' ')) throw 'Descriptor is not valid.';
       if (!useDescriptor && (!_exists(mnemonic) || !_exists(network)))
-        throw 'One or more required parameters are emtpy(Mnemonic, Network).';
+        throw 'One or more required parameters are empty(Mnemonic, Network).';
 
       const wallet: createWalletResponse = await this._bdk.createWallet(
         mnemonic ?? '',
@@ -178,105 +179,105 @@ class BdkInterface {
         blockChainName ?? '',
         descriptor ?? ''
       );
-      return success(wallet);
+      return ok(wallet);
     } catch (e: any) {
-      return failure(e);
+      return err(e);
     }
   }
 
   /**
    * Sync wallet
-   * @return {Promise<Response>}
+   * @return {Promise<Result<string>>}
    */
-  async syncWallet(): Promise<Response> {
+  async syncWallet(): Promise<Result<string>> {
     try {
       const response: string = await this._bdk.syncWallet();
-      return success(response);
+      return ok(response);
     } catch (e: any) {
-      return failure(e);
+      return err(e);
     }
   }
 
   /**
    * Get new address
-   * @return {Promise<Response>}
+   * @return {Promise<Result<string>>}
    */
-  async getNewAddress(): Promise<Response> {
+  async getNewAddress(): Promise<Result<string>> {
     try {
       const address: string = await this._bdk.getNewAddress();
-      return success(address);
+      return ok(address);
     } catch (e: any) {
-      return failure(e);
+      return err(e);
     }
   }
 
   /**
    * Get wallet balance
-   * @return {Promise<Response>}
+   * @return {Promise<Result<string>>}
    */
-  async getBalance(): Promise<Response> {
+  async getBalance(): Promise<Result<string>> {
     try {
       const balance: string = await this._bdk.getBalance();
-      return success(balance);
+      return ok(balance);
     } catch (e: any) {
-      return failure(e);
+      return err(e);
     }
   }
 
   /**
    * Broadcast Transaction
-   * @return {Promise<Response>}
+   * @return {Promise<Result<string>>}
    */
-  async broadcastTx(args: BroadcastTransactionRequest): Promise<Response> {
+  async broadcastTx(args: BroadcastTransactionRequest): Promise<Result<string>> {
     try {
       const { address, amount } = args;
       if (!_exists(address) || !_exists(amount)) throw 'Required address or amount parameters are missing.';
       if (isNaN(amount)) throw 'Entered amount is invalid';
       const tx = await this._bdk.broadcastTx(address, amount);
-      return success(tx);
+      return ok(tx);
     } catch (e: any) {
-      return failure(e);
+      return err(e);
     }
   }
 
   /**
    * Get pending transactions
-   * @return {Promise<Response>}
+   * @return {Promise<Result<Array<PendingTransaction>>>}
    */
-  async getPendingTransactions(): Promise<Response> {
+  async getPendingTransactions(): Promise<Result<Array<PendingTransaction>>> {
     try {
       const response: Array<PendingTransaction> = await this._bdk.getPendingTransactions();
-      return success(response);
+      return ok(response);
     } catch (e: any) {
-      return failure(e);
+      return err(e);
     }
   }
 
   /**
    * Get pending transactions
-   * @return {Promise<Response>}
+   * @return {Promise<Result<Array<ConfirmedTransaction>>>}
    */
-  async getConfirmedTransactions(): Promise<Response> {
+  async getConfirmedTransactions(): Promise<Result<Array<ConfirmedTransaction>>> {
     try {
       const response: Array<ConfirmedTransaction> = await this._bdk.getConfirmedTransactions();
-      return success(response);
+      return ok(response);
     } catch (e: any) {
-      return failure(e);
+      return err(e);
     }
   }
 
   /**
    * Get all transactions
-   * @return {Promise<Response>}
+   * @return {Promise<Result<TransactionsResponse>>}
    */
-  async getTransactions(): Promise<Response> {
+  async getTransactions(): Promise<Result<TransactionsResponse>> {
     try {
       const confirmed: Array<ConfirmedTransaction> = await this._bdk.getConfirmedTransactions();
       const pending: Array<PendingTransaction> = await this._bdk.getPendingTransactions();
       const response: TransactionsResponse = { confirmed, pending };
-      return success(response);
+      return ok(response);
     } catch (e: any) {
-      return failure(e);
+      return err(e);
     }
   }
 }
