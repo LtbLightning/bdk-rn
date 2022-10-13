@@ -1,8 +1,3 @@
-export interface Response {
-  error: boolean;
-  data: any;
-}
-
 export type NetworkType = 'bitcoin' | 'testnet' | 'signet' | 'regtest';
 export interface GenerateMnemonicRequest {
   entropy?: 128 | 160 | 192 | 224 | 256;
