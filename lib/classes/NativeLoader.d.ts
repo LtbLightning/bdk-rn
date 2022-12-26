@@ -1,4 +1,4 @@
 export declare class NativeLoader {
-    _bdk: any;
+    protected _bdk: any;
     constructor();
 }

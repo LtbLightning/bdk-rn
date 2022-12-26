@@ -14,8 +14,8 @@ class BdkRnModule: NSObject {
     }
 
     @objc
-    func generateMnemonic(_
-        wordCount: NSNumber? = 12,
+    func generateMnemonicFromWordCount(_
+        wordCount: NSNumber,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
@@ -29,6 +29,20 @@ class BdkRnModule: NSObject {
         }
         let response = Mnemonic(wordCount: number)
         resolve(response.asString())
+    }
+    
+    @objc
+    func generateMnemonicFromString(_
+        mnemonic: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let response = try Mnemonic.fromString(mnemonic: mnemonic)
+            resolve(response.asString())
+        } catch let error {
+            reject("Generate seed error", "\(error)", error)
+        }
     }
     
     @objc

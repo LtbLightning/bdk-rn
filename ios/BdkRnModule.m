@@ -26,10 +26,17 @@ RCT_EXTERN_METHOD(
 )
 
 RCT_EXTERN_METHOD(
-    generateMnemonic: (nonnull NSNumber *)wordCount
+    generateMnemonicFromWordCount: (nonnull NSNumber *)wordCount
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
+
+RCT_EXTERN_METHOD(
+    generateMnemonicFromString: (nonnull NSString *)mnemonic
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
 
 RCT_EXTERN_METHOD(
     getExtendedKeyInfo: (nonnull NSString*)network

@@ -1,4 +1,3 @@
-import { ok, err, Result } from '@synonymdev/result';
 import { NativeLoader } from './NativeLoader';
 
 enum WordCount {
@@ -9,19 +8,39 @@ enum WordCount {
   WORDS24 = 24,
 }
 
+/**
+ * Mnemonic phrases are a human-readable version of the private keys.
+ * Supported number of words are 12, 15, 18, and 24.
+ */
 class MnemonicInterface extends NativeLoader {
-  mnemonic: string = '';
-  constructor(wordCount: WordCount = WordCount.WORDS12) {
-    super();
+  private mnemonic: string = '';
+
+  /**
+   * Generates [Mnemonic] with given [WordCount]
+   * @param wordCount
+   * @returns {Promise<MnemonicInterface>}
+   */
+  async create(wordCount: WordCount = WordCount.WORDS12): Promise<MnemonicInterface> {
+    if (!Object.values(WordCount).includes(wordCount)) throw 'Invalid word count passed';
+    this.mnemonic = await this._bdk.generateMnemonicFromWordCount(wordCount);
+    return this;
   }
 
-  async create(wordCount: WordCount = WordCount.WORDS12): Promise<Result<string>> {
-    try {
-      this.mnemonic = await this._bdk.generateMnemonic(wordCount);
-      return ok(this.mnemonic);
-    } catch (e: any) {
-      return err(e);
-    }
+  /**
+   * Parse a [Mnemonic] with given string
+   * @param mnemonic
+   * @returns {Promise<MnemonicInterface>}
+   */
+  async fromString(mnemonic: string): Promise<MnemonicInterface> {
+    this.mnemonic = await this._bdk.generateMnemonicFromString(mnemonic);
+    return this;
+  }
+
+  /**
+   * @returns {string}
+   */
+  asString(): string {
+    return this.mnemonic;
   }
 }
 
