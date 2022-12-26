@@ -7,9 +7,45 @@
 
 @interface RCT_EXTERN_MODULE(BdkRnModule, NSObject)
 
-RCT_EXTERN_METHOD(getNewAddress:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
-RCT_EXTERN_METHOD(getBalance:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
-RCT_EXTERN_METHOD(syncWallet:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+/** Mnemonic Methods */
+
+RCT_EXTERN_METHOD(
+    generateSeedFromWordCount: (nonnull NSNumber *)wordCount
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    generateSeedFromString: (nonnull NSString *)mnemonic
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    generateSeedFromEntropy: (nonnull NSNumber *)entropy
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+/** DescriptorSecretKey Methods */
+RCT_EXTERN_METHOD(
+    createDescriptorSecret: (nonnull NSString*)network
+    mnemonic:(nonnull NSString *)mnemonic
+    password:(nonnull NSString *)password
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    createDerivationPath: (nonnull NSString*)path
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+
+
+/** ========================== OLD METHODS ==========================*/
+
 
 RCT_EXTERN_METHOD(
     createWallet: (nonnull NSString*)mnemonic
@@ -25,17 +61,6 @@ RCT_EXTERN_METHOD(
     reject:(RCTPromiseRejectBlock)reject
 )
 
-RCT_EXTERN_METHOD(
-    generateMnemonicFromWordCount: (nonnull NSNumber *)wordCount
-    resolve: (RCTPromiseResolveBlock)resolve
-    reject:(RCTPromiseRejectBlock)reject
-)
-
-RCT_EXTERN_METHOD(
-    generateMnemonicFromString: (nonnull NSString *)mnemonic
-    resolve: (RCTPromiseResolveBlock)resolve
-    reject:(RCTPromiseRejectBlock)reject
-)
 
 
 RCT_EXTERN_METHOD(
@@ -53,6 +78,9 @@ RCT_EXTERN_METHOD(
     reject:(RCTPromiseRejectBlock)reject
 )
 
+RCT_EXTERN_METHOD(getNewAddress:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(getBalance:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(syncWallet:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(getPendingTransactions:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(getConfirmedTransactions:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 @end

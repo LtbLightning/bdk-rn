@@ -14,7 +14,7 @@ class BdkRnModule: NSObject {
     }
 
     @objc
-    func generateMnemonicFromWordCount(_
+    func generateSeedFromWordCount(_
         wordCount: NSNumber,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
@@ -32,7 +32,7 @@ class BdkRnModule: NSObject {
     }
     
     @objc
-    func generateMnemonicFromString(_
+    func generateSeedFromString(_
         mnemonic: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
@@ -44,6 +44,74 @@ class BdkRnModule: NSObject {
             reject("Generate seed error", "\(error)", error)
         }
     }
+    
+    @objc
+    func generateSeedFromEntropy(_
+        entropy: NSNumber,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let response = try Mnemonic.fromEntropy(entropy: [UInt8(truncating: 128)])
+            resolve(response.asString())
+        } catch let error {
+            reject("Generate seed error", "\(error)", error)
+        }
+    }
+    
+    @objc
+    func createDescriptorSecret(_
+        network: String,
+        mnemonic: String,
+        password: String? = nil,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let networkName: Network = bdkFunctions.setNetwork(networkStr: network)
+            let response = try DescriptorSecretKey(
+                network: networkName,
+                mnemonic:Mnemonic.fromString(mnemonic: mnemonic),
+                password: password
+            )
+            resolve(response.asString().replacingOccurrences(of: "/*", with: ""))
+        } catch let error {
+            reject("Descriptor secret error", "\(error)", error)
+        }
+    }
+    
+    @objc
+    func createDerivationPath(_
+        path: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let response = try DerivationPath(path: path)
+            resolve(true)
+        } catch let error {
+            reject("Create Derivation path error", "\(error)", error)
+        }
+    }
+    
+    @objc
+    func descriptorSecretDerive(_
+        xprv: String,
+        path: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            
+//            let response = DescriptorSecretKey
+            resolve(true)
+        } catch let error {
+            reject("Create Derivation path error", "\(error)", error)
+        }
+    }
+    
+    
+    /** OLD Methods */
     
     @objc
     func getExtendedKeyInfo(_

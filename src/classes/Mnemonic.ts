@@ -1,12 +1,5 @@
+import { WordCount } from '../lib/enums';
 import { NativeLoader } from './NativeLoader';
-
-enum WordCount {
-  WORDS12 = 12,
-  WORDS15 = 15,
-  WORDS18 = 18,
-  WORDS21 = 21,
-  WORDS24 = 24,
-}
 
 /**
  * Mnemonic phrases are a human-readable version of the private keys.
@@ -22,7 +15,7 @@ class MnemonicInterface extends NativeLoader {
    */
   async create(wordCount: WordCount = WordCount.WORDS12): Promise<MnemonicInterface> {
     if (!Object.values(WordCount).includes(wordCount)) throw 'Invalid word count passed';
-    this.mnemonic = await this._bdk.generateMnemonicFromWordCount(wordCount);
+    this.mnemonic = await this._bdk.generateSeedFromWordCount(wordCount);
     return this;
   }
 
@@ -32,7 +25,17 @@ class MnemonicInterface extends NativeLoader {
    * @returns {Promise<MnemonicInterface>}
    */
   async fromString(mnemonic: string): Promise<MnemonicInterface> {
-    this.mnemonic = await this._bdk.generateMnemonicFromString(mnemonic);
+    this.mnemonic = await this._bdk.generateSeedFromString(mnemonic);
+    return this;
+  }
+
+  /**
+   * Generates [Mnemonic] with given [entropy]
+   * @param entropy
+   * @returns {Promise<MnemonicInterface>}
+   */
+  async fromEntropy(entropy: number = Math.random()): Promise<MnemonicInterface> {
+    this.mnemonic = await this._bdk.generateSeedFromEntropy(entropy);
     return this;
   }
 
