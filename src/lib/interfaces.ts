@@ -11,7 +11,6 @@ export interface CreateExtendedKeyRequest {
   password?: string;
 }
 export interface CreateExtendedKeyResponse {
-  fingerprint: string;
   mnemonic: string;
   xprv: string;
 }

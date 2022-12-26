@@ -45,12 +45,27 @@ class BdkFunctions: NSObject {
 
 
     func createDefaultDescriptor(xprv: String) -> String {
-        return ("wpkh(" + xprv + "/84'/1'/0'/0/*)")
+        return ("wpkh(" + xprv + ")")
     }
 
     func createChangeDescriptor(descriptor: String) -> String {
         return descriptor.replacingOccurrences(of: "/84'/1'/0'/0/*", with: "/84'/1'/0'/1/*")
     }
+    
+    
+    // only create BIP84 compatible wallets
+    private func createExternalDescriptor(rootKey: DescriptorSecretKey) -> String {
+        let path: DerivationPath = try! DerivationPath(path: "m/84h/1h/0h/0")
+        let descriptor = "wpkh(\(rootKey.extend(path: path).asString())"
+        return descriptor
+    }
+    
+    private func createInternalDescriptor(rootKey: DescriptorSecretKey) -> String {
+        let path: DerivationPath = try! DerivationPath(path: "m/84h/1h/0h/1")
+        let descriptor = "wpkh(\(rootKey.extend(path: path).asString())"
+        return descriptor
+    }
+
 
 
     private func createBlockchainConfig(
@@ -81,11 +96,14 @@ class BdkFunctions: NSObject {
 
     func extendedKeyInfo(network: Network, mnemonic: String, password: String? = nil) throws -> [String: Any?] {
         do {
-            let keysInfo: ExtendedKeyInfo = try restoreExtendedKey(network: network, mnemonic: mnemonic, password: password)
+            let keysInfo = try DescriptorSecretKey(
+                network: network,
+                mnemonic: Mnemonic.fromString(mnemonic: mnemonic),
+                password: password
+            )
             let responseObject = [
-                "fingerprint": keysInfo.fingerprint,
-                "mnemonic": keysInfo.mnemonic,
-                "xprv": keysInfo.xprv
+                "mnemonic": mnemonic,
+                "xprv": keysInfo.asString()
             ] as [String: Any]
             return responseObject
         } catch {
@@ -109,19 +127,21 @@ class BdkFunctions: NSObject {
             let walletNetwork: Network = setNetwork(networkStr: network)
             var newDescriptor = "";
             if(descriptor == "") {
-                let keyInfo = try restoreExtendedKey(network: walletNetwork, mnemonic: mnemonic ?? "", password: password)
-                newDescriptor = createDefaultDescriptor(xprv: keyInfo.xprv)
+                let rootKey = try DescriptorSecretKey(
+                    network: walletNetwork,
+                    mnemonic: Mnemonic.fromString(mnemonic: mnemonic ?? ""),
+                    password: password
+                )
+                newDescriptor = createDefaultDescriptor(xprv: rootKey.asString())
             } else {
                 newDescriptor = descriptor ?? ""
             }
-
-            let changeDescriptor: String = createChangeDescriptor(descriptor: newDescriptor)
 
             self.blockchainConfig = createBlockchainConfig(blockChainConfigUrl: blockChainConfigUrl, blockChainSocket5: blockChainSocket5, retry: retry, timeOut: timeOut, blockChainName: blockChainName != "" ? blockChainName : defaultBlockChain)
 
             self.wallet = try Wallet.init(
                 descriptor: newDescriptor,
-                changeDescriptor: changeDescriptor,
+                changeDescriptor: nil,
                 network: walletNetwork,
                 databaseConfig: databaseConfig)
 
@@ -158,14 +178,14 @@ class BdkFunctions: NSObject {
     }
 
     func getNetwork() -> Network {
-        return self.wallet.getNetwork()
+        return self.wallet.network()
     }
 
 
     func getBalance() throws -> String {
         do {
             let balance = try self.wallet.getBalance()
-            return String(balance)
+            return String(balance.confirmed)
         } catch {
             throw error
         }
@@ -173,25 +193,22 @@ class BdkFunctions: NSObject {
 
     func transactionsList(pending: Bool? = false) throws -> [Any] {
         do {
-            let transactions = try wallet.getTransactions()
+            let transactions: [TransactionDetails] = try wallet.listTransactions()
+            print(transactions);
 
             var confirmedTransactions: [Any] = []
             var pendingTransactions: [Any] = []
-            for tx in transactions {
-                // Confirmed transactions
-                if case let .confirmed(details, confirmation) = tx {
+            for details in transactions {
+                if (details.confirmationTime != nil) { // Confirmed transactions
                     let responseObject = [
                         "fee": details.fee!,
                         "received": details.received,
                         "sent": details.sent,
                         "txid": details.txid,
-                        "block_height": confirmation.height,
-                        "block_timestamp": confirmation.timestamp,
+                        "confirmationTime": details.confirmationTime?.timestamp ?? "",
                     ] as [String: Any]
                     confirmedTransactions.append(responseObject)
-                }
-                // Pending transactions
-                if case let .unconfirmed(details) = tx {
+                } else { // Pending transactions
                     let responseObject = [
                         "fee": details.fee!,
                         "received": details.received,
@@ -210,11 +227,13 @@ class BdkFunctions: NSObject {
 
     func broadcastTx(_ recipient: String, amount: NSNumber) throws -> String {
         do {
-            let txBuilder = TxBuilder().addRecipient(address: recipient, amount: UInt64(truncating: amount))
-            let psbt = try txBuilder.finish(wallet: wallet)
-            try wallet.sign(psbt: psbt)
-            try blockChain.broadcast(psbt: psbt)
-            let txid = psbt.txid()
+            let address = try Address(address: recipient)
+            let script = address.scriptPubkey()
+            let txBuilder = TxBuilder().addRecipient(script: script, amount: UInt64(truncating: amount))
+            let details = try txBuilder.finish(wallet: wallet)
+            let _ = try wallet.sign(psbt: details.psbt)
+            try blockChain.broadcast(psbt: details.psbt)
+            let txid = details.psbt.txid()
             return txid;
         } catch {
             throw error

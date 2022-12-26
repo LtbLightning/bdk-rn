@@ -18,25 +18,19 @@ class BdkRnModule: NSObject {
     @objc
     func generateMnemonic(_
         wordCount: NSNumber? = 12,
-        network: String? = "testnet",
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        do {
-            var number = WordCount.words12
-            switch (wordCount) {
-                case 15: number = WordCount.words15
-                case 18: number = WordCount.words18
-                case 21: number = WordCount.words21
-                case 24: number = WordCount.words24
-                default: number = WordCount.words12
-            }
-            let networkName: Network = bdkFunctions.setNetwork(networkStr: network)
-            let response = try generateExtendedKey(network: networkName, wordCount: number, password: "")
-            resolve(response.mnemonic)
-        } catch let error {
-            reject("Generate mnemonic Error", error.localizedDescription, error)
+        var number = WordCount.words12
+        switch (wordCount) {
+            case 15: number = WordCount.words15
+            case 18: number = WordCount.words18
+            case 21: number = WordCount.words21
+            case 24: number = WordCount.words24
+            default: number = WordCount.words12
         }
+        let response = Mnemonic(wordCount: number)
+        resolve(response.asString())
     }
     
     @objc

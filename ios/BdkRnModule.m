@@ -28,7 +28,6 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
                   generateMnemonic: (nonnull NSNumber *)wordCount
-                  network:(nonnull NSString *)network
                   resolve: (RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject
                   )
