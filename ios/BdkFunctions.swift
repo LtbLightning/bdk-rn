@@ -55,9 +55,6 @@ class BdkFunctions: NSObject {
     func createChangeDescriptor(descriptor: String) -> String {
         return descriptor.replacingOccurrences(of: "/84'/1'/0'/0/*", with: "/84'/1'/0'/1/*")
     }
-    
-
-
 
     private func createBlockchainConfig(
         blockChainConfigUrl: String?, blockChainSocket5: String?,
@@ -146,32 +143,9 @@ class BdkFunctions: NSObject {
         }
     }
 
-
-    func getWallet()throws -> [String: Any?] {
-        do {
-            let addressInfo = try! self.wallet.getAddress(addressIndex: AddressIndex.new)
-            let responseObject = [
-                "address": addressInfo.address,
-                "balance": try self.getBalance()
-            ] as [String: Any]
-            return responseObject
-        } catch {
-            throw error
-        }
-    }
-
-
     func getNewAddress() -> String {
         let addressInfo = try! self.wallet.getAddress(addressIndex: AddressIndex.new)
         return addressInfo.address
-    }
-    func getLastUnusedAddress() -> String {
-        let addressInfo = try! self.wallet.getAddress(addressIndex: AddressIndex.lastUnused)
-        return addressInfo.address
-    }
-
-    func getNetwork() -> Network {
-        return self.wallet.network()
     }
 
 

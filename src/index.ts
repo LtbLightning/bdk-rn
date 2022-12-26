@@ -43,8 +43,6 @@ class BdkInterface {
       } else {
         wordCount = args.length;
       }
-      let { network } = args;
-      if (_exists(network)) network = 'testnet';
 
       const seed: string = await this._bdk.generateMnemonic(wordCount);
       return ok(seed);

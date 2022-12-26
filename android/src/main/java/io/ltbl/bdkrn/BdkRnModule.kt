@@ -1,9 +1,7 @@
 package io.ltbl.bdkrn
 
-import android.util.Log
 import com.facebook.react.bridge.*
 import org.bitcoindevkit.Network
-import java.io.FileDescriptor
 
 class BdkRnModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -12,11 +10,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         return hashMapOf("count" to 1)
     }
 
-
     @ReactMethod
-    fun generateMnemonic(wordCount: Int = 12,  network: String = "testnet", result: Promise) {
+    fun generateMnemonic(wordCount: Int = 12, result: Promise) {
         try {
-            val mnemonic = BdkFunctions.generateMnemonic(wordCount, network)
+            val mnemonic = BdkFunctions.generateMnemonic(wordCount)
             result.resolve(mnemonic)
         } catch (error: Throwable) {
             return result.reject("Generate Mnemonic Error", error.localizedMessage, error)
@@ -24,9 +21,14 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun getExtendedKeyInfo(network: String, mnemonic: String, password: String? = null, result: Promise) {
+    fun getExtendedKeyInfo(
+        network: String,
+        mnemonic: String,
+        password: String? = null,
+        result: Promise
+    ) {
         try {
-            var networkName: Network = BdkFunctions.setNetwork(network);
+            val networkName: Network = BdkFunctions.setNetwork(network)
             val responseObject = BdkFunctions.extendedKeyInfo(networkName, mnemonic, password)
             result.resolve(Arguments.makeNativeMap(responseObject))
         } catch (error: Throwable) {
@@ -110,38 +112,20 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun getPendingTransactions(result: Promise) {
         try {
-            val transactions = BdkFunctions.pendingTransactionsList()
+            val transactions = BdkFunctions.transactionsList(true)
             result.resolve(Arguments.makeNativeArray(transactions))
         } catch (error: Throwable) {
             return result.reject("Get Pending TransactionsError", error.localizedMessage, error)
         }
     }
+
     @ReactMethod
     fun getConfirmedTransactions(result: Promise) {
         try {
-            val transactions = BdkFunctions.confirmedTransactionsList()
+            val transactions = BdkFunctions.transactionsList()
             result.resolve(Arguments.makeNativeArray(transactions))
         } catch (error: Throwable) {
             return result.reject("Get confirmed Transactions Error", error.localizedMessage, error)
-        }
-    }
-
-    @ReactMethod
-    fun getWallet(result: Promise) {
-        try {
-            val wallet: String = BdkFunctions.getWallet()
-            result.resolve(wallet)
-        } catch (error: Throwable) {
-            return result.reject("Get Wallet Error", error.localizedMessage, error)
-        }
-    }
-
-    @ReactMethod
-    fun resetWallet(result: Promise) {
-        try {
-            result.resolve(BdkFunctions.resetWallet())
-        } catch (error: Throwable) {
-            return result.reject("Progress Log resetWallet Error", error.localizedMessage, error)
         }
     }
 }

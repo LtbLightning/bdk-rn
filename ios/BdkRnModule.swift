@@ -6,8 +6,6 @@
 import Foundation
 
 
-let TAG = "BDK-RN"
-
 @objc(BdkRnModule)
 class BdkRnModule: NSObject {
     let bdkFunctions = BdkFunctions()
@@ -117,28 +115,6 @@ class BdkRnModule: NSObject {
         } catch let error {
             let details = "\(error)"
             reject("Broadcast Error", details, error)
-        }
-    }
-    
-    @objc
-    func getLastUnusedAddress(_
-                              resolve: @escaping RCTPromiseResolveBlock,
-                              reject: @escaping RCTPromiseRejectBlock
-    ) {
-        let address = bdkFunctions.getLastUnusedAddress()
-        resolve(address)
-    }
-
-    @objc
-    func getWallet(_
-                   resolve: @escaping RCTPromiseResolveBlock,
-                   reject: @escaping RCTPromiseRejectBlock
-    ) {
-        do {
-            let response = try bdkFunctions.getWallet()
-            resolve(response)
-        } catch let error {
-            reject("Get Balance Error", error.localizedDescription, error)
         }
     }
 
