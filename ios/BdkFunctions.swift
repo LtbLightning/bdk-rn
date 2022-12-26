@@ -44,27 +44,18 @@ class BdkFunctions: NSObject {
     }
 
 
-    func createDefaultDescriptor(xprv: String) -> String {
-        return ("wpkh(" + xprv + ")")
+    private func createDefaultDescriptor(rootKey: DescriptorSecretKey) -> String {
+        let path: DerivationPath = try! DerivationPath(path: "m/84h/1h/0h/0")
+        let xprv = try! rootKey.extend(path: path).asString()
+        let descriptor = "wpkh(\(xprv))"
+        return descriptor
     }
-
+    
+    
     func createChangeDescriptor(descriptor: String) -> String {
         return descriptor.replacingOccurrences(of: "/84'/1'/0'/0/*", with: "/84'/1'/0'/1/*")
     }
     
-    
-    // only create BIP84 compatible wallets
-    private func createExternalDescriptor(rootKey: DescriptorSecretKey) -> String {
-        let path: DerivationPath = try! DerivationPath(path: "m/84h/1h/0h/0")
-        let descriptor = "wpkh(\(rootKey.extend(path: path).asString())"
-        return descriptor
-    }
-    
-    private func createInternalDescriptor(rootKey: DescriptorSecretKey) -> String {
-        let path: DerivationPath = try! DerivationPath(path: "m/84h/1h/0h/1")
-        let descriptor = "wpkh(\(rootKey.extend(path: path).asString())"
-        return descriptor
-    }
 
 
 
@@ -103,7 +94,7 @@ class BdkFunctions: NSObject {
             )
             let responseObject = [
                 "mnemonic": mnemonic,
-                "xprv": keysInfo.asString()
+                "xprv": keysInfo.asString().replacingOccurrences(of: "/*", with: "")
             ] as [String: Any]
             return responseObject
         } catch {
@@ -132,16 +123,18 @@ class BdkFunctions: NSObject {
                     mnemonic: Mnemonic.fromString(mnemonic: mnemonic ?? ""),
                     password: password
                 )
-                newDescriptor = createDefaultDescriptor(xprv: rootKey.asString())
+                newDescriptor = createDefaultDescriptor(rootKey: rootKey)
             } else {
                 newDescriptor = descriptor ?? ""
             }
+            
+            let changeDescriptor = createChangeDescriptor(descriptor: newDescriptor)
 
             self.blockchainConfig = createBlockchainConfig(blockChainConfigUrl: blockChainConfigUrl, blockChainSocket5: blockChainSocket5, retry: retry, timeOut: timeOut, blockChainName: blockChainName != "" ? blockChainName : defaultBlockChain)
 
             self.wallet = try Wallet.init(
                 descriptor: newDescriptor,
-                changeDescriptor: nil,
+                changeDescriptor: changeDescriptor,
                 network: walletNetwork,
                 databaseConfig: databaseConfig)
 
@@ -194,8 +187,6 @@ class BdkFunctions: NSObject {
     func transactionsList(pending: Bool? = false) throws -> [Any] {
         do {
             let transactions: [TransactionDetails] = try wallet.listTransactions()
-            print(transactions);
-
             var confirmedTransactions: [Any] = []
             var pendingTransactions: [Any] = []
             for details in transactions {
