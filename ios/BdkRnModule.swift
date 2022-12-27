@@ -12,22 +12,28 @@ class BdkRnModule: NSObject {
     @objc static func requiresMainQueueSetup() -> Bool {
         return false
     }
+    
+    var _descriptorSecretKey: DescriptorSecretKey;
+    var _descriptorPublicKey: DescriptorPublicKey;
+    let defaultPublicKey: String = "tpubD6NzVbkrYhZ4X1EWKTKQaGTrfs9cu5wpFiv7XroiRYBgStXFDx88SzijzRo69U7E3nBr8jiKYyb1MtNWaAHD8fhT1A3PGz5Duy6urG8uxLD/*"
+    
+    override init() {
+        _descriptorSecretKey = DescriptorSecretKey(
+            network: setNetwork(networkStr: ""),
+            mnemonic: Mnemonic(wordCount: setWordCount(wordCount: 0)),
+            password: ""
+        )
+        _descriptorPublicKey = try! DescriptorPublicKey.fromString(publicKey: defaultPublicKey)
+    }
 
+    /** Mnemonic methods starts */
     @objc
     func generateSeedFromWordCount(_
         wordCount: NSNumber,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        var number = WordCount.words12
-        switch (wordCount) {
-            case 15: number = WordCount.words15
-            case 18: number = WordCount.words18
-            case 21: number = WordCount.words21
-            case 24: number = WordCount.words24
-            default: number = WordCount.words12
-        }
-        let response = Mnemonic(wordCount: number)
+        let response = Mnemonic(wordCount: setWordCount(wordCount: wordCount))
         resolve(response.asString())
     }
     
@@ -59,6 +65,25 @@ class BdkRnModule: NSObject {
         }
     }
     
+    /** Mnemonic methods ends */
+    
+    /** Derviation path methods starts */
+    @objc
+    func createDerivationPath(_
+        path: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            _ = try DerivationPath(path: path)
+            resolve(true)
+        } catch let error {
+            reject("Create Derivation path error", "\(error)", error)
+        }
+    }
+    /** Derviation path methods ends */
+    
+    /** Descriptor secret key methods starts */
     @objc
     func createDescriptorSecret(_
         network: String,
@@ -68,50 +93,116 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let networkName: Network = bdkFunctions.setNetwork(networkStr: network)
-            let response = try DescriptorSecretKey(
+            let networkName: Network = setNetwork(networkStr: network)
+            let keyInfo = try DescriptorSecretKey(
                 network: networkName,
                 mnemonic:Mnemonic.fromString(mnemonic: mnemonic),
                 password: password
             )
-            resolve(response.asString().replacingOccurrences(of: "/*", with: ""))
+            _descriptorSecretKey = keyInfo
+            resolve(keyInfo.asString())
         } catch let error {
-            reject("Descriptor secret error", "\(error)", error)
-        }
-    }
-    
-    @objc
-    func createDerivationPath(_
-        path: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        do {
-            let response = try DerivationPath(path: path)
-            resolve(true)
-        } catch let error {
-            reject("Create Derivation path error", "\(error)", error)
+            reject("DescriptorSecret create error", "\(error)", error)
         }
     }
     
     @objc
     func descriptorSecretDerive(_
-        xprv: String,
         path: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            
-//            let response = DescriptorSecretKey
-            resolve(true)
+            let _path = try DerivationPath(path: path)
+            let keyInfo = try _descriptorSecretKey.derive(path: _path)
+            resolve(keyInfo.asString())
         } catch let error {
-            reject("Create Derivation path error", "\(error)", error)
+            reject("DescriptorSecret derive error", "\(error)", error)
         }
     }
     
+    @objc
+    func descriptorSecretExtend(_
+        path: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let _path = try DerivationPath(path: path)
+            let keyInfo = try _descriptorSecretKey.extend(path: _path)
+            resolve(keyInfo.asString())
+        } catch let error {
+            reject("DescriptorSecret extend error", "\(error)", error)
+        }
+    }
     
-    /** OLD Methods */
+    @objc
+    func descriptorSecretAsPublic(_
+      resolve: @escaping RCTPromiseResolveBlock,
+      reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(_descriptorSecretKey.asPublic().asString())
+    }
+    
+    @objc
+    func descriptorSecretAsSecretBytes(_
+       resolve: @escaping RCTPromiseResolveBlock,
+       reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(_descriptorSecretKey.secretBytes())
+    }
+    /** Descriptor secret key methods ends */
+    
+    
+    /** Descriptor public key methods starts */
+    @objc
+    func createDescriptorPublic(_
+        publicKey: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let keyInfo = try DescriptorPublicKey.fromString(publicKey: publicKey)
+            _descriptorPublicKey = keyInfo
+            resolve(keyInfo.asString())
+        } catch let error {
+            reject("DescriptorPublic create error", "\(error)", error)
+        }
+    }
+    
+    @objc
+    func descriptorPublicDerive(_
+        path: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let _path = try DerivationPath(path: path)
+            let keyInfo = try _descriptorPublicKey.derive(path: _path)
+            resolve(keyInfo.asString())
+        } catch let error {
+            reject("DescriptorPublic derive error", "\(error)", error)
+        }
+    }
+    
+    @objc
+    func descriptorPublicExtend(_
+        path: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let _path = try DerivationPath(path: path)
+            let keyInfo = try _descriptorPublicKey.extend(path: _path)
+            resolve(keyInfo.asString())
+        } catch let error {
+            reject("DescriptorPublic extend error", "\(error)", error)
+        }
+    }
+    
+    /** Descriptor public key methods ends */
+    
+    /** ==================== OLD Methods  ====================  */
     
     @objc
     func getExtendedKeyInfo(_
@@ -122,8 +213,12 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let networkName: Network = bdkFunctions.setNetwork(networkStr: network)
-            let response = try bdkFunctions.extendedKeyInfo(network: networkName, mnemonic:mnemonic, password: password)
+            let networkName: Network = setNetwork(networkStr: network)
+            let response = try bdkFunctions.extendedKeyInfo(
+                network: networkName,
+                mnemonic: mnemonic,
+                password: password
+            )
             resolve(response)
         } catch let error {
             reject("Get extended keys error", error.localizedDescription, error)

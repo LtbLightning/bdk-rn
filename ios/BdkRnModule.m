@@ -27,6 +27,13 @@ RCT_EXTERN_METHOD(
     reject:(RCTPromiseRejectBlock)reject
 )
 
+// Derivation path methods
+RCT_EXTERN_METHOD(
+    createDerivationPath: (nonnull NSString*)path
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
 /** DescriptorSecretKey Methods */
 RCT_EXTERN_METHOD(
     createDescriptorSecret: (nonnull NSString*)network
@@ -37,11 +44,39 @@ RCT_EXTERN_METHOD(
 )
 
 RCT_EXTERN_METHOD(
-    createDerivationPath: (nonnull NSString*)path
+    descriptorSecretDerive: (nonnull NSString*)path
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
 
+RCT_EXTERN_METHOD(
+    descriptorSecretExtend: (nonnull NSString*)path
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(descriptorSecretAsPublic:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(descriptorSecretAsSecretBytes:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+
+
+/** DescriptorPublicKey Methods */
+RCT_EXTERN_METHOD(
+    createDescriptorPublic: (nonnull NSString*)publicKey
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    descriptorPublicDerive: (nonnull NSString*)path
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    descriptorPublicExtend: (nonnull NSString*)path
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
 
 
 /** ========================== OLD METHODS ==========================*/

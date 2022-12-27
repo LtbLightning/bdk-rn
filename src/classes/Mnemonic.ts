@@ -40,6 +40,7 @@ class MnemonicInterface extends NativeLoader {
   }
 
   /**
+   * Get mnemonic as string
    * @returns {string}
    */
   asString(): string {

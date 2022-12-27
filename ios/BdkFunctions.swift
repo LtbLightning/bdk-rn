@@ -33,16 +33,6 @@ class BdkFunctions: NSObject {
         try? self.wallet.sync(blockchain: Blockchain.init(config: blockchainConfig), progress: BdkProgress())
     }
 
-    func setNetwork(networkStr: String?) -> Network {
-        switch (networkStr) {
-            case "testnet": return Network.testnet
-            case "bitcoin": return Network.bitcoin
-            case "regtest": return Network.regtest
-            case "signet": return Network.signet
-            default: return Network.testnet
-        }
-    }
-
 
     private func createDefaultDescriptor(rootKey: DescriptorSecretKey) -> String {
         let path: DerivationPath = try! DerivationPath(path: "m/84h/1h/0h/0")
@@ -111,7 +101,6 @@ class BdkFunctions: NSObject {
         descriptor: String?
     ) throws -> [String: Any?] {
         do {
-
             let walletNetwork: Network = setNetwork(networkStr: network)
             var newDescriptor = "";
             if(descriptor == "") {

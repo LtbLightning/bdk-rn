@@ -25,6 +25,7 @@ declare class MnemonicInterface extends NativeLoader {
      */
     fromEntropy(entropy?: number): Promise<MnemonicInterface>;
     /**
+     * Get mnemonic as string
      * @returns {string}
      */
     asString(): string;
