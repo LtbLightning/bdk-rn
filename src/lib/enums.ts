@@ -12,3 +12,9 @@ export enum Network {
   Bitcoin = 'bitcoin',
   Signet = 'signet',
 }
+
+export enum EntropyLength {
+  Length16 = 16,
+  Length24 = 24,
+  Length32 = 32,
+}

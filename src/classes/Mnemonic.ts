@@ -1,4 +1,4 @@
-import { WordCount } from '../lib/enums';
+import { EntropyLength, WordCount } from '../lib/enums';
 import { NativeLoader } from './NativeLoader';
 
 /**
@@ -34,7 +34,8 @@ class MnemonicInterface extends NativeLoader {
    * @param entropy
    * @returns {Promise<MnemonicInterface>}
    */
-  async fromEntropy(entropy: number = Math.random()): Promise<MnemonicInterface> {
+  async fromEntropy(entropy: EntropyLength = EntropyLength.Length16): Promise<MnemonicInterface> {
+    if (!Object.values(EntropyLength).includes(entropy)) throw 'Invalid entropy length passed';
     this.mnemonic = await this._bdk.generateSeedFromEntropy(entropy);
     return this;
   }

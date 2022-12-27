@@ -16,7 +16,7 @@ class DescriptorSecretKeyInterface extends NativeLoader {
    * @returns {Promise<DescriptorSecretKeyInterface>}
    */
   async create(network: Network, mnemonic: string, password: string = ''): Promise<DescriptorSecretKeyInterface> {
-    if (!Object.values(Network).includes(network)) throw 'Invalid network passed';
+    if (!Object.values(Network).includes(network)) throw `Invalid network passed. Allowed values are ${Object.values(Network)}`;
     this.xprv = await this._bdk.createDescriptorSecret(network, mnemonic, password);
     return this;
   }

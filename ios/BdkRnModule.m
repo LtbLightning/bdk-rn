@@ -22,7 +22,7 @@ RCT_EXTERN_METHOD(
 )
 
 RCT_EXTERN_METHOD(
-    generateSeedFromEntropy: (nonnull NSNumber *)entropy
+    generateSeedFromEntropy: (nonnull NSNumber *)entropyLength
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )

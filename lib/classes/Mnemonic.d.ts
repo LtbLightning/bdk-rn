@@ -1,4 +1,4 @@
-import { WordCount } from '../lib/enums';
+import { EntropyLength, WordCount } from '../lib/enums';
 import { NativeLoader } from './NativeLoader';
 /**
  * Mnemonic phrases are a human-readable version of the private keys.
@@ -23,7 +23,7 @@ declare class MnemonicInterface extends NativeLoader {
      * @param entropy
      * @returns {Promise<MnemonicInterface>}
      */
-    fromEntropy(entropy?: number): Promise<MnemonicInterface>;
+    fromEntropy(entropy?: EntropyLength): Promise<MnemonicInterface>;
     /**
      * Get mnemonic as string
      * @returns {string}

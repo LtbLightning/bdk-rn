@@ -53,12 +53,12 @@ class BdkRnModule: NSObject {
     
     @objc
     func generateSeedFromEntropy(_
-        entropy: NSNumber,
+        entropyLength: NSNumber,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let response = try Mnemonic.fromEntropy(entropy: [UInt8(truncating: 128)])
+            let response = try Mnemonic.fromEntropy(entropy: getEntropy(length: entropyLength))
             resolve(response.asString())
         } catch let error {
             reject("Generate seed error", "\(error)", error)
