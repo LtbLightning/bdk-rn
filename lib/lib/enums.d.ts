@@ -16,3 +16,20 @@ export declare enum EntropyLength {
     Length24 = 24,
     Length32 = 32
 }
+export declare enum BlockChainNames {
+    Electrum = "Electrum",
+    Esplora = "Esplora"
+}
+export interface BlockchainElectrumConfig {
+    url: string;
+    retry: string;
+    timeout: string;
+    stopGap: string;
+}
+export interface BlockchainEsploraConfig {
+    url: string;
+    proxy: string;
+    concurrency: string;
+    timeout: string;
+    stopGap: string;
+}

@@ -17,6 +17,9 @@ class BdkRnModule: NSObject {
     var _descriptorPublicKey: DescriptorPublicKey;
     let defaultPublicKey: String = "tpubD6NzVbkrYhZ4X1EWKTKQaGTrfs9cu5wpFiv7XroiRYBgStXFDx88SzijzRo69U7E3nBr8jiKYyb1MtNWaAHD8fhT1A3PGz5Duy6urG8uxLD/*"
     
+    var _blockchainConfig: BlockchainConfig;
+    var _blockChain: Blockchain;
+    
     override init() {
         _descriptorSecretKey = DescriptorSecretKey(
             network: setNetwork(networkStr: ""),
@@ -24,6 +27,14 @@ class BdkRnModule: NSObject {
             password: ""
         )
         _descriptorPublicKey = try! DescriptorPublicKey.fromString(publicKey: defaultPublicKey)
+        _blockchainConfig = BlockchainConfig.electrum(
+            config: ElectrumConfig(
+                url: "ssl://electrum.blockstream.info:60002",
+                socks5: nil,
+                retry: 5,
+                timeout: nil,
+                stopGap: 10))
+        _blockChain = try! Blockchain.init(config: _blockchainConfig)
     }
 
     /** Mnemonic methods starts */
@@ -202,8 +213,90 @@ class BdkRnModule: NSObject {
     
     /** Descriptor public key methods ends */
     
-    /** ==================== OLD Methods  ====================  */
     
+    /** Blockchain methods starts */
+    @objc
+    func initElectrumBlockchain(_
+        url: String,
+        retry: String?,
+        stopGap: String?,
+        timeOut: String?,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do{
+            _blockchainConfig = BlockchainConfig.electrum(
+                config: ElectrumConfig(
+                    url: url,
+                    socks5: nil,
+                    retry: UInt8(retry ?? "") ?? 5,
+                    timeout: UInt8(timeOut ?? "") ?? nil,
+                    stopGap: UInt64(stopGap ?? "") ?? 10
+                )
+            )
+            _blockChain = try Blockchain(config: _blockchainConfig)
+            resolve(try! _blockChain.getHeight())
+        } catch let error {
+            reject("BlockchainElectrum init error", "\(error)", error)
+        }
+    }
+    
+    @objc
+    func initEsploraBlockchain(_
+        url: String,
+        proxy: String?,
+        concurrency: String?,
+        stopGap: String?,
+        timeOut: String?,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do{
+            _blockchainConfig = BlockchainConfig.esplora(
+                config: EsploraConfig(
+                    baseUrl: url,
+                    proxy: nil,
+                    concurrency: UInt8(concurrency ?? "") ?? nil,
+                    stopGap: UInt64(stopGap ?? "") ?? 10,
+                    timeout: UInt64(timeOut ?? "") ?? 10
+                )
+            )
+            _blockChain = try Blockchain(config: _blockchainConfig)
+            resolve(try! _blockChain.getHeight())
+        } catch let error {
+            reject("BlockchainEsplora init error", "\(error)", error)
+        }
+    }
+    
+    @objc
+    func getBlockchainHeight(_
+       resolve: @escaping RCTPromiseResolveBlock,
+       reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            resolve(try _blockChain.getHeight())
+        } catch let error {
+            reject("Blockchain get height error", "\(error)", error)
+        }
+    }
+    
+    
+    @objc
+    func getBlockchainHash(_ height: NSNumber,
+       resolve: @escaping RCTPromiseResolveBlock,
+       reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            resolve(try _blockChain.getBlockHash(height: UInt32(truncating: height)))
+        } catch let error {
+            reject("Blockchain get block hash error", "\(error)", error)
+        }
+    }
+    
+    
+    /** Blockchain methods ends */
+    
+    /** ==================== OLD Methods  ====================  */
     @objc
     func getExtendedKeyInfo(_
         network: String,

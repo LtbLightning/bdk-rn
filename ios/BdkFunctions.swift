@@ -55,16 +55,20 @@ class BdkFunctions: NSObject {
         switch (blockChainName) {
         case "ELECTRUM": return BlockchainConfig.electrum(config:
                     ElectrumConfig(
-                    url: blockChainUrl, socks5: socks5,
-                    retry: UInt8(retry ?? "") ?? 5, timeout: UInt8(timeOut ?? "") ?? 5,
+                    url: blockChainUrl,
+                    socks5: socks5,
+                    retry: UInt8(retry ?? "") ?? 5,
+                    timeout: UInt8(timeOut ?? "") ?? 5,
                     stopGap: 5
                 )
             )
         case "ESPLORA": return BlockchainConfig.esplora(config:
                     EsploraConfig(
-                    baseUrl: blockChainUrl, proxy: nil,
-                    concurrency: UInt8(retry ?? "") ?? 5, stopGap: UInt64(timeOut ?? "") ?? 5,
-                    timeout: 5
+                    baseUrl: blockChainUrl,
+                    proxy: nil,
+                    concurrency: UInt8(retry ?? "") ?? 5,
+                    stopGap: UInt64(timeOut ?? "") ?? 5,
+                    timeout: UInt64(timeOut ?? "") ?? 5
                 )
             )
         default: return blockchainConfig

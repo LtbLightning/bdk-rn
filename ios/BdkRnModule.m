@@ -78,6 +78,33 @@ RCT_EXTERN_METHOD(
     reject:(RCTPromiseRejectBlock)reject
 )
 
+/** Blockchain methods */
+
+RCT_EXTERN_METHOD(
+    initElectrumBlockchain: (nonnull NSString*)url
+    retry: (nonnull NSString *)retry
+    stopGap: (nonnull NSString *)stopGap
+    timeOut: (nonnull NSString *)timeOut
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    initEsploraBlockchain: (nonnull NSString*)url
+    proxy: (nonnull NSString *)proxy
+    concurrency: (nonnull NSString *)concurrency
+    stopGap: (nonnull NSString *)stopGap
+    timeOut: (nonnull NSString *)timeOut
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(getBlockchainHeight:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(
+    getBlockchainHash: (nonnull NSNumber*)height
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
 
 /** ========================== OLD METHODS ==========================*/
 

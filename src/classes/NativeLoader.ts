@@ -1,5 +1,5 @@
 import { NativeModules } from 'react-native';
-import { Network, WordCount } from '../lib/enums';
+import { Network, WordCount, BlockchainElectrumConfig, BlockchainEsploraConfig } from '../lib/enums';
 
 interface NativeBdkRn {
   generateSeedFromWordCount(wordCount: WordCount): string;
@@ -15,6 +15,11 @@ interface NativeBdkRn {
   descriptorSecretAsSecretBytes(): Array<number>;
 
   createDescriptorPublic(publicKey: string): string;
+
+  initElectrumBlockchain(url: string, retry: string, timeout: string, stopGap: string): number;
+  initEsploraBlockchain(url: string, proxy: string, concurrency: string, timeout: string, stopGap: string): number;
+  getBlockchainHeight(): number;
+  getBlockchainHash(height: number): string;
 }
 
 export class NativeLoader {
