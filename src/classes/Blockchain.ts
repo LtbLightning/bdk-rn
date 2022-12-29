@@ -20,7 +20,7 @@ class BlockchainInterface extends NativeLoader {
     config: BlockchainElectrumConfig | BlockchainEsploraConfig,
     blockchainName: BlockChainNames = BlockChainNames.Electrum
   ): Promise<BlockchainInterface> {
-    if (BlockChainNames.Electrum == blockchainName) {
+    if (BlockChainNames.Electrum === blockchainName) {
       const { url, retry, stopGap, timeout } = config as BlockchainElectrumConfig;
       this.height = await this._bdk.initElectrumBlockchain(url, retry, stopGap, timeout);
     } else {
