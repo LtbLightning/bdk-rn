@@ -1,5 +1,5 @@
 import { err, ok, Result } from '@synonymdev/result';
-import { NativeLoader } from './NativeLoader';
+
 import {
   BroadcastTransactionRequest,
   ConfirmedTransaction,
@@ -13,6 +13,7 @@ import {
   TransactionsResponse,
 } from '../lib/interfaces';
 import { _exists } from '../lib/utils';
+import { NativeLoader } from './NativeLoader';
 
 class BdkRnInterface extends NativeLoader {
   constructor() {
@@ -100,7 +101,7 @@ class BdkRnInterface extends NativeLoader {
       if (!_exists(path)) path = "/84'/1'/0'/0/*";
 
       let descriptor = '';
-      if (type != 'MULTI') {
+      if (type !== 'MULTI') {
         let descriptorArgs = `${xprv}${path}`;
         switch (type) {
           case 'default':
@@ -123,9 +124,9 @@ class BdkRnInterface extends NativeLoader {
             break;
         }
       } else {
-        if (!threshold || !publicKeys || (publicKeys && publicKeys?.length == 0))
+        if (!threshold || !publicKeys || (publicKeys && publicKeys?.length === 0))
           throw 'Threshold or publicKeys values are invalid.';
-        if (threshold == 0 || threshold > publicKeys?.length + 1) throw 'Threshold value is invalid.';
+        if (threshold === 0 || threshold > publicKeys?.length + 1) throw 'Threshold value is invalid.';
 
         descriptor = `sh(multi(${threshold}${xprv},${publicKeys?.join(',')}${path}))`;
       }

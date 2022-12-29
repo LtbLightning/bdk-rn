@@ -1,5 +1,6 @@
 import { NativeModules } from 'react-native';
-import { Network, WordCount, BlockchainElectrumConfig, BlockchainEsploraConfig } from '../lib/enums';
+
+import { Network, WordCount } from '../lib/enums';
 
 interface NativeBdkRn {
   generateSeedFromWordCount(wordCount: WordCount): string;
