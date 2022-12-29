@@ -2,7 +2,6 @@ export type NetworkType = 'bitcoin' | 'testnet' | 'signet' | 'regtest';
 export interface GenerateMnemonicRequest {
   entropy?: 128 | 160 | 192 | 224 | 256;
   length?: 12 | 15 | 18 | 21 | 24;
-  network?: NetworkType;
 }
 
 export interface CreateExtendedKeyRequest {
@@ -11,7 +10,6 @@ export interface CreateExtendedKeyRequest {
   password?: string;
 }
 export interface CreateExtendedKeyResponse {
-  fingerprint: string;
   mnemonic: string;
   xprv: string;
 }
