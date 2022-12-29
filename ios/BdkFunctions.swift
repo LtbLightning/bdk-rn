@@ -42,10 +42,6 @@ class BdkFunctions: NSObject {
     }
     
     
-    func createChangeDescriptor(descriptor: String) -> String {
-        return descriptor.replacingOccurrences(of: "/84'/1'/0'/0/*", with: "/84'/1'/0'/1/*")
-    }
-
     private func createBlockchainConfig(
         blockChainConfigUrl: String?, blockChainSocket5: String?,
         retry: String?, timeOut: String?, blockChainName: String?

@@ -106,6 +106,30 @@ RCT_EXTERN_METHOD(
     reject:(RCTPromiseRejectBlock)reject
 )
 
+/** DB configuration methods */
+RCT_EXTERN_METHOD(memoryDBInit:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(
+    sledDBInit: (nonnull NSString*)path
+    treeName: (nonnull NSString *)treeName
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+RCT_EXTERN_METHOD(
+    sqliteDBInit: (nonnull NSString*)path
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+/** Wallet methods */
+RCT_EXTERN_METHOD(
+    initWallet: (nonnull NSString*)descriptor
+    network: (nonnull NSString *)network
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+
+
 /** ========================== OLD METHODS ==========================*/
 
 

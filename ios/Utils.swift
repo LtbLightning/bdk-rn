@@ -7,6 +7,11 @@
 import Foundation
 
 
+func createChangeDescriptor(descriptor: String) -> String {
+    return descriptor.replacingOccurrences(of: "/84'/1'/0'/0/*", with: "/84'/1'/0'/1/*")
+}
+
+
 func setNetwork(networkStr: String?) -> Network {
     switch (networkStr) {
         case "testnet": return Network.testnet

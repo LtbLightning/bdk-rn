@@ -12,14 +12,17 @@ class BdkRnModule: NSObject {
     @objc static func requiresMainQueueSetup() -> Bool {
         return false
     }
-    
-    var _descriptorSecretKey: DescriptorSecretKey;
-    var _descriptorPublicKey: DescriptorPublicKey;
+
+    var _descriptorSecretKey: DescriptorSecretKey
+    var _descriptorPublicKey: DescriptorPublicKey
     let defaultPublicKey: String = "tpubD6NzVbkrYhZ4X1EWKTKQaGTrfs9cu5wpFiv7XroiRYBgStXFDx88SzijzRo69U7E3nBr8jiKYyb1MtNWaAHD8fhT1A3PGz5Duy6urG8uxLD/*"
-    
+
     var _blockchainConfig: BlockchainConfig;
-    var _blockChain: Blockchain;
+    var _blockChain: Blockchain
+    var _dbConfig: DatabaseConfig
     
+    var _wallet: Wallet
+
     override init() {
         _descriptorSecretKey = DescriptorSecretKey(
             network: setNetwork(networkStr: ""),
@@ -35,6 +38,14 @@ class BdkRnModule: NSObject {
                 timeout: nil,
                 stopGap: 10))
         _blockChain = try! Blockchain.init(config: _blockchainConfig)
+        _dbConfig = DatabaseConfig.memory
+        
+        _wallet = try! Wallet(
+            descriptor: "wpkh(tprv8ZgxMBicQKsPczV7D2zfMr7oUzHDhNPEuBUgrwRoWM3ijLRvhG87xYiqh9JFLPqojuhmqwMdo1oJzbe5GUpxCbDHnqyGhQa5Jg1Wt6rc9di/84'/1'/0'/1/*)",
+            changeDescriptor: nil,
+            network: Network.testnet,
+            databaseConfig: _dbConfig
+        )
     }
 
     /** Mnemonic methods starts */
@@ -47,7 +58,7 @@ class BdkRnModule: NSObject {
         let response = Mnemonic(wordCount: setWordCount(wordCount: wordCount))
         resolve(response.asString())
     }
-    
+
     @objc
     func generateSeedFromString(_
         mnemonic: String,
@@ -61,7 +72,7 @@ class BdkRnModule: NSObject {
             reject("Generate seed error", "\(error)", error)
         }
     }
-    
+
     @objc
     func generateSeedFromEntropy(_
         entropyLength: NSNumber,
@@ -75,9 +86,9 @@ class BdkRnModule: NSObject {
             reject("Generate seed error", "\(error)", error)
         }
     }
-    
+
     /** Mnemonic methods ends */
-    
+
     /** Derviation path methods starts */
     @objc
     func createDerivationPath(_
@@ -93,7 +104,7 @@ class BdkRnModule: NSObject {
         }
     }
     /** Derviation path methods ends */
-    
+
     /** Descriptor secret key methods starts */
     @objc
     func createDescriptorSecret(_
@@ -107,7 +118,7 @@ class BdkRnModule: NSObject {
             let networkName: Network = setNetwork(networkStr: network)
             let keyInfo = try DescriptorSecretKey(
                 network: networkName,
-                mnemonic:Mnemonic.fromString(mnemonic: mnemonic),
+                mnemonic: Mnemonic.fromString(mnemonic: mnemonic),
                 password: password
             )
             _descriptorSecretKey = keyInfo
@@ -116,7 +127,7 @@ class BdkRnModule: NSObject {
             reject("DescriptorSecret create error", "\(error)", error)
         }
     }
-    
+
     @objc
     func descriptorSecretDerive(_
         path: String,
@@ -131,7 +142,7 @@ class BdkRnModule: NSObject {
             reject("DescriptorSecret derive error", "\(error)", error)
         }
     }
-    
+
     @objc
     func descriptorSecretExtend(_
         path: String,
@@ -146,25 +157,25 @@ class BdkRnModule: NSObject {
             reject("DescriptorSecret extend error", "\(error)", error)
         }
     }
-    
+
     @objc
     func descriptorSecretAsPublic(_
-      resolve: @escaping RCTPromiseResolveBlock,
-      reject: @escaping RCTPromiseRejectBlock
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
     ) {
         resolve(_descriptorSecretKey.asPublic().asString())
     }
-    
+
     @objc
     func descriptorSecretAsSecretBytes(_
-       resolve: @escaping RCTPromiseResolveBlock,
-       reject: @escaping RCTPromiseRejectBlock
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
     ) {
         resolve(_descriptorSecretKey.secretBytes())
     }
     /** Descriptor secret key methods ends */
-    
-    
+
+
     /** Descriptor public key methods starts */
     @objc
     func createDescriptorPublic(_
@@ -180,7 +191,7 @@ class BdkRnModule: NSObject {
             reject("DescriptorPublic create error", "\(error)", error)
         }
     }
-    
+
     @objc
     func descriptorPublicDerive(_
         path: String,
@@ -195,7 +206,7 @@ class BdkRnModule: NSObject {
             reject("DescriptorPublic derive error", "\(error)", error)
         }
     }
-    
+
     @objc
     func descriptorPublicExtend(_
         path: String,
@@ -210,10 +221,10 @@ class BdkRnModule: NSObject {
             reject("DescriptorPublic extend error", "\(error)", error)
         }
     }
-    
+
     /** Descriptor public key methods ends */
-    
-    
+
+
     /** Blockchain methods starts */
     @objc
     func initElectrumBlockchain(_
@@ -224,7 +235,7 @@ class BdkRnModule: NSObject {
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        do{
+        do {
             _blockchainConfig = BlockchainConfig.electrum(
                 config: ElectrumConfig(
                     url: url,
@@ -240,7 +251,7 @@ class BdkRnModule: NSObject {
             reject("BlockchainElectrum init error", "\(error)", error)
         }
     }
-    
+
     @objc
     func initEsploraBlockchain(_
         url: String,
@@ -251,7 +262,7 @@ class BdkRnModule: NSObject {
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        do{
+        do {
             _blockchainConfig = BlockchainConfig.esplora(
                 config: EsploraConfig(
                     baseUrl: url,
@@ -267,11 +278,11 @@ class BdkRnModule: NSObject {
             reject("BlockchainEsplora init error", "\(error)", error)
         }
     }
-    
+
     @objc
     func getBlockchainHeight(_
-       resolve: @escaping RCTPromiseResolveBlock,
-       reject: @escaping RCTPromiseRejectBlock
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
             resolve(try _blockChain.getHeight())
@@ -279,12 +290,12 @@ class BdkRnModule: NSObject {
             reject("Blockchain get height error", "\(error)", error)
         }
     }
-    
-    
+
+
     @objc
     func getBlockchainHash(_ height: NSNumber,
-       resolve: @escaping RCTPromiseResolveBlock,
-       reject: @escaping RCTPromiseRejectBlock
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
             resolve(try _blockChain.getBlockHash(height: UInt32(truncating: height)))
@@ -292,10 +303,66 @@ class BdkRnModule: NSObject {
             reject("Blockchain get block hash error", "\(error)", error)
         }
     }
-    
-    
     /** Blockchain methods ends */
+
+    /** DB configuration methods starts*/
+    @objc
+    func memoryDBInit(_
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        _dbConfig = DatabaseConfig.memory
+        resolve(true)
+    }
+
+    @objc
+    func sledDBInit(_
+        path: String,
+        treeName: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        _dbConfig = DatabaseConfig.sled(config: SledDbConfiguration(path: path, treeName: treeName))
+        resolve(true)
+    }
     
+    @objc
+    func sqliteDBInit(_
+        path: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        _dbConfig = DatabaseConfig.sqlite(config: SqliteDbConfiguration(path: path))
+        resolve(true)
+    }
+    /** DB configuration methods ends*/
+    
+    /** Wallet methods starts*/
+    
+    @objc
+    func initWallet(_
+        descriptor: String,
+        network: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            _wallet = try Wallet.init(
+                descriptor: descriptor,
+                changeDescriptor: createChangeDescriptor(descriptor: descriptor),
+                network: setNetwork(networkStr: network),
+                databaseConfig: _dbConfig
+            )
+            let address = try! _wallet.getAddress(addressIndex: AddressIndex.new)
+            resolve(address.address)
+        } catch let error {
+            reject("Blockchain get block hash error", "\(error)", error)
+        }
+    }
+    
+    /** Wallet methods ends*/
+
+
     /** ==================== OLD Methods  ====================  */
     @objc
     func getExtendedKeyInfo(_
@@ -355,7 +422,7 @@ class BdkRnModule: NSObject {
         let address = bdkFunctions.getNewAddress()
         return resolve(address)
     }
-    
+
     @objc
     func syncWallet(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         bdkFunctions.syncWallet()
@@ -390,8 +457,8 @@ class BdkRnModule: NSObject {
 
     @objc
     func getPendingTransactions(_
-                                resolve: @escaping RCTPromiseResolveBlock,
-                                reject: @escaping RCTPromiseRejectBlock
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
             let response = try bdkFunctions.transactionsList(pending: true)
@@ -403,8 +470,8 @@ class BdkRnModule: NSObject {
 
     @objc
     func getConfirmedTransactions(_
-                                  resolve: @escaping RCTPromiseResolveBlock,
-                                  reject: @escaping RCTPromiseRejectBlock
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
             let response = try bdkFunctions.transactionsList()

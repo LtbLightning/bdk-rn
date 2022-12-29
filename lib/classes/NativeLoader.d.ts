@@ -14,6 +14,10 @@ interface NativeBdkRn {
     initEsploraBlockchain(url: string, proxy: string, concurrency: string, timeout: string, stopGap: string): number;
     getBlockchainHeight(): number;
     getBlockchainHash(height: number): string;
+    initWallet(descriptor: string, network: Network): any;
+    memoryDBInit(): boolean;
+    sledDBInit(path: string, treeName: string): boolean;
+    sqliteDBInit(path: string): boolean;
 }
 export declare class NativeLoader {
     protected _bdk: NativeBdkRn;
