@@ -1,6 +1,6 @@
 import { NativeModules } from 'react-native';
-
-import { Network, WordCount } from '../lib/enums';
+import { Network, WordCount, AddressIndex } from '../lib/enums';
+import { AddressInfo, Balance } from './Bindings';
 
 interface NativeBdkRn {
   generateSeedFromWordCount(wordCount: WordCount): string;
@@ -22,11 +22,18 @@ interface NativeBdkRn {
   getBlockchainHeight(): number;
   getBlockchainHash(height: number): string;
 
-  initWallet(descriptor: string, network: Network): any;
-
   memoryDBInit(): boolean;
   sledDBInit(path: string, treeName: string): boolean;
   sqliteDBInit(path: string): boolean;
+
+  initWallet(descriptor: string, network: Network): any;
+  getAddress(addressIndex: AddressIndex): AddressInfo;
+  getBalance(): Balance;
+  getNetwork(): string;
+  sync(): boolean;
+
+  listUnspent(): any;
+  listTransactions(): any;
 }
 
 export class NativeLoader {

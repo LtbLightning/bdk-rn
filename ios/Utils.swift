@@ -6,6 +6,12 @@
 
 import Foundation
 
+class BdkProgress: Progress {
+    func update(progress: Float, message: String?) {
+        print("progress", progress, message as Any)
+    }
+}
+
 
 func createChangeDescriptor(descriptor: String) -> String {
     return descriptor.replacingOccurrences(of: "/84'/1'/0'/0/*", with: "/84'/1'/0'/1/*")
@@ -19,6 +25,15 @@ func setNetwork(networkStr: String?) -> Network {
         case "regtest": return Network.regtest
         case "signet":  return Network.signet
         default: return Network.testnet
+    }
+}
+
+func getNetworkString(network: Network) -> String {
+    switch (network) {
+        case Network.testnet: return "testnet"
+        case Network.bitcoin: return "bitcoin"
+        case Network.regtest: return "regtest"
+        case Network.signet:  return "signet"
     }
 }
 
@@ -43,4 +58,13 @@ func getEntropy(length: NSNumber) -> Array<UInt8> {
         entropyArray.append(UInt8(Int.random(in: 1...256, using: &g)))
     }
     return entropyArray
+}
+
+
+func setAddressIndex(addressIndex: String?) -> AddressIndex {
+    switch (addressIndex) {
+        case "new": return AddressIndex.new
+        case "lastUnused": return AddressIndex.lastUnused
+        default: return AddressIndex.new
+    }
 }

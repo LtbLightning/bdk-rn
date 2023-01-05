@@ -22,6 +22,7 @@ class BdkRnModule: NSObject {
     var _dbConfig: DatabaseConfig
     
     var _wallet: Wallet
+    let defaultDescriptor = "wpkh([c258d2e4/84h/1h/0h]tpubDDYkZojQFQjht8Tm4jsS3iuEmKjTiEGjG6KnuFNKKJb5A6ZUCUZKdvLdSDWofKi4ToRCwb9poe1XdqfUnP4jaJjCB2Zwv11ZLgSbnZSNecE/0/*)"
 
     override init() {
         _descriptorSecretKey = DescriptorSecretKey(
@@ -41,8 +42,8 @@ class BdkRnModule: NSObject {
         _dbConfig = DatabaseConfig.memory
         
         _wallet = try! Wallet(
-            descriptor: "wpkh(tprv8ZgxMBicQKsPczV7D2zfMr7oUzHDhNPEuBUgrwRoWM3ijLRvhG87xYiqh9JFLPqojuhmqwMdo1oJzbe5GUpxCbDHnqyGhQa5Jg1Wt6rc9di/84'/1'/0'/1/*)",
-            changeDescriptor: nil,
+            descriptor: defaultDescriptor,
+            changeDescriptor: createChangeDescriptor(descriptor: defaultDescriptor),
             network: Network.testnet,
             databaseConfig: _dbConfig
         )
@@ -338,7 +339,6 @@ class BdkRnModule: NSObject {
     /** DB configuration methods ends*/
     
     /** Wallet methods starts*/
-    
     @objc
     func initWallet(_
         descriptor: String,
@@ -353,10 +353,96 @@ class BdkRnModule: NSObject {
                 network: setNetwork(networkStr: network),
                 databaseConfig: _dbConfig
             )
-            let address = try! _wallet.getAddress(addressIndex: AddressIndex.new)
-            resolve(address.address)
+            resolve(true)
         } catch let error {
-            reject("Blockchain get block hash error", "\(error)", error)
+            reject("Init wallet error", "\(error)", error)
+        }
+    }
+    
+    
+    @objc
+    func sync(_
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            try _wallet.sync(blockchain: _blockChain, progress: BdkProgress())
+            resolve(true)
+        } catch let error {
+            reject("Sync wallet error", "\(error)", error)
+        }
+    }
+    
+    
+    @objc
+    func getAddress(_
+        addressIndex: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let addressInfo = try _wallet.getAddress(addressIndex: setAddressIndex(addressIndex: addressIndex))
+            resolve(["index": addressInfo.index, "address": addressInfo.address] as [String: Any])
+        } catch let error {
+            reject("Get wallet address error", "\(error)", error)
+        }
+    }
+    
+    @objc
+    func getBalance(_
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let balance = try _wallet.getBalance()
+            let responseBalance = [
+                "trustedPending": balance.trustedPending,
+                "untrustedPending": balance.untrustedPending,
+                "confirmed": balance.confirmed,
+                "spendable": balance.spendable,
+                "total": balance.total,
+            ] as [String: Any]
+            resolve(responseBalance)
+        } catch let error {
+            reject("Get wallet balance error", "\(error)", error)
+        }
+    }
+    
+    
+    @objc
+    func getNetwork(_
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        let network = _wallet.network()
+        resolve(getNetworkString(network: network))
+    }
+    
+    @objc
+    func listUnspent(_
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let unspent = try _wallet.listUnspent()
+            print("Unspent outputs", unspent)
+            resolve(unspent)
+        } catch let error {
+            reject("List unspent outputs error", "\(error)", error)
+        }
+    }
+    
+    @objc
+    func listTransactions(_
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let list = try _wallet.listTransactions()
+            print("Transactions", list)
+            resolve(list)
+        } catch let error {
+            reject("List transactions error", "\(error)", error)
         }
     }
     
@@ -429,15 +515,6 @@ class BdkRnModule: NSObject {
         return resolve("wallet sync complete")
     }
 
-    @objc
-    func getBalance(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        do {
-            let response = try bdkFunctions.getBalance()
-            resolve(response)
-        } catch let error {
-            reject("Get Balance Error", error.localizedDescription, error)
-        }
-    }
 
     @objc
     func broadcastTx(_

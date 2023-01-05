@@ -1,9 +1,4 @@
 import Foundation
-class BdkProgress: Progress {
-    func update(progress: Float, message: String?) {
-        print("progress", progress, message as Any)
-    }
-}
 
 class BdkFunctions: NSObject {
     var wallet: Wallet
@@ -34,7 +29,7 @@ class BdkFunctions: NSObject {
     }
 
 
-    private func createDefaultDescriptor(rootKey: DescriptorSecretKey) -> String {
+    func createDefaultDescriptor(rootKey: DescriptorSecretKey) -> String {
         let path: DerivationPath = try! DerivationPath(path: "m/84h/1h/0h/0")
         let xprv = try! rootKey.extend(path: path).asString()
         let descriptor = "wpkh(\(xprv))"

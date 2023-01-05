@@ -33,3 +33,7 @@ export interface BlockchainEsploraConfig {
     timeout: string;
     stopGap: string;
 }
+export declare enum AddressIndex {
+    New = "new",
+    LastUnused = "lastUnused"
+}
