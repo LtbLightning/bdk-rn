@@ -15,7 +15,7 @@ export declare class AddressInfo {
 /**
  * A reference to a transaction output.
  */
-declare class OutPoint {
+export declare class OutPoint {
     /**
      * The referenced transaction's txid.
      */
@@ -29,7 +29,7 @@ declare class OutPoint {
 /**
  * A transaction output, which defines new coins to be created from old ones.
  */
-declare class TxOut {
+export declare class TxOut {
     /**
      * The value of the output, in satoshis.
      */
@@ -81,4 +81,48 @@ export declare class Balance {
     total: number;
     constructor(trustedPending: number, untrustedPending: number, confirmed: number, spendable: number, total: number);
 }
-export {};
+/**
+ * Block height and timestamp of a block
+ */
+export declare class BlockTime {
+    /**
+     * Confirmation block height
+     */
+    height: number | undefined;
+    /**
+     * Confirmation block timestamp
+     */
+    timestamp: number | undefined;
+    constructor(height: number | undefined, timestamp: number | undefined);
+}
+/**
+ * A wallet transaction
+ */
+export declare class TransactionDetails {
+    /**
+     * Transaction id.
+     */
+    txid: string;
+    /**
+     * Received value (sats)
+     * Sum of owned outputs of this transaction.
+     */
+    received: number;
+    /**
+     * Sent value (sats)
+     * Sum of owned inputs of this transaction.
+     */
+    sent: number;
+    /**
+     * Fee value (sats) if confirmed.
+     * The availability of the fee depends on the backend. It's never None with an Electrum
+     * Server backend, but it could be None with a Bitcoin RPC node without txindex that receive funds while offline.
+     */
+    fee?: number | undefined;
+    /**
+     * If the transaction is confirmed, contains height and timestamp of the block containing the
+     * transaction, unconfirmed transaction contains `None`.
+     */
+    confirmationTime?: BlockTime;
+    constructor(txid: string, received: number, sent: number, fee: number | undefined, confirmationTime: BlockTime);
+}

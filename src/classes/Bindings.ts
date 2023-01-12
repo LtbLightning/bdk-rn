@@ -21,7 +21,7 @@ export class AddressInfo {
 /**
  * A reference to a transaction output.
  */
-class OutPoint {
+export class OutPoint {
   /**
    * The referenced transaction's txid.
    */
@@ -41,7 +41,7 @@ class OutPoint {
 /**
  * A transaction output, which defines new coins to be created from old ones.
  */
-class TxOut {
+export class TxOut {
   /**
    * The value of the output, in satoshis.
    */
@@ -116,5 +116,68 @@ export class Balance {
     this.confirmed = confirmed;
     this.spendable = spendable;
     this.total = total;
+  }
+}
+
+/**
+ * Block height and timestamp of a block
+ */
+export class BlockTime {
+  /**
+   * Confirmation block height
+   */
+  height: number | undefined;
+
+  /**
+   * Confirmation block timestamp
+   */
+  timestamp: number | undefined;
+
+  constructor(height: number | undefined, timestamp: number | undefined) {
+    this.height = height;
+    this.timestamp = timestamp;
+  }
+}
+
+/**
+ * A wallet transaction
+ */
+export class TransactionDetails {
+  /**
+   * Transaction id.
+   */
+  txid: string;
+
+  /**
+   * Received value (sats)
+   * Sum of owned outputs of this transaction.
+   */
+  received: number;
+
+  /**
+   * Sent value (sats)
+   * Sum of owned inputs of this transaction.
+   */
+  sent: number;
+
+  /**
+   * Fee value (sats) if confirmed.
+   * The availability of the fee depends on the backend. It's never None with an Electrum
+   * Server backend, but it could be None with a Bitcoin RPC node without txindex that receive funds while offline.
+   */
+  fee?: number | undefined;
+
+  /**
+   * If the transaction is confirmed, contains height and timestamp of the block containing the
+   * transaction, unconfirmed transaction contains `None`.
+   */
+  confirmationTime?: BlockTime;
+
+  constructor(txid: string, received: number, sent: number, fee: number | undefined, confirmationTime: BlockTime) {
+    this.txid = txid;
+    this.received = received;
+    this.sent = sent;
+    this.fee = fee;
+    this.confirmationTime = confirmationTime;
   }
 }

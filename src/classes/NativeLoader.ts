@@ -1,6 +1,6 @@
 import { NativeModules } from 'react-native';
 import { Network, WordCount, AddressIndex } from '../lib/enums';
-import { AddressInfo, Balance } from './Bindings';
+import { AddressInfo, Balance, LocalUtxo, TransactionDetails } from './Bindings';
 
 interface NativeBdkRn {
   generateSeedFromWordCount(wordCount: WordCount): string;
@@ -32,8 +32,8 @@ interface NativeBdkRn {
   getNetwork(): string;
   sync(): boolean;
 
-  listUnspent(): any;
-  listTransactions(): any;
+  listUnspent(): Array<LocalUtxo>;
+  listTransactions(): Array<TransactionDetails>;
 }
 
 export class NativeLoader {
