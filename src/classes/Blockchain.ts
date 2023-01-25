@@ -5,29 +5,30 @@ import { NativeLoader } from './NativeLoader';
  * Blockchain methods
  * Blockchain backends module provides the implementation of a few commonly-used backends like Electrum, and Esplora.
  */
-class BlockchainInterface extends NativeLoader {
+export class Blockchain extends NativeLoader {
   private height: number = 0;
   private hash: string = '';
-  public isInit: boolean = false;
+  id: string = '';
+  isInit: boolean = false;
 
   /**
    * Init blockchain at native side
    * @param config
    * @param blockchainName
-   * @returns {Promise<BlockchainInterface>}
+   * @returns {Promise<Blockchain>}
    */
   async create(
     config: BlockchainElectrumConfig | BlockchainEsploraConfig,
     blockchainName: BlockChainNames = BlockChainNames.Electrum
-  ): Promise<BlockchainInterface> {
+  ): Promise<Blockchain> {
     if (BlockChainNames.Electrum === blockchainName) {
       const { url, retry, stopGap, timeout } = config as BlockchainElectrumConfig;
-      this.height = await this._bdk.initElectrumBlockchain(url, retry, stopGap, timeout);
+      this.id = await this._bdk.initElectrumBlockchain(url, retry, stopGap, timeout);
     } else {
       const { url, proxy, concurrency, timeout, stopGap } = config as BlockchainEsploraConfig;
-      this.height = await this._bdk.initEsploraBlockchain(url, proxy, concurrency, timeout, stopGap);
+      this.id = await this._bdk.initEsploraBlockchain(url, proxy, concurrency, timeout, stopGap);
     }
-    if (this.height > 0) this.isInit = true;
+    this.isInit = true;
     return this;
   }
 
@@ -36,7 +37,7 @@ class BlockchainInterface extends NativeLoader {
    * @returns {Promise<number>}
    */
   async getHeight(): Promise<number> {
-    this.height = await this._bdk.getBlockchainHeight();
+    this.height = await this._bdk.getBlockchainHeight(this.id);
     return this.height;
   }
 
@@ -45,9 +46,7 @@ class BlockchainInterface extends NativeLoader {
    * @returns {Promise<number>}
    */
   async getBlockHash(height: number = this.height): Promise<string> {
-    this.hash = await this._bdk.getBlockchainHash(height);
+    this.hash = await this._bdk.getBlockchainHash(this.id, height);
     return this.hash;
   }
 }
-
-export const Blockchain = new BlockchainInterface();

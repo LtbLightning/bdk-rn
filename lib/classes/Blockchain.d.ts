@@ -4,17 +4,18 @@ import { NativeLoader } from './NativeLoader';
  * Blockchain methods
  * Blockchain backends module provides the implementation of a few commonly-used backends like Electrum, and Esplora.
  */
-declare class BlockchainInterface extends NativeLoader {
+export declare class Blockchain extends NativeLoader {
     private height;
     private hash;
+    id: string;
     isInit: boolean;
     /**
      * Init blockchain at native side
      * @param config
      * @param blockchainName
-     * @returns {Promise<BlockchainInterface>}
+     * @returns {Promise<Blockchain>}
      */
-    create(config: BlockchainElectrumConfig | BlockchainEsploraConfig, blockchainName?: BlockChainNames): Promise<BlockchainInterface>;
+    create(config: BlockchainElectrumConfig | BlockchainEsploraConfig, blockchainName?: BlockChainNames): Promise<Blockchain>;
     /**
      * Get current height of the blockchain.
      * @returns {Promise<number>}
@@ -26,5 +27,3 @@ declare class BlockchainInterface extends NativeLoader {
      */
     getBlockHash(height?: number): Promise<string>;
 }
-export declare const Blockchain: BlockchainInterface;
-export {};

@@ -99,11 +99,17 @@ RCT_EXTERN_METHOD(
     reject: (RCTPromiseRejectBlock)reject
 )
 
-RCT_EXTERN_METHOD(getBlockchainHeight:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
-    getBlockchainHash: (nonnull NSNumber*)height
-    resolve: (RCTPromiseResolveBlock)resolve
+    getBlockchainHeight:(nonnull NSString*)id
+    resolve:(RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    getBlockchainHash: (nonnull NSString*)id
+    height: (nonnull NSNumber*)height
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
 )
 
 /** DB configuration methods */
@@ -129,15 +135,38 @@ RCT_EXTERN_METHOD(
 )
 
 RCT_EXTERN_METHOD(
-    getAddress: (nonnull NSString*)addressIndex
+    getAddress:(nonnull NSString*)id
+    addressIndex: (nonnull NSString*)addressIndex
     resolve: (RCTPromiseResolveBlock)resolve
     reject: (RCTPromiseRejectBlock)reject
 )
 
-RCT_EXTERN_METHOD(sync:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
-RCT_EXTERN_METHOD(getBalance:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
-RCT_EXTERN_METHOD(getNetwork:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
-RCT_EXTERN_METHOD(listUnspent:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
-RCT_EXTERN_METHOD(listTransactions:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(
+    sync:(nonnull NSString*)id
+    blockChainId: (nonnull NSString *)blockChainId
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    getBalance:(nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+RCT_EXTERN_METHOD(
+    getNetwork:(nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+RCT_EXTERN_METHOD(
+    listUnspent:(nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+RCT_EXTERN_METHOD(
+    listTransactions:(nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
 
 @end

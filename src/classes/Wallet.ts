@@ -1,22 +1,24 @@
 import { AddressInfo, Balance, BlockTime, LocalUtxo, OutPoint, TransactionDetails, TxOut } from './Bindings';
 import { AddressIndex, Network } from '../lib/enums';
 import { NativeLoader } from './NativeLoader';
+import { Blockchain } from './Blockchain';
 
 /**
  * Wallet methods
  */
-class WalletInterface extends NativeLoader {
+export class Wallet extends NativeLoader {
   isInit: boolean = false;
+  id: string = '';
 
   /**
    * Wallet constructor
    * @param descriptor
    * @param network
-   * @returns {Promise<WalletInterface>}
+   * @returns {Promise<Wallet>}
    */
-  async init(descriptor: string, network: Network): Promise<WalletInterface> {
-    let created = await this._bdk.initWallet(descriptor, network);
-    if (created) this.isInit = created;
+  async init(descriptor: string, network: Network): Promise<Wallet> {
+    this.id = await this._bdk.initWallet(descriptor, network);
+    this.isInit = true;
     return this;
   }
 
@@ -26,7 +28,7 @@ class WalletInterface extends NativeLoader {
    * @returns {Promise<AddressInfo>}
    */
   async getAddress(addressIndex: AddressIndex = AddressIndex.New): Promise<AddressInfo> {
-    let addressInfo = await this._bdk.getAddress(addressIndex);
+    let addressInfo = await this._bdk.getAddress(this.id, addressIndex);
     return new AddressInfo(addressInfo.index, addressInfo.address);
   }
 
@@ -35,7 +37,7 @@ class WalletInterface extends NativeLoader {
    * @returns {Promise<Balance>}
    */
   async getBalance(): Promise<Balance> {
-    let balance = await this._bdk.getBalance();
+    let balance = await this._bdk.getBalance(this.id);
     return new Balance(
       balance.trustedPending,
       balance.untrustedPending,
@@ -50,15 +52,15 @@ class WalletInterface extends NativeLoader {
    * @returns {Promise<string>}
    */
   async network(): Promise<string> {
-    return await this._bdk.getNetwork();
+    return await this._bdk.getNetwork(this.id);
   }
 
   /**
    * Sync the internal database with the [Blockchain]
    * @returns {Promise<boolean>}
    */
-  async sync(): Promise<boolean> {
-    return await this._bdk.sync();
+  async sync(blockchain: Blockchain): Promise<boolean> {
+    return await this._bdk.sync(this.id, blockchain.id);
   }
 
   /**
@@ -66,7 +68,7 @@ class WalletInterface extends NativeLoader {
    * @returns {Promise<Array<LocalUtxo>>}
    */
   async listUnspent(): Promise<Array<LocalUtxo>> {
-    let output = await this._bdk.listUnspent();
+    let output = await this._bdk.listUnspent(this.id);
     let localUtxo: Array<LocalUtxo> = [];
     output.map((item) => {
       let localObj = new LocalUtxo(
@@ -84,7 +86,7 @@ class WalletInterface extends NativeLoader {
    * @returns {Promise<Array<TransactionDetails>>}
    */
   async listTransactions(): Promise<Array<TransactionDetails>> {
-    let list = await this._bdk.listTransactions();
+    let list = await this._bdk.listTransactions(this.id);
     let transactions: Array<TransactionDetails> = [];
     list.map((item) => {
       let localObj = new TransactionDetails(
@@ -100,4 +102,4 @@ class WalletInterface extends NativeLoader {
   }
 }
 
-export const Wallet = new WalletInterface();
+// export const Wallet = new WalletInterface();

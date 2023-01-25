@@ -1,18 +1,20 @@
 import { AddressInfo, Balance, LocalUtxo, TransactionDetails } from './Bindings';
 import { AddressIndex, Network } from '../lib/enums';
 import { NativeLoader } from './NativeLoader';
+import { Blockchain } from './Blockchain';
 /**
  * Wallet methods
  */
-declare class WalletInterface extends NativeLoader {
+export declare class Wallet extends NativeLoader {
     isInit: boolean;
+    id: string;
     /**
      * Wallet constructor
      * @param descriptor
      * @param network
-     * @returns {Promise<WalletInterface>}
+     * @returns {Promise<Wallet>}
      */
-    init(descriptor: string, network: Network): Promise<WalletInterface>;
+    init(descriptor: string, network: Network): Promise<Wallet>;
     /**
      * Return a derived address using the external descriptor.
      * @param addressIndex
@@ -33,7 +35,7 @@ declare class WalletInterface extends NativeLoader {
      * Sync the internal database with the [Blockchain]
      * @returns {Promise<boolean>}
      */
-    sync(): Promise<boolean>;
+    sync(blockchain: Blockchain): Promise<boolean>;
     /**
      * Return the list of unspent outputs of this wallet
      * @returns {Promise<Array<LocalUtxo>>}
@@ -45,5 +47,3 @@ declare class WalletInterface extends NativeLoader {
      */
     listTransactions(): Promise<Array<TransactionDetails>>;
 }
-export declare const Wallet: WalletInterface;
-export {};

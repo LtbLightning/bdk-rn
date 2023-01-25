@@ -47,10 +47,6 @@ func setWordCount(wordCount: NSNumber?) -> WordCount {
     }
 }
 
-func correctedXprv(secretKey: DescriptorSecretKey) -> String {
-    return secretKey.asString().replacingOccurrences(of: "/*", with: "")
-}
-
 func getEntropy(length: NSNumber) -> Array<UInt8> {
     var entropyArray: [UInt8] = []
     var g = SystemRandomNumberGenerator()
@@ -67,4 +63,8 @@ func setAddressIndex(addressIndex: String?) -> AddressIndex {
         case "lastUnused": return AddressIndex.lastUnused
         default: return AddressIndex.new
     }
+}
+
+func randomId() -> String {
+    return UUID().uuidString
 }

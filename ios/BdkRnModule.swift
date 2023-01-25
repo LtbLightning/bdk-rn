@@ -8,7 +8,6 @@ import Foundation
 
 @objc(BdkRnModule)
 class BdkRnModule: NSObject {
-    let bdkFunctions = BdkFunctions()
     @objc static func requiresMainQueueSetup() -> Bool {
         return false
     }
@@ -18,12 +17,15 @@ class BdkRnModule: NSObject {
     let defaultPublicKey: String = "tpubD6NzVbkrYhZ4X1EWKTKQaGTrfs9cu5wpFiv7XroiRYBgStXFDx88SzijzRo69U7E3nBr8jiKYyb1MtNWaAHD8fhT1A3PGz5Duy6urG8uxLD/*"
 
     var _blockchainConfig: BlockchainConfig;
-    var _blockChain: Blockchain
+    var emptyBlockChain: Blockchain
     var _dbConfig: DatabaseConfig
     
-    var _wallet: Wallet
+    var emptyWallet: Wallet
     let defaultDescriptor = "wpkh([c258d2e4/84h/1h/0h]tpubDDYkZojQFQjht8Tm4jsS3iuEmKjTiEGjG6KnuFNKKJb5A6ZUCUZKdvLdSDWofKi4ToRCwb9poe1XdqfUnP4jaJjCB2Zwv11ZLgSbnZSNecE/0/*)"
+    
 
+    var _wallets: [String: Wallet] = [:]
+    var _blockChains: [String: Blockchain] = [:]
     override init() {
         _descriptorSecretKey = DescriptorSecretKey(
             network: setNetwork(networkStr: ""),
@@ -38,10 +40,10 @@ class BdkRnModule: NSObject {
                 retry: 5,
                 timeout: nil,
                 stopGap: 10))
-        _blockChain = try! Blockchain.init(config: _blockchainConfig)
-        _dbConfig = DatabaseConfig.memory
+        emptyBlockChain = try! Blockchain.init(config: _blockchainConfig)
         
-        _wallet = try! Wallet(
+        _dbConfig = DatabaseConfig.memory
+        emptyWallet = try! Wallet(
             descriptor: defaultDescriptor,
             changeDescriptor: createChangeDescriptor(descriptor: defaultDescriptor),
             network: Network.testnet,
@@ -227,6 +229,9 @@ class BdkRnModule: NSObject {
 
 
     /** Blockchain methods starts */
+    func getBlockchainById(id: String) -> Blockchain {
+        return _blockChains[id] ?? emptyBlockChain
+    }
     @objc
     func initElectrumBlockchain(_
         url: String,
@@ -246,8 +251,9 @@ class BdkRnModule: NSObject {
                     stopGap: UInt64(stopGap ?? "") ?? 10
                 )
             )
-            _blockChain = try Blockchain(config: _blockchainConfig)
-            resolve(try! _blockChain.getHeight())
+            let blockChainId = randomId()
+            _blockChains[blockChainId] = try Blockchain(config: _blockchainConfig)
+            resolve(blockChainId)
         } catch let error {
             reject("BlockchainElectrum init error", "\(error)", error)
         }
@@ -273,8 +279,9 @@ class BdkRnModule: NSObject {
                     timeout: UInt64(timeOut ?? "") ?? 10
                 )
             )
-            _blockChain = try Blockchain(config: _blockchainConfig)
-            resolve(try! _blockChain.getHeight())
+            let blockChainId = randomId()
+            _blockChains[blockChainId] = try Blockchain(config: _blockchainConfig)
+            resolve(blockChainId)
         } catch let error {
             reject("BlockchainEsplora init error", "\(error)", error)
         }
@@ -282,11 +289,12 @@ class BdkRnModule: NSObject {
 
     @objc
     func getBlockchainHeight(_
+        id: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            resolve(try _blockChain.getHeight())
+            resolve(try getBlockchainById(id: id).getHeight())
         } catch let error {
             reject("Blockchain get height error", "\(error)", error)
         }
@@ -294,12 +302,14 @@ class BdkRnModule: NSObject {
 
 
     @objc
-    func getBlockchainHash(_ height: NSNumber,
+    func getBlockchainHash(_
+        id: String,
+        height: NSNumber,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            resolve(try _blockChain.getBlockHash(height: UInt32(truncating: height)))
+            resolve(try getBlockchainById(id: id).getBlockHash(height: UInt32(truncating: height)))
         } catch let error {
             reject("Blockchain get block hash error", "\(error)", error)
         }
@@ -339,6 +349,10 @@ class BdkRnModule: NSObject {
     /** DB configuration methods ends*/
     
     /** Wallet methods starts*/
+    func getWalletById(id: String) -> Wallet {
+        return _wallets[id] ?? emptyWallet
+    }
+    
     @objc
     func initWallet(_
         descriptor: String,
@@ -347,13 +361,14 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            _wallet = try Wallet.init(
+            let id = randomId()
+            _wallets[id] = try Wallet.init(
                 descriptor: descriptor,
                 changeDescriptor: createChangeDescriptor(descriptor: descriptor),
                 network: setNetwork(networkStr: network),
                 databaseConfig: _dbConfig
             )
-            resolve(true)
+            resolve(id)
         } catch let error {
             reject("Init wallet error", "\(error)", error)
         }
@@ -362,11 +377,13 @@ class BdkRnModule: NSObject {
     
     @objc
     func sync(_
+        id: String,
+        blockChainId: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            try _wallet.sync(blockchain: _blockChain, progress: BdkProgress())
+            try getWalletById(id: id).sync(blockchain: getBlockchainById(id: blockChainId), progress: BdkProgress())
             resolve(true)
         } catch let error {
             reject("Sync wallet error", "\(error)", error)
@@ -376,12 +393,15 @@ class BdkRnModule: NSObject {
     
     @objc
     func getAddress(_
+        id: String,
         addressIndex: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let addressInfo = try _wallet.getAddress(addressIndex: setAddressIndex(addressIndex: addressIndex))
+            let addressInfo = try getWalletById(id: id).getAddress(
+                addressIndex: setAddressIndex(addressIndex: addressIndex)
+            )
             resolve(["index": addressInfo.index, "address": addressInfo.address] as [String: Any])
         } catch let error {
             reject("Get wallet address error", "\(error)", error)
@@ -390,11 +410,12 @@ class BdkRnModule: NSObject {
     
     @objc
     func getBalance(_
+        id: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let balance = try _wallet.getBalance()
+            let balance = try getWalletById(id: id).getBalance()
             let responseBalance = [
                 "trustedPending": balance.trustedPending,
                 "untrustedPending": balance.untrustedPending,
@@ -411,20 +432,22 @@ class BdkRnModule: NSObject {
     
     @objc
     func getNetwork(_
+        id: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        let network = _wallet.network()
+        let network = getWalletById(id: id).network()
         resolve(getNetworkString(network: network))
     }
     
     @objc
     func listUnspent(_
+        id: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let unspent = try _wallet.listUnspent()
+            let unspent = try getWalletById(id: id).listUnspent()
             var responseObject: [Any] = []
             for item in unspent {
                 let unspentObject = [
@@ -442,11 +465,12 @@ class BdkRnModule: NSObject {
     
     @objc
     func listTransactions(_
+        id: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let list = try _wallet.listTransactions()
+            let list = try getWalletById(id: id).listTransactions()
             var responseObject: [Any] = []
             for item in list {
                 let txObject = [

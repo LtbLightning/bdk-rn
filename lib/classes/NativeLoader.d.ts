@@ -1,6 +1,6 @@
 import { Network, WordCount, AddressIndex } from '../lib/enums';
 import { AddressInfo, Balance, LocalUtxo, TransactionDetails } from './Bindings';
-interface NativeBdkRn {
+export interface NativeBdkRn {
     generateSeedFromWordCount(wordCount: WordCount): string;
     generateSeedFromString(mnemonic: string): string;
     generateSeedFromEntropy(entropy: number): string;
@@ -11,23 +11,22 @@ interface NativeBdkRn {
     descriptorSecretAsPublic(): string;
     descriptorSecretAsSecretBytes(): Array<number>;
     createDescriptorPublic(publicKey: string): string;
-    initElectrumBlockchain(url: string, retry: string, timeout: string, stopGap: string): number;
-    initEsploraBlockchain(url: string, proxy: string, concurrency: string, timeout: string, stopGap: string): number;
-    getBlockchainHeight(): number;
-    getBlockchainHash(height: number): string;
+    initElectrumBlockchain(url: string, retry: string, timeout: string, stopGap: string): string;
+    initEsploraBlockchain(url: string, proxy: string, concurrency: string, timeout: string, stopGap: string): string;
+    getBlockchainHeight(id: string): number;
+    getBlockchainHash(id: string, height: number): string;
     memoryDBInit(): boolean;
     sledDBInit(path: string, treeName: string): boolean;
     sqliteDBInit(path: string): boolean;
     initWallet(descriptor: string, network: Network): any;
-    getAddress(addressIndex: AddressIndex): AddressInfo;
-    getBalance(): Balance;
-    getNetwork(): string;
-    sync(): boolean;
-    listUnspent(): Array<LocalUtxo>;
-    listTransactions(): Array<TransactionDetails>;
+    getAddress(id: string, addressIndex: AddressIndex): AddressInfo;
+    getBalance(id: string): Balance;
+    getNetwork(id: string): string;
+    sync(blockchain: string, id: string): boolean;
+    listUnspent(id: string): Array<LocalUtxo>;
+    listTransactions(id: string): Array<TransactionDetails>;
 }
 export declare class NativeLoader {
     protected _bdk: NativeBdkRn;
     constructor();
 }
-export {};
