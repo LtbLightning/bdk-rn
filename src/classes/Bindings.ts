@@ -181,3 +181,13 @@ export class TransactionDetails {
     this.confirmationTime = confirmationTime;
   }
 }
+
+/**
+ * Address script class
+ */
+export class Script {
+  id: string;
+  constructor(id: string) {
+    this.id = id;
+  }
+}

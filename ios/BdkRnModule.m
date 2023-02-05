@@ -128,7 +128,7 @@ RCT_EXTERN_METHOD(
 
 /** Wallet methods */
 RCT_EXTERN_METHOD(
-    initWallet: (nonnull NSString*)descriptor
+    walletInit: (nonnull NSString*)descriptor
     network: (nonnull NSString *)network
     resolve: (RCTPromiseResolveBlock)resolve
     reject: (RCTPromiseRejectBlock)reject
@@ -168,5 +168,38 @@ RCT_EXTERN_METHOD(
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
+
+
+/** Address methods */
+RCT_EXTERN_METHOD(
+    initAddress:(nonnull NSString*)address
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    addressToScriptPubkeyHex:(nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+/** TxBuilder methods */
+RCT_EXTERN_METHOD(createTxBuilder:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(
+    addRecipient:(nonnull NSString*)id
+    scriptId: (nonnull NSString *)scriptId
+    amount: (nonnull NSNumber *)amount
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    finish:(nonnull NSString*)id
+    walletId: (nonnull NSString *)walletId
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
 
 @end

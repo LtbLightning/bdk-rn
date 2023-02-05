@@ -68,3 +68,28 @@ func setAddressIndex(addressIndex: String?) -> AddressIndex {
 func randomId() -> String {
     return UUID().uuidString
 }
+
+func getTransactionObject(transaction: TransactionDetails?) -> [String: Any] {
+    return [
+        "fee": transaction?.fee as Any,
+        "received": transaction?.received as Any,
+        "sent": transaction?.sent as Any,
+        "txid": transaction?.txid as Any,
+        "confirmationTime": [
+            "height": transaction?.confirmationTime?.height as Any,
+            "timestamp": transaction?.confirmationTime?.timestamp as Any
+        ],
+    ] as [String: Any]
+}
+
+
+func getPSBTObject(txResult: TxBuilderResult?) -> [String: Any] {
+    let psbt = txResult?.psbt
+    return [
+        "base64": psbt?.serialize() as Any,
+        "txid": psbt?.txid() as Any,
+        "extractTx": psbt?.extractTx() as Any,
+        "feeAmount": psbt?.feeAmount() as Any,
+        "transactionDetails": getTransactionObject(transaction: txResult?.transactionDetails)
+    ] as [String: Any]
+}

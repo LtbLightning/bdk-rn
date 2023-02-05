@@ -14,7 +14,7 @@ export declare class Wallet extends NativeLoader {
      * @param network
      * @returns {Promise<Wallet>}
      */
-    init(descriptor: string, network: Network): Promise<Wallet>;
+    create(descriptor: string, network: Network): Promise<Wallet>;
     /**
      * Return a derived address using the external descriptor.
      * @param addressIndex

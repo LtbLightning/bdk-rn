@@ -26,6 +26,11 @@ class BdkRnModule: NSObject {
 
     var _wallets: [String: Wallet] = [:]
     var _blockChains: [String: Blockchain] = [:]
+    var _addresses: [String: Address] = [:]
+    var _scripts: [String: Script] = [:]
+    var _txBuilders: [String: TxBuilder] = [:]
+    
+    
     override init() {
         _descriptorSecretKey = DescriptorSecretKey(
             network: setNetwork(networkStr: ""),
@@ -354,7 +359,7 @@ class BdkRnModule: NSObject {
     }
     
     @objc
-    func initWallet(_
+    func walletInit(_
         descriptor: String,
         network: String,
         resolve: @escaping RCTPromiseResolveBlock,
@@ -473,16 +478,7 @@ class BdkRnModule: NSObject {
             let list = try getWalletById(id: id).listTransactions()
             var responseObject: [Any] = []
             for item in list {
-                let txObject = [
-                    "fee": item.fee as Any,
-                    "received": item.received,
-                    "sent": item.sent,
-                    "txid": item.txid,
-                    "confirmationTime": [
-                        "height": item.confirmationTime?.height as Any,
-                        "timestamp": item.confirmationTime?.timestamp as Any
-                    ],
-                ] as [String: Any]
+                let txObject = getTransactionObject(transaction: item)
                 responseObject.append(txObject)
             }
             resolve(responseObject)
@@ -491,5 +487,80 @@ class BdkRnModule: NSObject {
         }
     }
     /** Wallet methods ends*/
+    
+    /** Address methods starts*/
+    
+    @objc
+    func initAddress(_
+        address: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let id = randomId()
+            _addresses[id] = try Address(address: address)
+            resolve(id)
+        } catch let error {
+            reject("Address error", "\(error)", error)
+        }
+    }
+    
+    @objc
+    func addressToScriptPubkeyHex(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        let scriptId = randomId()
+        _scripts[scriptId] = _addresses[id]?.scriptPubkey()
+        resolve(scriptId)
+    }
+    
+    /** Address methods ends*/
+    
+    /** TxBuilder methods starts */
+    @objc
+    func createTxBuilder(_
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        let id = randomId()
+        _txBuilders[id] = TxBuilder()
+        resolve(id)
+    }
+    
+    @objc
+    func addRecipient(_
+        id: String,
+        scriptId: String,
+        amount: NSNumber,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        _txBuilders[id] = _txBuilders[id]?.addRecipient(
+            script: _scripts[scriptId]!,
+            amount: UInt64(truncating: amount)
+        )
+        resolve(true)
+    }
+    
+    @objc
+    func finish(_
+        id: String,
+        walletId: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let details = try _txBuilders[id]?.finish(wallet: getWalletById(id: walletId))
+            let responseObject = getPSBTObject(txResult: details)
+            resolve(responseObject)
+        } catch let error {
+            reject("Finish tx error", "\(error)", error)
+        }
+    }
+    
+    /** TxBuilder methods ends */
+    
 }
 

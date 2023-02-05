@@ -27,7 +27,7 @@ export interface NativeBdkRn {
   sledDBInit(path: string, treeName: string): boolean;
   sqliteDBInit(path: string): boolean;
 
-  initWallet(descriptor: string, network: Network): any;
+  walletInit(descriptor: string, network: Network): any;
   getAddress(id: string, addressIndex: AddressIndex): AddressInfo;
   getBalance(id: string): Balance;
   getNetwork(id: string): string;
@@ -35,6 +35,13 @@ export interface NativeBdkRn {
 
   listUnspent(id: string): Array<LocalUtxo>;
   listTransactions(id: string): Array<TransactionDetails>;
+
+  initAddress(address: string): string;
+  addressToScriptPubkeyHex(id: string): string;
+
+  createTxBuilder(): string;
+  addRecipient(id: string, scriptId: string, amount: number): string;
+  finish(id: string, walletId: string): string;
 }
 
 export class NativeLoader {

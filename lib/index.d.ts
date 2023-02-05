@@ -6,4 +6,6 @@ import { DescriptorPublicKey } from './classes/DescriptorPublicKey';
 import { DescriptorSecretKey } from './classes/DescriptorSecretKey';
 import { Mnemonic } from './classes/Mnemonic';
 import { Wallet } from './classes/Wallet';
-export { BdkRn, Blockchain, DatabaseConfig, DerivationPath, DescriptorPublicKey, DescriptorSecretKey, Mnemonic, Wallet, };
+import { Address } from './classes/Address';
+import { TxBuilder } from './classes/TxBuilder';
+export { BdkRn, Blockchain, DatabaseConfig, DerivationPath, DescriptorPublicKey, DescriptorSecretKey, Mnemonic, Wallet, Address, TxBuilder, };

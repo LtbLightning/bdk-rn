@@ -126,3 +126,10 @@ export declare class TransactionDetails {
     confirmationTime?: BlockTime;
     constructor(txid: string, received: number, sent: number, fee: number | undefined, confirmationTime: BlockTime);
 }
+/**
+ * Address script class
+ */
+export declare class Script {
+    id: string;
+    constructor(id: string);
+}

@@ -18,13 +18,18 @@ export interface NativeBdkRn {
     memoryDBInit(): boolean;
     sledDBInit(path: string, treeName: string): boolean;
     sqliteDBInit(path: string): boolean;
-    initWallet(descriptor: string, network: Network): any;
+    walletInit(descriptor: string, network: Network): any;
     getAddress(id: string, addressIndex: AddressIndex): AddressInfo;
     getBalance(id: string): Balance;
     getNetwork(id: string): string;
     sync(blockchain: string, id: string): boolean;
     listUnspent(id: string): Array<LocalUtxo>;
     listTransactions(id: string): Array<TransactionDetails>;
+    initAddress(address: string): string;
+    addressToScriptPubkeyHex(id: string): string;
+    createTxBuilder(): string;
+    addRecipient(id: string, scriptId: string, amount: number): string;
+    finish(id: string, walletId: string): string;
 }
 export declare class NativeLoader {
     protected _bdk: NativeBdkRn;
