@@ -93,3 +93,10 @@ func getPSBTObject(txResult: TxBuilderResult?) -> [String: Any] {
         "transactionDetails": getTransactionObject(transaction: txResult?.transactionDetails)
     ] as [String: Any]
 }
+
+func createOutPoint(outPoint: NSDictionary) -> OutPoint {
+    return OutPoint(
+        txid: outPoint["txid"] as! String,
+        vout: UInt32(truncating: outPoint["vout"] as! NSNumber)
+    )
+}

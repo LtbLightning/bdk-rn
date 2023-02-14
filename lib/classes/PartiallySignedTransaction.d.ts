@@ -4,10 +4,12 @@ import { NativeLoader } from './NativeLoader';
  * PartiallySignedTransaction methods
  */
 export declare class PartiallySignedTransaction extends NativeLoader {
-    private base64;
-    private txid;
-    private extractTx;
-    private feeAmount;
-    private transactionDetails;
+    base64: string;
+    signedBase64: string;
+    txid: string;
+    extractTx: any;
+    feeAmount: number;
+    transactionDetails: TransactionDetails;
     constructor(base64: string, txid: string, extractTx: any, feeAmount: number, transactionDetails: TransactionDetails);
+    setSignedPsbt(sbt: string): PartiallySignedTransaction;
 }

@@ -2,6 +2,8 @@ import { AddressInfo, Balance, BlockTime, LocalUtxo, OutPoint, TransactionDetail
 import { AddressIndex, Network } from '../lib/enums';
 import { NativeLoader } from './NativeLoader';
 import { Blockchain } from './Blockchain';
+import { createTxDetailsObject } from '../lib/utils';
+import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 
 /**
  * Wallet methods
@@ -89,17 +91,19 @@ export class Wallet extends NativeLoader {
     let list = await this._bdk.listTransactions(this.id);
     let transactions: Array<TransactionDetails> = [];
     list.map((item) => {
-      let localObj = new TransactionDetails(
-        item.txid,
-        item.received,
-        item.sent,
-        item?.fee,
-        new BlockTime(item.confirmationTime?.height, item.confirmationTime?.timestamp)
-      );
+      let localObj = createTxDetailsObject(item);
       transactions.push(localObj);
     });
     return transactions;
   }
-}
 
-// export const Wallet = new WalletInterface();
+  /**
+   * Sign PSBT with wallet
+   * @returns
+   */
+  async sign(psbt: PartiallySignedTransaction): Promise<PartiallySignedTransaction> {
+    let signed = await this._bdk.sign(this.id, psbt.base64);
+    psbt.setSignedPsbt(signed);
+    return psbt;
+  }
+}

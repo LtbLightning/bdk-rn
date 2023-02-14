@@ -1,3 +1,4 @@
+import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 import { BlockchainElectrumConfig, BlockchainEsploraConfig, BlockChainNames } from '../lib/enums';
 import { NativeLoader } from './NativeLoader';
 /**
@@ -26,4 +27,9 @@ export declare class Blockchain extends NativeLoader {
      * @returns {Promise<number>}
      */
     getBlockHash(height?: number): Promise<string>;
+    /**
+     * Broadcast transaction
+     * @returns {Promise<boolean>}
+     */
+    broadcast(psbt: PartiallySignedTransaction): Promise<boolean>;
 }

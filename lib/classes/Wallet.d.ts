@@ -2,6 +2,7 @@ import { AddressInfo, Balance, LocalUtxo, TransactionDetails } from './Bindings'
 import { AddressIndex, Network } from '../lib/enums';
 import { NativeLoader } from './NativeLoader';
 import { Blockchain } from './Blockchain';
+import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 /**
  * Wallet methods
  */
@@ -46,4 +47,9 @@ export declare class Wallet extends NativeLoader {
      * @returns {Promise<Array<TransactionDetails>>}
      */
     listTransactions(): Promise<Array<TransactionDetails>>;
+    /**
+     * Sign PSBT with wallet
+     * @returns
+     */
+    sign(psbt: PartiallySignedTransaction): Promise<PartiallySignedTransaction>;
 }

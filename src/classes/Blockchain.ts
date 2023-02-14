@@ -1,3 +1,4 @@
+import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 import { BlockchainElectrumConfig, BlockchainEsploraConfig, BlockChainNames } from '../lib/enums';
 import { NativeLoader } from './NativeLoader';
 
@@ -48,5 +49,13 @@ export class Blockchain extends NativeLoader {
   async getBlockHash(height: number = this.height): Promise<string> {
     this.hash = await this._bdk.getBlockchainHash(this.id, height);
     return this.hash;
+  }
+
+  /**
+   * Broadcast transaction
+   * @returns {Promise<boolean>}
+   */
+  async broadcast(psbt: PartiallySignedTransaction): Promise<boolean> {
+    return await this._bdk.broadcast(this.id, psbt.signedBase64);
   }
 }
