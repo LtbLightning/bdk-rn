@@ -19,17 +19,21 @@ class BdkRnModule: NSObject {
     var _blockchainConfig: BlockchainConfig;
     var emptyBlockChain: Blockchain
     var _dbConfig: DatabaseConfig
-
+    
     var emptyWallet: Wallet
+    var emptyPSBT: PartiallySignedTransaction
     let defaultDescriptor = "wpkh([c258d2e4/84h/1h/0h]tpubDDYkZojQFQjht8Tm4jsS3iuEmKjTiEGjG6KnuFNKKJb5A6ZUCUZKdvLdSDWofKi4ToRCwb9poe1XdqfUnP4jaJjCB2Zwv11ZLgSbnZSNecE/0/*)"
+    let dummyPSBT64 = "cHNidP8BAHEBAAAAAQU2MK4mbnsx/zjbmKwHGUAMVT1zXRFTPBArkMACRZjxAQAAAAD9////AhAnAAAAAAAAFgAU/52lZ+YvMOqGVPodX71HvvjjvhP7FQEAAAAAABYAFKqBwKFeT43famR0JJGaAhoMZKrXAAAAAAABAN4BAAAAAAEBArVvNyXe4TvWObt2vPpIv4IJPeFG1hRK8RtTgzVx3MEAAAAAAP3///8CECcAAAAAAAAWABT/naVn5i8w6oZU+h1fvUe++OO+E+ZAAQAAAAAAFgAUvv5IaH57cUVjoZ35bLxinO1BwkwCRzBEAiABTG7xfKRyZF2ezFCByBLSMGTA2FXYpMN881YXQZB/TgIgbU/OqbuWbe4KhWnjKeglVbnkko70H6glFe/zoo069fUBIQIeb6icGFSB9miQOCV9IMVmJdbEkXG8Hi86LaEyJRa5swAAAAABAR/mQAEAAAAAABYAFL7+SGh+e3FFY6Gd+Wy8YpztQcJMIgICZNLhaTjDm6k30vM/U2+d1TKQ02pk3MFxixFp4EQN1G5IMEUCIQCYRpRlO8YiUXZHLRYmS7fxhgCCDtYRVJ7Tb1rVOKqsHAIgcAeg6Dh8l2N9cixRUyCKwe0jWC9Xc7lNMrxJnDnlmN8BAQMEAQAAACIGAmTS4Wk4w5upN9LzP1NvndUykNNqZNzBcYsRaeBEDdRuGCrNFF1UAACAAQAAgAAAAIABAAAAAQAAAAAAIgIDRcB4bLvY45WvIPqto3nRP4nAQm1FHeIBWcqo2UiIHYoYKs0UXVQAAIABAACAAAAAgAEAAAACAAAAAA=="
+    
 
     var _wallets: [String: Wallet] = [:]
     var _blockChains: [String: Blockchain] = [:]
     var _addresses: [String: Address] = [:]
     var _scripts: [String: Script] = [:]
     var _txBuilders: [String: TxBuilder] = [:]
-
-
+    var _psbts: [String: PartiallySignedTransaction] = [:]
+    
+    
     override init() {
         _descriptorSecretKey = DescriptorSecretKey(
             network: setNetwork(networkStr: ""),
@@ -45,7 +49,7 @@ class BdkRnModule: NSObject {
                 timeout: nil,
                 stopGap: 10))
         emptyBlockChain = try! Blockchain.init(config: _blockchainConfig)
-
+        
         _dbConfig = DatabaseConfig.memory
         emptyWallet = try! Wallet(
             descriptor: defaultDescriptor,
@@ -53,6 +57,8 @@ class BdkRnModule: NSObject {
             network: Network.testnet,
             databaseConfig: _dbConfig
         )
+        
+        emptyPSBT = try! PartiallySignedTransaction(psbtBase64: dummyPSBT64)
     }
 
     /** Mnemonic methods starts */
@@ -318,16 +324,16 @@ class BdkRnModule: NSObject {
             reject("Blockchain get block hash error", "\(error)", error)
         }
     }
-
+    
     @objc
     func broadcast(_
         id: String,
-        signedPsbtBase64: String,
+        psbtId: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let psbt = try PartiallySignedTransaction(psbtBase64: signedPsbtBase64)
+            let psbt = getPSBTById(id: psbtId)
             _ = try getBlockchainById(id: id).broadcast(psbt: psbt)
             resolve(true)
         } catch let error {
@@ -356,7 +362,7 @@ class BdkRnModule: NSObject {
         _dbConfig = DatabaseConfig.sled(config: SledDbConfiguration(path: path, treeName: treeName))
         resolve(true)
     }
-
+    
     @objc
     func sqliteDBInit(_
         path: String,
@@ -367,12 +373,12 @@ class BdkRnModule: NSObject {
         resolve(true)
     }
     /** DB configuration methods ends*/
-
+    
     /** Wallet methods starts*/
     func getWalletById(id: String) -> Wallet {
         return _wallets[id] ?? emptyWallet
     }
-
+    
     @objc
     func walletInit(_
         descriptor: String,
@@ -393,8 +399,8 @@ class BdkRnModule: NSObject {
             reject("Init wallet error", "\(error)", error)
         }
     }
-
-
+    
+    
     @objc
     func sync(_
         id: String,
@@ -409,8 +415,8 @@ class BdkRnModule: NSObject {
             reject("Sync wallet error", "\(error)", error)
         }
     }
-
-
+    
+    
     @objc
     func getAddress(_
         id: String,
@@ -427,7 +433,7 @@ class BdkRnModule: NSObject {
             reject("Get wallet address error", "\(error)", error)
         }
     }
-
+    
     @objc
     func getBalance(_
         id: String,
@@ -448,8 +454,8 @@ class BdkRnModule: NSObject {
             reject("Get wallet balance error", "\(error)", error)
         }
     }
-
-
+    
+    
     @objc
     func getNetwork(_
         id: String,
@@ -459,7 +465,7 @@ class BdkRnModule: NSObject {
         let network = getWalletById(id: id).network()
         resolve(getNetworkString(network: network))
     }
-
+    
     @objc
     func listUnspent(_
         id: String,
@@ -482,7 +488,7 @@ class BdkRnModule: NSObject {
             reject("List unspent outputs error", "\(error)", error)
         }
     }
-
+    
     @objc
     func listTransactions(_
         id: String,
@@ -501,28 +507,28 @@ class BdkRnModule: NSObject {
             reject("List transactions error", "\(error)", error)
         }
     }
-
+    
     @objc
     func sign(_
         id: String,
-        psbtBase64: String,
+        psbtId: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let psbt = try PartiallySignedTransaction(psbtBase64: psbtBase64)
-            _ = try getWalletById(id: id).sign(psbt: psbt)
-            resolve(psbt.serialize())
+            let psbt = getPSBTById(id: psbtId)
+            try getWalletById(id: id).sign(psbt: psbt)
+            resolve(true)
         } catch let error {
             reject("Sign PSBT error", "\(error)", error)
         }
     }
-
-
+    
+    
     /** Wallet methods ends*/
-
+    
     /** Address methods starts*/
-
+    
     @objc
     func initAddress(_
         address: String,
@@ -537,7 +543,7 @@ class BdkRnModule: NSObject {
             reject("Address error", "\(error)", error)
         }
     }
-
+    
     @objc
     func addressToScriptPubkeyHex(_
         id: String,
@@ -548,10 +554,14 @@ class BdkRnModule: NSObject {
         _scripts[scriptId] = _addresses[id]?.scriptPubkey()
         resolve(scriptId)
     }
-
+    
     /** Address methods ends*/
-
+    
     /** TxBuilder methods starts */
+    func getPSBTById(id: String) -> PartiallySignedTransaction {
+        return _psbts[id] ?? emptyPSBT
+    }
+    
     @objc
     func createTxBuilder(_
         resolve: @escaping RCTPromiseResolveBlock,
@@ -561,7 +571,7 @@ class BdkRnModule: NSObject {
         _txBuilders[id] = TxBuilder()
         resolve(id)
     }
-
+    
     @objc
     func addRecipient(_
         id: String,
@@ -576,7 +586,7 @@ class BdkRnModule: NSObject {
         )
         resolve(true)
     }
-
+    
     // `addUnspendable`
     @objc
     func addUnspendable(_
@@ -588,194 +598,96 @@ class BdkRnModule: NSObject {
         _txBuilders[id] = _txBuilders[id]?.addUnspendable(unspendable: createOutPoint(outPoint: outPoint))
         resolve(true)
     }
-
+    
     // `addUtxo`
     @objc
     func addUtxo(_
-        id: String,
-        outPoint: NSDictionary,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        _txBuilders[id] = _txBuilders[id]?.addUtxo(outpoint: createOutPoint(outPoint: outPoint))
-        resolve(true)
-    }
-
-
+         id: String,
+         outPoint: NSDictionary,
+         resolve: @escaping RCTPromiseResolveBlock,
+         reject: @escaping RCTPromiseRejectBlock
+     ) {
+         _txBuilders[id] = _txBuilders[id]?.addUtxo(outpoint: createOutPoint(outPoint: outPoint))
+         resolve(true)
+     }
+    
+    
     // `addUtxos`
     @objc
     func addUtxos(_
-        id: String,
-        outPoints: [NSDictionary],
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
+         id: String,
+         outPoints: [NSDictionary],
+         resolve: @escaping RCTPromiseResolveBlock,
+         reject: @escaping RCTPromiseRejectBlock
+     ) {
         var mappedOutPoints: [OutPoint] = [];
         for outPoint in outPoints {
             mappedOutPoints.append(createOutPoint(outPoint: outPoint))
         }
         _txBuilders[id] = _txBuilders[id]?.addUtxos(outpoints: mappedOutPoints)
-        resolve(true)
-    }
-
-
+         resolve(true)
+     }
+    
+    
     // `doNotSpendChange`
     @objc
     func doNotSpendChange(_
-        id: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
+         id: String,
+         resolve: @escaping RCTPromiseResolveBlock,
+         reject: @escaping RCTPromiseRejectBlock
+     ) {
         _txBuilders[id] = _txBuilders[id]?.doNotSpendChange()
-        resolve(true)
-    }
-
+         resolve(true)
+     }
+    
     // `manuallySelectedOnly`
     @objc
     func manuallySelectedOnly(_
-        id: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
+         id: String,
+         resolve: @escaping RCTPromiseResolveBlock,
+         reject: @escaping RCTPromiseRejectBlock
+     ) {
         _txBuilders[id] = _txBuilders[id]?.manuallySelectedOnly()
-        resolve(true)
-    }
-
+         resolve(true)
+     }
+    
     // `onlySpendChange`
     @objc
     func onlySpendChange(_
-        id: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
+         id: String,
+         resolve: @escaping RCTPromiseResolveBlock,
+         reject: @escaping RCTPromiseRejectBlock
+     ) {
         _txBuilders[id] = _txBuilders[id]?.onlySpendChange()
-        resolve(true)
-    }
-
-
+         resolve(true)
+     }
+    
+    
     // `unspendable`
     @objc
     func unspendable(_
-        id: String,
-        outPoints: [NSDictionary],
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
+         id: String,
+         outPoints: [NSDictionary],
+         resolve: @escaping RCTPromiseResolveBlock,
+         reject: @escaping RCTPromiseRejectBlock
+     ) {
         var mappedOutPoints: [OutPoint] = [];
         for outPoint in outPoints {
             mappedOutPoints.append(createOutPoint(outPoint: outPoint))
         }
         _txBuilders[id] = _txBuilders[id]?.unspendable(unspendable: mappedOutPoints)
-        resolve(true)
-    }
-
+         resolve(true)
+     }
+    
     // `feeRate`
-    @objc
-    func feeRate(_
-        id: String,
-        feeRate: NSNumber,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        _txBuilders[id] = _txBuilders[id]?.feeRate(satPerVbyte: Float(truncating: feeRate))
-        resolve(true)
-    }
-
     // `feeAbsolute`
-    @objc
-    func feeAbsolute(_
-        id: String,
-        feeRate: NSNumber,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        _txBuilders[id] = _txBuilders[id]?.feeAbsolute(feeAmount: UInt64(truncating: feeRate))
-        resolve(true)
-    }
-
     // `drainWallet`
-    @objc
-    func drainWallet(_
-        id: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        _txBuilders[id] = _txBuilders[id]?.drainWallet()
-        resolve(true)
-    }
-
     // `drainTo`
-    @objc
-    func drainTo(_
-        id: String,
-        address: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        _txBuilders[id] = _txBuilders[id]?.drainTo(address: address)
-        resolve(true)
-    }
-
     // `enableRbf`
-    @objc
-    func enableRbf(_
-        id: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        _txBuilders[id] = _txBuilders[id]?.enableRbf()
-        resolve(true)
-    }
-    
     // `enableRbfWithSequence`
-    @objc
-    func enableRbfWithSequence(_
-        id: String,
-        nsequence: NSNumber,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        _txBuilders[id] = _txBuilders[id]?.enableRbfWithSequence(nsequence: UInt32(truncating: nsequence))
-        resolve(true)
-    }
-    
-    
     // `addData`
-    @objc
-    func addData(_
-        id: String,
-        data: NSArray,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        var dataList: [UInt8] = []
-        for item in data {
-            dataList.append(UInt8(truncating: item as! NSNumber))
-        }
-        _txBuilders[id] = _txBuilders[id]?.addData(data: dataList)
-        resolve(true)
-    }
-    
-    
     // `setRecipients`
-    @objc
-    func setRecipients(_
-        id: String,
-        recipients: [NSDictionary],
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        var scriptAmounts: [ScriptAmount] = []
-        for item in recipients {
-            let amount = UInt64(truncating: item["amount"] as! NSNumber)
-            let script: NSDictionary = item["script"] as! NSDictionary
-            let scriptAmount = ScriptAmount(script: _scripts[script["id"] as! String]!, amount: amount)
-            scriptAmounts.append(scriptAmount)
-        }
-        _txBuilders[id] = _txBuilders[id]?.setRecipients(recipients: scriptAmounts)
-        resolve(true)
-    }
-
+    
     @objc
     func finish(_
         id: String,
@@ -784,15 +696,17 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
+            let psbtId = randomId()
             let details = try _txBuilders[id]?.finish(wallet: getWalletById(id: walletId))
-            let responseObject = getPSBTObject(txResult: details)
+            let responseObject = getPSBTObject(txResult: details, id: psbtId)
+            _psbts[psbtId] = details?.psbt
             resolve(responseObject)
         } catch let error {
             reject("Finish tx error", "\(error)", error)
         }
     }
-
+    
     /** TxBuilder methods ends */
-
+    
 }
 

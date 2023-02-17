@@ -1,7 +1,7 @@
 package io.ltbl.bdkrn
 
 import com.facebook.react.bridge.*
-import org.bitcoindevkit.*
+import org.bitcoindevkit.Network
 
 class BdkRnModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -10,137 +10,123 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         return hashMapOf("count" to 1)
     }
 
-    lateinit var _descriptorSecretKey: DescriptorSecretKey
-    lateinit var _descriptorPublicKey: DescriptorPublicKey
-
-    /** Mnemonic methods starts */
     @ReactMethod
-    fun generateSeedFromWordCount(wordCount: Int, result: Promise) {
-        val response = Mnemonic(setWordCount(wordCount))
-        result.resolve(response.asString())
-    }
-
-    @ReactMethod
-    fun generateSeedFromString(mnemonic: String, result: Promise) {
+    fun generateMnemonic(wordCount: Int = 12, result: Promise) {
         try {
-            val response = Mnemonic.fromString(mnemonic)
-            result.resolve(response.asString())
+            val mnemonic = BdkFunctions.generateMnemonic(wordCount)
+            result.resolve(mnemonic)
         } catch (error: Throwable) {
-            return result.reject("Generate seed error", error.localizedMessage, error)
+            return result.reject("Generate Mnemonic Error", error.localizedMessage, error)
         }
     }
 
     @ReactMethod
-    fun generateSeedFromEntropy(entropyLength: Int, result: Promise) {
-        try {
-            val response = Mnemonic.fromEntropy(getEntropy(entropyLength))
-            result.resolve(response.asString())
-        } catch (error: Throwable) {
-            return result.reject("Generate seed error", error.localizedMessage, error)
-        }
-    }
-    /** Mnemonic methods ends */
-
-    /** Derviation path methods starts */
-    @ReactMethod
-    fun createDerivationPath(path: String, result: Promise) {
-        try {
-            DerivationPath(path)
-            result.resolve(true)
-        } catch (error: Throwable) {
-            return result.reject("Create Derivation path error", error.localizedMessage, error)
-        }
-    }
-    /** Derviation path methods ends */
-
-    /** Descriptor secret key methods starts */
-    @ReactMethod
-    fun createDescriptorSecret(
-        network: String, mnemonic: String, password: String? = null, result: Promise
+    fun getExtendedKeyInfo(
+        network: String,
+        mnemonic: String,
+        password: String? = null,
+        result: Promise
     ) {
         try {
-            val networkName: Network = setNetwork(network)
-            val keyInfo = DescriptorSecretKey(networkName, Mnemonic.fromString(mnemonic), password)
-            _descriptorSecretKey = keyInfo
-            result.resolve(keyInfo.asString())
+            val networkName: Network = BdkFunctions.setNetwork(network)
+            val responseObject = BdkFunctions.extendedKeyInfo(networkName, mnemonic, password)
+            result.resolve(Arguments.makeNativeMap(responseObject))
         } catch (error: Throwable) {
-            return result.reject("DescriptorSecret create error", error.localizedMessage, error)
+            return result.reject("Get extended keys error", error.localizedMessage, error)
         }
     }
 
     @ReactMethod
-    fun descriptorSecretDerive(path: String, result: Promise) {
+    fun createWallet(
+        mnemonic: String = "",
+        password: String?,
+        network: String?,
+        blockChainConfigUrl: String,
+        blockChainSocket5: String?,
+        retry: String?,
+        timeOut: String?,
+        blockChain: String?,
+        descriptor: String = "",
+        result: Promise
+    ) {
         try {
-            val _path = DerivationPath(path)
-            val keyInfo = _descriptorSecretKey.derive(_path)
-            result.resolve(keyInfo.asString())
+            val responseObject =
+                BdkFunctions.createWallet(
+                    mnemonic,
+                    password,
+                    network,
+                    blockChainConfigUrl,
+                    blockChainSocket5,
+                    retry,
+                    timeOut,
+                    blockChain,
+                    descriptor
+                )
+            result.resolve(Arguments.makeNativeMap(responseObject))
         } catch (error: Throwable) {
-            return result.reject("DescriptorSecret derive error", error.localizedMessage, error)
+            return result.reject("Init Wallet Error", error.localizedMessage, error)
         }
     }
 
     @ReactMethod
-    fun descriptorSecretExtend(path: String, result: Promise) {
+    fun getNewAddress(result: Promise) {
         try {
-            val _path = DerivationPath(path)
-            val keyInfo = _descriptorSecretKey.extend(_path)
-            result.resolve(keyInfo.asString())
+            val address: String = BdkFunctions.getNewAddress()
+            result.resolve(address)
         } catch (error: Throwable) {
-            return result.reject("DescriptorSecret extend error", error.localizedMessage, error)
+            return result.reject("Get address Error", error.localizedMessage, error)
         }
     }
 
     @ReactMethod
-    fun descriptorSecretAsPublic(result: Promise) {
-        result.resolve(_descriptorSecretKey.asPublic().asString())
-    }
-
-    @ReactMethod
-    fun descriptorSecretAsSecretBytes(result: Promise) {
-        val arr = WritableNativeArray()
-        val scretBytes = _descriptorSecretKey.secretBytes()
-        for (i in scretBytes) arr.pushInt(i.toInt())
-        result.resolve(arr)
-    }
-    /** Descriptor secret key methods ends */
-
-    /** Descriptor public key methods starts */
-    @ReactMethod
-    fun createDescriptorPublic(publicKey: String, result: Promise) {
+    fun syncWallet(result: Promise) {
         try {
-            val keyInfo = DescriptorPublicKey.fromString(publicKey)
-            _descriptorPublicKey = keyInfo
-            result.resolve(keyInfo.asString())
+            BdkFunctions.syncWallet()
+            result.resolve("wallet sync complete")
         } catch (error: Throwable) {
-            return result.reject("DescriptorPublic create error", error.localizedMessage, error)
+            return result.reject("Get address Error", error.localizedMessage, error)
         }
     }
 
     @ReactMethod
-    fun descriptorPublicDerive(path: String, result: Promise) {
+    fun getBalance(result: Promise) {
         try {
-            val _path = DerivationPath(path)
-            val keyInfo = _descriptorPublicKey.derive(_path)
-            result.resolve(keyInfo.asString())
+            val balance: String = BdkFunctions.getBalance()
+            result.resolve(balance)
         } catch (error: Throwable) {
-            return result.reject("DescriptorPublic derive error", error.localizedMessage, error)
+            return result.reject("Get Balance Error", error.localizedMessage, error)
+        }
+    }
+
+
+    @ReactMethod
+    fun broadcastTx(recipient: String, amount: Double, result: Promise) {
+        try {
+            val transaction: String = BdkFunctions.broadcastTx(recipient, amount)
+            result.resolve(transaction)
+        } catch (error: Throwable) {
+            return result.reject("Broadcast Transaction Error", error.message, error.cause)
         }
     }
 
     @ReactMethod
-    fun descriptorPublicExtend(path: String, result: Promise) {
+    fun getPendingTransactions(result: Promise) {
         try {
-            val _path = DerivationPath(path)
-            val keyInfo = _descriptorPublicKey.extend(_path)
-            result.resolve(keyInfo.asString())
+            val transactions = BdkFunctions.transactionsList(true)
+            result.resolve(Arguments.makeNativeArray(transactions))
         } catch (error: Throwable) {
-            return result.reject("DescriptorPublic extend error", error.localizedMessage, error)
+            return result.reject("Get Pending TransactionsError", error.localizedMessage, error)
         }
     }
 
-    /** Descriptor public key methods ends */
-
-
-    // ================ END ========== //
+    @ReactMethod
+    fun getConfirmedTransactions(result: Promise) {
+        try {
+            val transactions = BdkFunctions.transactionsList()
+            result.resolve(Arguments.makeNativeArray(transactions))
+        } catch (error: Throwable) {
+            return result.reject("Get confirmed Transactions Error", error.localizedMessage, error)
+        }
+    }
 }
 

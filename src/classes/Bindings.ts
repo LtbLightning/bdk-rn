@@ -191,15 +191,3 @@ export class Script {
     this.id = id;
   }
 }
-
-/**
- * A output script and an amount of satoshis.
- */
-export class ScriptAmount {
-  script: Script;
-  amount: number;
-  constructor(script: Script, amount: number) {
-    this.script = script;
-    this.amount = amount;
-  }
-}

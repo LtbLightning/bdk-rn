@@ -1,4 +1,4 @@
-import { PartiallySignedTransaction } from './PartiallySignedTransaction';
+import { PartiallySignedTransaction } from 'bdk-rn/src/classes/PartiallySignedTransaction';
 import { BlockchainElectrumConfig, BlockchainEsploraConfig, BlockChainNames } from '../lib/enums';
 import { NativeLoader } from './NativeLoader';
 
@@ -56,6 +56,6 @@ export class Blockchain extends NativeLoader {
    * @returns {Promise<boolean>}
    */
   async broadcast(psbt: PartiallySignedTransaction): Promise<boolean> {
-    return await this._bdk.broadcast(this.id, psbt.signedBase64);
+    return await this._bdk.broadcast(this.id, psbt.id);
   }
 }

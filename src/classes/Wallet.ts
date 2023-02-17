@@ -99,11 +99,9 @@ export class Wallet extends NativeLoader {
 
   /**
    * Sign PSBT with wallet
-   * @returns
+   * @returns {Promise<boolean>}
    */
-  async sign(psbt: PartiallySignedTransaction): Promise<PartiallySignedTransaction> {
-    let signed = await this._bdk.sign(this.id, psbt.base64);
-    psbt.setSignedPsbt(signed);
-    return psbt;
+  async sign(psbt: PartiallySignedTransaction): Promise<boolean> {
+    return await this._bdk.sign(this.id, psbt.id);
   }
 }

@@ -1,5 +1,5 @@
 import { Wallet } from './Wallet';
-import { OutPoint, Script, ScriptAmount } from './Bindings';
+import { OutPoint, Script } from './Bindings';
 import { NativeLoader } from './NativeLoader';
 import { createTxDetailsObject } from '../lib/utils';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
@@ -38,7 +38,15 @@ export class TxBuilder extends NativeLoader {
   async finish(wallet: Wallet): Promise<PartiallySignedTransaction> {
     let psbt = await this._bdk.finish(this.id, wallet.id);
     const txObject = createTxDetailsObject(psbt.transactionDetails);
-    return new PartiallySignedTransaction(psbt.base64, psbt.txid, psbt.extractTx, psbt.feeAmount, txObject);
+    let signedPsbt = new PartiallySignedTransaction(
+      psbt.id,
+      psbt.base64,
+      psbt.txid,
+      psbt.extractTx,
+      psbt.feeAmount,
+      txObject
+    );
+    return signedPsbt;
   }
 
   /**
@@ -105,83 +113,6 @@ export class TxBuilder extends NativeLoader {
    */
   async unspendable(outPoints: Array<OutPoint>): Promise<TxBuilder> {
     await this._bdk.unspendable(this.id, outPoints);
-    return this;
-  }
-
-  /**
-   * Set a custom fee rate
-   * @param {feeRate}
-   * @returns {Promise<TxBuilder>}
-   */
-  async feeRate(feeRate: number): Promise<TxBuilder> {
-    await this._bdk.feeRate(this.id, feeRate);
-    return this;
-  }
-
-  /**
-   * Set an absolute fee
-   * @param {feeRate}
-   * @returns {Promise<TxBuilder>}
-   */
-  async feeAbsolute(feeRate: number): Promise<TxBuilder> {
-    await this._bdk.feeAbsolute(this.id, feeRate);
-    return this;
-  }
-
-  /**
-   * Spend all the available inputs. This respects filters like TxBuilder().unSpendable and the change policy.
-   * @returns {Promise<TxBuilder>}
-   */
-  async drainWallet(): Promise<TxBuilder> {
-    await this._bdk.drainWallet(this.id);
-    return this;
-  }
-
-  /**
-   * Sets the address to drain excess coins to.
-   * @returns {Promise<TxBuilder>}
-   */
-  async drainTo(address: string): Promise<TxBuilder> {
-    await this._bdk.drainTo(this.id, address);
-    return this;
-  }
-
-  /**
-   * Enable signaling RBF
-   * @returns {Promise<TxBuilder>}
-   */
-  async enableRbf(): Promise<TxBuilder> {
-    await this._bdk.enableRbf(this.id);
-    return this;
-  }
-
-  /**
-   * Enable signaling RBF with a specific nSequence value
-   * @param {nsequence}
-   * @returns {Promise<TxBuilder>}
-   */
-  async enableRbfWithSequence(nsequence: number): Promise<TxBuilder> {
-    await this._bdk.enableRbfWithSequence(this.id, nsequence);
-    return this;
-  }
-
-  /**
-   * Add data as an output, using OP_RETURN
-   * @param {data}
-   * @returns {Promise<TxBuilder>}
-   */
-  async addData(data: Array<number>): Promise<TxBuilder> {
-    await this._bdk.addData(this.id, data);
-    return this;
-  }
-
-  /**
-   * Add number of receipents at once
-   * @param {data}
-   * @returns {Promise<TxBuilder>}
-   */
-  async setRecipients(recipients: Array<ScriptAmount>): Promise<TxBuilder> {
-    await this._bdk.setRecipients(this.id, recipients);
     return this;
   }
 }

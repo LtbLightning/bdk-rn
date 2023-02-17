@@ -133,11 +133,3 @@ export declare class Script {
     id: string;
     constructor(id: string);
 }
-/**
- * A output script and an amount of satoshis.
- */
-export declare class ScriptAmount {
-    script: Script;
-    amount: number;
-    constructor(script: Script, amount: number);
-}

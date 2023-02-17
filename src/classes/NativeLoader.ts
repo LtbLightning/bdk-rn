@@ -1,8 +1,8 @@
+import { PartiallySignedTransaction } from 'bdk-rn/src/classes/PartiallySignedTransaction';
 import { NativeModules } from 'react-native';
 import { Network, WordCount, AddressIndex } from '../lib/enums';
-import { AddressInfo, Balance, LocalUtxo, OutPoint, ScriptAmount, TransactionDetails } from './Bindings';
+import { AddressInfo, Balance, LocalUtxo, OutPoint, TransactionDetails } from './Bindings';
 import { Blockchain } from './Blockchain';
-import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 
 export interface NativeBdkRn {
   generateSeedFromWordCount(wordCount: WordCount): string;
@@ -23,7 +23,7 @@ export interface NativeBdkRn {
   initEsploraBlockchain(url: string, proxy: string, concurrency: string, timeout: string, stopGap: string): string;
   getBlockchainHeight(id: string): number;
   getBlockchainHash(id: string, height: number): string;
-  broadcast(id: string, signedPsbtBase64: string): boolean;
+  broadcast(id: string, base64: string): boolean;
 
   memoryDBInit(): boolean;
   sledDBInit(path: string, treeName: string): boolean;
@@ -34,7 +34,7 @@ export interface NativeBdkRn {
   getBalance(id: string): Balance;
   getNetwork(id: string): string;
   sync(blockchain: string, id: string): boolean;
-  sign(id: string, psbtBase64: string): string;
+  sign(id: string, psbtId: string): boolean;
 
   listUnspent(id: string): Array<LocalUtxo>;
   listTransactions(id: string): Array<TransactionDetails>;
@@ -53,15 +53,6 @@ export interface NativeBdkRn {
   manuallySelectedOnly(id: string): boolean;
   onlySpendChange(id: string): boolean;
   unspendable(id: string, outPoints: Array<OutPoint>): boolean;
-
-  feeRate(id: string, feeRate: number): boolean;
-  feeAbsolute(id: string, feeRate: number): boolean;
-  drainWallet(id: string): boolean;
-  drainTo(id: string, address: string): boolean;
-  enableRbf(id: string): boolean;
-  enableRbfWithSequence(id: string, nsequence: number): boolean;
-  addData(id: string, data: Array<number>): boolean;
-  setRecipients(id: string, recipients: Array<ScriptAmount>): boolean;
 }
 
 export class NativeLoader {

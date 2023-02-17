@@ -1,4 +1,4 @@
-import { PartiallySignedTransaction } from './PartiallySignedTransaction';
+import { PartiallySignedTransaction } from 'bdk-rn/src/classes/PartiallySignedTransaction';
 import { BlockchainElectrumConfig, BlockchainEsploraConfig, BlockChainNames } from '../lib/enums';
 import { NativeLoader } from './NativeLoader';
 /**

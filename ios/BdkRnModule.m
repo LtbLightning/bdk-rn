@@ -114,7 +114,7 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
     broadcast:(nonnull NSString*)id
-    signedPsbtBase64: (nonnull NSString *)signedPsbtBase64
+    psbtId: (nonnull NSString *)psbtId
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
@@ -177,7 +177,7 @@ RCT_EXTERN_METHOD(
 )
 RCT_EXTERN_METHOD(
     sign:(nonnull NSString*)id
-    psbtBase64: (nonnull NSString *)psbtBase64
+    psbtId: (nonnull NSString *)psbtId
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
@@ -208,6 +208,12 @@ RCT_EXTERN_METHOD(
     reject:(RCTPromiseRejectBlock)reject
 )
 
+RCT_EXTERN_METHOD(
+    finish:(nonnull NSString*)id
+    walletId: (nonnull NSString *)walletId
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
 
 RCT_EXTERN_METHOD(
     addUnspendable:(nonnull NSString*)id
@@ -255,65 +261,6 @@ RCT_EXTERN_METHOD(
     reject:(RCTPromiseRejectBlock)reject
 )
 
-RCT_EXTERN_METHOD(
-    feeRate:(nonnull NSString*)id
-    feeRate:(nonnull NSNumber*)feeRate
-    resolve:(RCTPromiseResolveBlock)resolve
-    reject:(RCTPromiseRejectBlock)reject
-)
 
-RCT_EXTERN_METHOD(
-    feeAbsolute:(nonnull NSString*)id
-    feeRate:(nonnull NSNumber*)feeRate
-    resolve:(RCTPromiseResolveBlock)resolve
-    reject:(RCTPromiseRejectBlock)reject
-)
-
-RCT_EXTERN_METHOD(
-    drainWallet:(nonnull NSString*)id
-    resolve: (RCTPromiseResolveBlock)resolve
-    reject:(RCTPromiseRejectBlock)reject
-)
-
-RCT_EXTERN_METHOD(
-    drainTo:(nonnull NSString*)id
-    address:(nonnull NSString*)address
-    resolve:(RCTPromiseResolveBlock)resolve
-    reject:(RCTPromiseRejectBlock)reject
-)
-
-RCT_EXTERN_METHOD(
-    enableRbf:(nonnull NSString*)id
-    resolve: (RCTPromiseResolveBlock)resolve
-    reject:(RCTPromiseRejectBlock)reject
-)
-
-RCT_EXTERN_METHOD(
-    enableRbfWithSequence:(nonnull NSString*)id
-    nsequence:(nonnull NSNumber*)nsequence
-    resolve: (RCTPromiseResolveBlock)resolve
-    reject:(RCTPromiseRejectBlock)reject
-)
-
-RCT_EXTERN_METHOD(
-    addData:(nonnull NSString*)id
-    data:(nonnull NSArray*)data
-    resolve: (RCTPromiseResolveBlock)resolve
-    reject:(RCTPromiseRejectBlock)reject
-)
-
-RCT_EXTERN_METHOD(
-    setRecipients:(nonnull NSString*)id
-    recipients:(nonnull NSArray*)recipients
-    resolve: (RCTPromiseResolveBlock)resolve
-    reject:(RCTPromiseRejectBlock)reject
-)
-
-RCT_EXTERN_METHOD(
-    finish:(nonnull NSString*)id
-    walletId: (nonnull NSString *)walletId
-    resolve: (RCTPromiseResolveBlock)resolve
-    reject:(RCTPromiseRejectBlock)reject
-)
 
 @end
