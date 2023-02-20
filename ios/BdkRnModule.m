@@ -114,7 +114,7 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
     broadcast:(nonnull NSString*)id
-    psbtId: (nonnull NSString *)psbtId
+    signedPsbtBase64: (nonnull NSString *)signedPsbtBase64
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
@@ -177,7 +177,7 @@ RCT_EXTERN_METHOD(
 )
 RCT_EXTERN_METHOD(
     sign:(nonnull NSString*)id
-    psbtId: (nonnull NSString *)psbtId
+    psbtBase64: (nonnull NSString *)psbtBase64
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
@@ -208,12 +208,6 @@ RCT_EXTERN_METHOD(
     reject:(RCTPromiseRejectBlock)reject
 )
 
-RCT_EXTERN_METHOD(
-    finish:(nonnull NSString*)id
-    walletId: (nonnull NSString *)walletId
-    resolve: (RCTPromiseResolveBlock)resolve
-    reject:(RCTPromiseRejectBlock)reject
-)
 
 RCT_EXTERN_METHOD(
     addUnspendable:(nonnull NSString*)id
@@ -304,6 +298,20 @@ RCT_EXTERN_METHOD(
 RCT_EXTERN_METHOD(
     addData:(nonnull NSString*)id
     data:(nonnull NSArray*)data
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    setRecipients:(nonnull NSString*)id
+    recipients:(nonnull NSArray*)recipients
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    finish:(nonnull NSString*)id
+    walletId: (nonnull NSString *)walletId
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )

@@ -49,7 +49,7 @@ export declare class Wallet extends NativeLoader {
     listTransactions(): Promise<Array<TransactionDetails>>;
     /**
      * Sign PSBT with wallet
-     * @returns {Promise<boolean>}
+     * @returns
      */
-    sign(psbt: PartiallySignedTransaction): Promise<boolean>;
+    sign(psbt: PartiallySignedTransaction): Promise<PartiallySignedTransaction>;
 }

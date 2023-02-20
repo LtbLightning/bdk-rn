@@ -1,5 +1,5 @@
 import { Wallet } from './Wallet';
-import { OutPoint, Script } from './Bindings';
+import { OutPoint, Script, ScriptAmount } from './Bindings';
 import { NativeLoader } from './NativeLoader';
 import { createTxDetailsObject } from '../lib/utils';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
@@ -38,15 +38,7 @@ export class TxBuilder extends NativeLoader {
   async finish(wallet: Wallet): Promise<PartiallySignedTransaction> {
     let psbt = await this._bdk.finish(this.id, wallet.id);
     const txObject = createTxDetailsObject(psbt.transactionDetails);
-    let signedPsbt = new PartiallySignedTransaction(
-      psbt.id,
-      psbt.base64,
-      psbt.txid,
-      psbt.extractTx,
-      psbt.feeAmount,
-      txObject
-    );
-    return signedPsbt;
+    return new PartiallySignedTransaction(psbt.base64, psbt.txid, psbt.extractTx, psbt.feeAmount, txObject);
   }
 
   /**
@@ -165,6 +157,7 @@ export class TxBuilder extends NativeLoader {
 
   /**
    * Enable signaling RBF with a specific nSequence value
+   * @param {nsequence}
    * @returns {Promise<TxBuilder>}
    */
   async enableRbfWithSequence(nsequence: number): Promise<TxBuilder> {
@@ -174,10 +167,21 @@ export class TxBuilder extends NativeLoader {
 
   /**
    * Add data as an output, using OP_RETURN
+   * @param {data}
    * @returns {Promise<TxBuilder>}
    */
   async addData(data: Array<number>): Promise<TxBuilder> {
     await this._bdk.addData(this.id, data);
+    return this;
+  }
+
+  /**
+   * Add number of receipents at once
+   * @param {data}
+   * @returns {Promise<TxBuilder>}
+   */
+  async setRecipients(recipients: Array<ScriptAmount>): Promise<TxBuilder> {
+    await this._bdk.setRecipients(this.id, recipients);
     return this;
   }
 }

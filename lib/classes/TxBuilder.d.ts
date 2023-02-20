@@ -1,5 +1,5 @@
 import { Wallet } from './Wallet';
-import { OutPoint, Script } from './Bindings';
+import { OutPoint, Script, ScriptAmount } from './Bindings';
 import { NativeLoader } from './NativeLoader';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 /**
@@ -93,12 +93,20 @@ export declare class TxBuilder extends NativeLoader {
     enableRbf(): Promise<TxBuilder>;
     /**
      * Enable signaling RBF with a specific nSequence value
+     * @param {nsequence}
      * @returns {Promise<TxBuilder>}
      */
     enableRbfWithSequence(nsequence: number): Promise<TxBuilder>;
     /**
      * Add data as an output, using OP_RETURN
+     * @param {data}
      * @returns {Promise<TxBuilder>}
      */
     addData(data: Array<number>): Promise<TxBuilder>;
+    /**
+     * Add number of receipents at once
+     * @param {data}
+     * @returns {Promise<TxBuilder>}
+     */
+    setRecipients(recipients: Array<ScriptAmount>): Promise<TxBuilder>;
 }

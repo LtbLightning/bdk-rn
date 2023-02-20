@@ -21,17 +21,13 @@ class BdkRnModule: NSObject {
     var _dbConfig: DatabaseConfig
 
     var emptyWallet: Wallet
-    var emptyPSBT: PartiallySignedTransaction
     let defaultDescriptor = "wpkh([c258d2e4/84h/1h/0h]tpubDDYkZojQFQjht8Tm4jsS3iuEmKjTiEGjG6KnuFNKKJb5A6ZUCUZKdvLdSDWofKi4ToRCwb9poe1XdqfUnP4jaJjCB2Zwv11ZLgSbnZSNecE/0/*)"
-    let dummyPSBT64 = "cHNidP8BAHEBAAAAAQU2MK4mbnsx/zjbmKwHGUAMVT1zXRFTPBArkMACRZjxAQAAAAD9////AhAnAAAAAAAAFgAU/52lZ+YvMOqGVPodX71HvvjjvhP7FQEAAAAAABYAFKqBwKFeT43famR0JJGaAhoMZKrXAAAAAAABAN4BAAAAAAEBArVvNyXe4TvWObt2vPpIv4IJPeFG1hRK8RtTgzVx3MEAAAAAAP3///8CECcAAAAAAAAWABT/naVn5i8w6oZU+h1fvUe++OO+E+ZAAQAAAAAAFgAUvv5IaH57cUVjoZ35bLxinO1BwkwCRzBEAiABTG7xfKRyZF2ezFCByBLSMGTA2FXYpMN881YXQZB/TgIgbU/OqbuWbe4KhWnjKeglVbnkko70H6glFe/zoo069fUBIQIeb6icGFSB9miQOCV9IMVmJdbEkXG8Hi86LaEyJRa5swAAAAABAR/mQAEAAAAAABYAFL7+SGh+e3FFY6Gd+Wy8YpztQcJMIgICZNLhaTjDm6k30vM/U2+d1TKQ02pk3MFxixFp4EQN1G5IMEUCIQCYRpRlO8YiUXZHLRYmS7fxhgCCDtYRVJ7Tb1rVOKqsHAIgcAeg6Dh8l2N9cixRUyCKwe0jWC9Xc7lNMrxJnDnlmN8BAQMEAQAAACIGAmTS4Wk4w5upN9LzP1NvndUykNNqZNzBcYsRaeBEDdRuGCrNFF1UAACAAQAAgAAAAIABAAAAAQAAAAAAIgIDRcB4bLvY45WvIPqto3nRP4nAQm1FHeIBWcqo2UiIHYoYKs0UXVQAAIABAACAAAAAgAEAAAACAAAAAA=="
-
 
     var _wallets: [String: Wallet] = [:]
     var _blockChains: [String: Blockchain] = [:]
     var _addresses: [String: Address] = [:]
     var _scripts: [String: Script] = [:]
     var _txBuilders: [String: TxBuilder] = [:]
-    var _psbts: [String: PartiallySignedTransaction] = [:]
 
 
     override init() {
@@ -57,8 +53,6 @@ class BdkRnModule: NSObject {
             network: Network.testnet,
             databaseConfig: _dbConfig
         )
-
-        emptyPSBT = try! PartiallySignedTransaction(psbtBase64: dummyPSBT64)
     }
 
     /** Mnemonic methods starts */
@@ -328,12 +322,12 @@ class BdkRnModule: NSObject {
     @objc
     func broadcast(_
         id: String,
-        psbtId: String,
+        signedPsbtBase64: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let psbt = getPSBTById(id: psbtId)
+            let psbt = try PartiallySignedTransaction(psbtBase64: signedPsbtBase64)
             _ = try getBlockchainById(id: id).broadcast(psbt: psbt)
             resolve(true)
         } catch let error {
@@ -511,14 +505,14 @@ class BdkRnModule: NSObject {
     @objc
     func sign(_
         id: String,
-        psbtId: String,
+        psbtBase64: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let psbt = getPSBTById(id: psbtId)
-            try getWalletById(id: id).sign(psbt: psbt)
-            resolve(true)
+            let psbt = try PartiallySignedTransaction(psbtBase64: psbtBase64)
+            _ = try getWalletById(id: id).sign(psbt: psbt)
+            resolve(psbt.serialize())
         } catch let error {
             reject("Sign PSBT error", "\(error)", error)
         }
@@ -558,10 +552,6 @@ class BdkRnModule: NSObject {
     /** Address methods ends*/
 
     /** TxBuilder methods starts */
-    func getPSBTById(id: String) -> PartiallySignedTransaction {
-        return _psbts[id] ?? emptyPSBT
-    }
-
     @objc
     func createTxBuilder(_
         resolve: @escaping RCTPromiseResolveBlock,
@@ -768,6 +758,23 @@ class BdkRnModule: NSObject {
     
     
     // `setRecipients`
+    @objc
+    func setRecipients(_
+        id: String,
+        recipients: [NSDictionary],
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        var scriptAmounts: [ScriptAmount] = []
+        for item in recipients {
+            let amount = UInt64(truncating: item["amount"] as! NSNumber)
+            let script: NSDictionary = item["script"] as! NSDictionary
+            let scriptAmount = ScriptAmount(script: _scripts[script["id"] as! String]!, amount: amount)
+            scriptAmounts.append(scriptAmount)
+        }
+        _txBuilders[id] = _txBuilders[id]?.setRecipients(recipients: scriptAmounts)
+        resolve(true)
+    }
 
     @objc
     func finish(_
@@ -777,10 +784,8 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let psbtId = randomId()
             let details = try _txBuilders[id]?.finish(wallet: getWalletById(id: walletId))
-            let responseObject = getPSBTObject(txResult: details, id: psbtId)
-            _psbts[psbtId] = details?.psbt
+            let responseObject = getPSBTObject(txResult: details)
             resolve(responseObject)
         } catch let error {
             reject("Finish tx error", "\(error)", error)
