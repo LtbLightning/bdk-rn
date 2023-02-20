@@ -261,6 +261,51 @@ RCT_EXTERN_METHOD(
     reject:(RCTPromiseRejectBlock)reject
 )
 
+RCT_EXTERN_METHOD(
+    feeRate:(nonnull NSString*)id
+    feeRate:(nonnull NSNumber*)feeRate
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
 
+RCT_EXTERN_METHOD(
+    feeAbsolute:(nonnull NSString*)id
+    feeRate:(nonnull NSNumber*)feeRate
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    drainWallet:(nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    drainTo:(nonnull NSString*)id
+    address:(nonnull NSString*)address
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    enableRbf:(nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    enableRbfWithSequence:(nonnull NSString*)id
+    nsequence:(nonnull NSNumber*)nsequence
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    addData:(nonnull NSString*)id
+    data:(nonnull NSArray*)data
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
 
 @end

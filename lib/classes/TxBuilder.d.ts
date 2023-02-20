@@ -64,4 +64,41 @@ export declare class TxBuilder extends NativeLoader {
      * @returns {Promise<TxBuilder>}
      */
     unspendable(outPoints: Array<OutPoint>): Promise<TxBuilder>;
+    /**
+     * Set a custom fee rate
+     * @param {feeRate}
+     * @returns {Promise<TxBuilder>}
+     */
+    feeRate(feeRate: number): Promise<TxBuilder>;
+    /**
+     * Set an absolute fee
+     * @param {feeRate}
+     * @returns {Promise<TxBuilder>}
+     */
+    feeAbsolute(feeRate: number): Promise<TxBuilder>;
+    /**
+     * Spend all the available inputs. This respects filters like TxBuilder().unSpendable and the change policy.
+     * @returns {Promise<TxBuilder>}
+     */
+    drainWallet(): Promise<TxBuilder>;
+    /**
+     * Sets the address to drain excess coins to.
+     * @returns {Promise<TxBuilder>}
+     */
+    drainTo(address: string): Promise<TxBuilder>;
+    /**
+     * Enable signaling RBF
+     * @returns {Promise<TxBuilder>}
+     */
+    enableRbf(): Promise<TxBuilder>;
+    /**
+     * Enable signaling RBF with a specific nSequence value
+     * @returns {Promise<TxBuilder>}
+     */
+    enableRbfWithSequence(nsequence: number): Promise<TxBuilder>;
+    /**
+     * Add data as an output, using OP_RETURN
+     * @returns {Promise<TxBuilder>}
+     */
+    addData(data: Array<number>): Promise<TxBuilder>;
 }

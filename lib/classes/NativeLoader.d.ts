@@ -40,6 +40,13 @@ export interface NativeBdkRn {
     manuallySelectedOnly(id: string): boolean;
     onlySpendChange(id: string): boolean;
     unspendable(id: string, outPoints: Array<OutPoint>): boolean;
+    feeRate(id: string, feeRate: number): boolean;
+    feeAbsolute(id: string, feeRate: number): boolean;
+    drainWallet(id: string): boolean;
+    drainTo(id: string, address: string): boolean;
+    enableRbf(id: string): boolean;
+    enableRbfWithSequence(id: string, nsequence: number): boolean;
+    addData(id: string, data: Array<number>): boolean;
 }
 export declare class NativeLoader {
     protected _bdk: NativeBdkRn;

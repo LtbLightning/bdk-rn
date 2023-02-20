@@ -115,4 +115,69 @@ export class TxBuilder extends NativeLoader {
     await this._bdk.unspendable(this.id, outPoints);
     return this;
   }
+
+  /**
+   * Set a custom fee rate
+   * @param {feeRate}
+   * @returns {Promise<TxBuilder>}
+   */
+  async feeRate(feeRate: number): Promise<TxBuilder> {
+    await this._bdk.feeRate(this.id, feeRate);
+    return this;
+  }
+
+  /**
+   * Set an absolute fee
+   * @param {feeRate}
+   * @returns {Promise<TxBuilder>}
+   */
+  async feeAbsolute(feeRate: number): Promise<TxBuilder> {
+    await this._bdk.feeAbsolute(this.id, feeRate);
+    return this;
+  }
+
+  /**
+   * Spend all the available inputs. This respects filters like TxBuilder().unSpendable and the change policy.
+   * @returns {Promise<TxBuilder>}
+   */
+  async drainWallet(): Promise<TxBuilder> {
+    await this._bdk.drainWallet(this.id);
+    return this;
+  }
+
+  /**
+   * Sets the address to drain excess coins to.
+   * @returns {Promise<TxBuilder>}
+   */
+  async drainTo(address: string): Promise<TxBuilder> {
+    await this._bdk.drainTo(this.id, address);
+    return this;
+  }
+
+  /**
+   * Enable signaling RBF
+   * @returns {Promise<TxBuilder>}
+   */
+  async enableRbf(): Promise<TxBuilder> {
+    await this._bdk.enableRbf(this.id);
+    return this;
+  }
+
+  /**
+   * Enable signaling RBF with a specific nSequence value
+   * @returns {Promise<TxBuilder>}
+   */
+  async enableRbfWithSequence(nsequence: number): Promise<TxBuilder> {
+    await this._bdk.enableRbfWithSequence(this.id, nsequence);
+    return this;
+  }
+
+  /**
+   * Add data as an output, using OP_RETURN
+   * @returns {Promise<TxBuilder>}
+   */
+  async addData(data: Array<number>): Promise<TxBuilder> {
+    await this._bdk.addData(this.id, data);
+    return this;
+  }
 }
