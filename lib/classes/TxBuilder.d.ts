@@ -82,10 +82,10 @@ export declare class TxBuilder extends NativeLoader {
      */
     drainWallet(): Promise<TxBuilder>;
     /**
-     * Sets the address to drain excess coins to.
+     * Sets the address script to drain excess coins to.
      * @returns {Promise<TxBuilder>}
      */
-    drainTo(address: string): Promise<TxBuilder>;
+    drainTo(script: Script): Promise<TxBuilder>;
     /**
      * Enable signaling RBF
      * @returns {Promise<TxBuilder>}

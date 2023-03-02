@@ -37,3 +37,7 @@ export declare enum AddressIndex {
     New = "new",
     LastUnused = "lastUnused"
 }
+export declare enum KeychainKind {
+    External = "external",
+    Internal = "internal"
+}

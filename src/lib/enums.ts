@@ -42,3 +42,8 @@ export enum AddressIndex {
   New = 'new',
   LastUnused = 'lastUnused',
 }
+
+export enum KeychainKind {
+  External = 'external',
+  Internal = 'internal',
+}

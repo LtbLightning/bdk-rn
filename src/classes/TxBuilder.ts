@@ -138,11 +138,11 @@ export class TxBuilder extends NativeLoader {
   }
 
   /**
-   * Sets the address to drain excess coins to.
+   * Sets the address script to drain excess coins to.
    * @returns {Promise<TxBuilder>}
    */
-  async drainTo(address: string): Promise<TxBuilder> {
-    await this._bdk.drainTo(this.id, address);
+  async drainTo(script: Script): Promise<TxBuilder> {
+    await this._bdk.drainTo(this.id, script.id);
     return this;
   }
 

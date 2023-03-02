@@ -8,6 +8,7 @@ import { Mnemonic } from './classes/Mnemonic';
 import { Wallet } from './classes/Wallet';
 import { Address } from './classes/Address';
 import { TxBuilder } from './classes/TxBuilder';
+import { Descriptor } from './classes/Descriptor';
 
 export {
   BdkRn,
@@ -20,4 +21,5 @@ export {
   Wallet,
   Address,
   TxBuilder,
+  Descriptor,
 };

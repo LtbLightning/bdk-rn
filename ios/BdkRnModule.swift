@@ -14,14 +14,14 @@ class BdkRnModule: NSObject {
 
     var _descriptorSecretKey: DescriptorSecretKey
     var _descriptorPublicKey: DescriptorPublicKey
-    let defaultPublicKey: String = "tpubD6NzVbkrYhZ4X1EWKTKQaGTrfs9cu5wpFiv7XroiRYBgStXFDx88SzijzRo69U7E3nBr8jiKYyb1MtNWaAHD8fhT1A3PGz5Duy6urG8uxLD/*"
+    let _defaultPublicKey: String = "tpubD6NzVbkrYhZ4X1EWKTKQaGTrfs9cu5wpFiv7XroiRYBgStXFDx88SzijzRo69U7E3nBr8jiKYyb1MtNWaAHD8fhT1A3PGz5Duy6urG8uxLD/*"
 
-    var _blockchainConfig: BlockchainConfig;
-    var emptyBlockChain: Blockchain
+    var _blockchainConfig: BlockchainConfig
+    var _emptyBlockChain: Blockchain
     var _dbConfig: DatabaseConfig
 
-    var emptyWallet: Wallet
-    let defaultDescriptor = "wpkh([c258d2e4/84h/1h/0h]tpubDDYkZojQFQjht8Tm4jsS3iuEmKjTiEGjG6KnuFNKKJb5A6ZUCUZKdvLdSDWofKi4ToRCwb9poe1XdqfUnP4jaJjCB2Zwv11ZLgSbnZSNecE/0/*)"
+    var _emptyWallet: Wallet
+    let _defaultDescriptor = "wpkh([c258d2e4/84h/1h/0h]tpubDDYkZojQFQjht8Tm4jsS3iuEmKjTiEGjG6KnuFNKKJb5A6ZUCUZKdvLdSDWofKi4ToRCwb9poe1XdqfUnP4jaJjCB2Zwv11ZLgSbnZSNecE/0/*)"
 
     var _wallets: [String: Wallet] = [:]
     var _blockChains: [String: Blockchain] = [:]
@@ -36,7 +36,7 @@ class BdkRnModule: NSObject {
             mnemonic: Mnemonic(wordCount: setWordCount(wordCount: 0)),
             password: ""
         )
-        _descriptorPublicKey = try! DescriptorPublicKey.fromString(publicKey: defaultPublicKey)
+        _descriptorPublicKey = try! DescriptorPublicKey.fromString(publicKey: _defaultPublicKey)
         _blockchainConfig = BlockchainConfig.electrum(
             config: ElectrumConfig(
                 url: "ssl://electrum.blockstream.info:60002",
@@ -44,12 +44,12 @@ class BdkRnModule: NSObject {
                 retry: 5,
                 timeout: nil,
                 stopGap: 10))
-        emptyBlockChain = try! Blockchain.init(config: _blockchainConfig)
+        _emptyBlockChain = try! Blockchain.init(config: _blockchainConfig)
 
         _dbConfig = DatabaseConfig.memory
-        emptyWallet = try! Wallet(
-            descriptor: defaultDescriptor,
-            changeDescriptor: createChangeDescriptor(descriptor: defaultDescriptor),
+        _emptyWallet = try! Wallet(
+            descriptor: _defaultDescriptor,
+            changeDescriptor: createChangeDescriptor(descriptor: _defaultDescriptor),
             network: Network.testnet,
             databaseConfig: _dbConfig
         )
@@ -234,7 +234,7 @@ class BdkRnModule: NSObject {
 
     /** Blockchain methods starts */
     func getBlockchainById(id: String) -> Blockchain {
-        return _blockChains[id] ?? emptyBlockChain
+        return _blockChains[id] ?? _emptyBlockChain
     }
     @objc
     func initElectrumBlockchain(_
@@ -370,7 +370,7 @@ class BdkRnModule: NSObject {
 
     /** Wallet methods starts*/
     func getWalletById(id: String) -> Wallet {
-        return _wallets[id] ?? emptyWallet
+        return _wallets[id] ?? _emptyWallet
     }
 
     @objc

@@ -1,4 +1,5 @@
 import { NativeModules } from 'react-native';
+import { Script } from 'vm';
 import { Network, WordCount, AddressIndex } from '../lib/enums';
 import { AddressInfo, Balance, LocalUtxo, OutPoint, ScriptAmount, TransactionDetails } from './Bindings';
 import { Blockchain } from './Blockchain';
@@ -57,11 +58,15 @@ export interface NativeBdkRn {
   feeRate(id: string, feeRate: number): boolean;
   feeAbsolute(id: string, feeRate: number): boolean;
   drainWallet(id: string): boolean;
-  drainTo(id: string, address: string): boolean;
+  drainTo(id: string, scriptId: string): boolean;
   enableRbf(id: string): boolean;
   enableRbfWithSequence(id: string, nsequence: number): boolean;
   addData(id: string, data: Array<number>): boolean;
   setRecipients(id: string, recipients: Array<ScriptAmount>): boolean;
+
+  createDescriptor(descriptor: string, network: string): string;
+  descriptorAsString(id: string): string;
+  descriptorAsStringPrivate(id: string): string;
 }
 
 export class NativeLoader {
