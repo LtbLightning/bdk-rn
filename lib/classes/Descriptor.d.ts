@@ -1,4 +1,5 @@
-import { Network } from '../lib/enums';
+import { DescriptorSecretKey } from 'bdk-rn/src';
+import { KeychainKind, Network } from '../lib/enums';
 import { NativeLoader } from './NativeLoader';
 /**
  * Descriptor methods
@@ -22,6 +23,24 @@ declare class DescriptorInterface extends NativeLoader {
      * @returns {Promise<string>}
      */
     asStringPrivate(): Promise<string>;
+    /**
+     * BIP44 template. Expands to pkh(key/44'/{0,1}'/0'/{0,1}/*)
+     * Since there are hardened derivation steps, this template requires a private derivable key (generally a xprv/tprv).
+     * @returns {Promise<DescriptorInterface>}
+     */
+    newBip44(secretKey: typeof DescriptorSecretKey, keychain: KeychainKind, network: Network): Promise<DescriptorInterface>;
+    /**
+     * BIP49 template. Expands to sh(wpkh(key/49'/{0,1}'/0'/{0,1}/*))
+     * Since there are hardened derivation steps, this template requires a private derivable key (generally a xprv/tprv).
+     * @returns {Promise<DescriptorInterface>}
+     */
+    newBip49(secretKey: typeof DescriptorSecretKey, keychain: KeychainKind, network: Network): Promise<DescriptorInterface>;
+    /**
+     * BIP84 template. Expands to wpkh(key/84'/{0,1}'/0'/{0,1}/*)
+     * Since there are hardened derivation steps, this template requires a private derivable key (generally a xprv/tprv).
+     * @returns {Promise<DescriptorInterface>}
+     */
+    newBip84(secretKey: typeof DescriptorSecretKey, keychain: KeychainKind, network: Network): Promise<DescriptorInterface>;
 }
 export declare const Descriptor: DescriptorInterface;
 export {};

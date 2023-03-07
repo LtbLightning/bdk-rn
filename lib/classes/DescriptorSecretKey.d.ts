@@ -1,10 +1,12 @@
+import { DerivationPath } from './DerivationPath';
 import { Network } from '../lib/enums';
+import { DescriptorPublicKey } from './DescriptorPublicKey';
 import { NativeLoader } from './NativeLoader';
 /**
  * Descriptor Secret key methods
  */
 declare class DescriptorSecretKeyInterface extends NativeLoader {
-    private xprv;
+    id: string;
     /**
      * Create xprv
      * @param network
@@ -18,18 +20,18 @@ declare class DescriptorSecretKeyInterface extends NativeLoader {
      * @param path
      * @returns {Promise<DescriptorSecretKeyInterface>}
      */
-    derive(path: string): Promise<DescriptorSecretKeyInterface>;
+    derive(derivationPath: typeof DerivationPath): Promise<DescriptorSecretKeyInterface>;
     /**
      * Extend xprv from derivation path
      * @param path
      * @returns {Promise<DescriptorSecretKeyInterface>}
      */
-    extend(path: string): Promise<DescriptorSecretKeyInterface>;
+    extend(derivationPath: typeof DerivationPath): Promise<DescriptorSecretKeyInterface>;
     /**
      * Create publicSecretKey from xprv
      * @returns {Promise<string>}
      */
-    asPublic(): Promise<string>;
+    asPublic(): Promise<typeof DescriptorPublicKey>;
     /**
      * Create secret bytes of xprv
      * @returns {Promise<Array<number>>}
@@ -39,7 +41,7 @@ declare class DescriptorSecretKeyInterface extends NativeLoader {
      * Get secret key as string
      * @returns {string}
      */
-    asString(): string | undefined;
+    asString(): Promise<string>;
 }
 export declare const DescriptorSecretKey: DescriptorSecretKeyInterface;
 export {};

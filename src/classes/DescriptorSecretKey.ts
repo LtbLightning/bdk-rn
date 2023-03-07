@@ -1,3 +1,4 @@
+import { DerivationPath } from './DerivationPath';
 import { Network } from '../lib/enums';
 import { DescriptorPublicKey } from './DescriptorPublicKey';
 import { NativeLoader } from './NativeLoader';
@@ -6,7 +7,7 @@ import { NativeLoader } from './NativeLoader';
  * Descriptor Secret key methods
  */
 class DescriptorSecretKeyInterface extends NativeLoader {
-  private xprv: string | undefined;
+  public id: string = '';
 
   /**
    * Create xprv
@@ -19,7 +20,7 @@ class DescriptorSecretKeyInterface extends NativeLoader {
     if (!Object.values(Network).includes(network)) {
       throw `Invalid network passed. Allowed values are ${Object.values(Network)}`;
     }
-    this.xprv = await this._bdk.createDescriptorSecret(network, mnemonic, password);
+    this.id = await this._bdk.createDescriptorSecret(network, mnemonic, password);
     return this;
   }
 
@@ -28,8 +29,8 @@ class DescriptorSecretKeyInterface extends NativeLoader {
    * @param path
    * @returns {Promise<DescriptorSecretKeyInterface>}
    */
-  async derive(path: string): Promise<DescriptorSecretKeyInterface> {
-    this.xprv = await this._bdk.descriptorSecretDerive(path);
+  async derive(derivationPath: typeof DerivationPath): Promise<DescriptorSecretKeyInterface> {
+    await this._bdk.descriptorSecretDerive(this.id, derivationPath.id);
     return this;
   }
 
@@ -38,8 +39,8 @@ class DescriptorSecretKeyInterface extends NativeLoader {
    * @param path
    * @returns {Promise<DescriptorSecretKeyInterface>}
    */
-  async extend(path: string): Promise<DescriptorSecretKeyInterface> {
-    this.xprv = await this._bdk.descriptorSecretExtend(path);
+  async extend(derivationPath: typeof DerivationPath): Promise<DescriptorSecretKeyInterface> {
+    await this._bdk.descriptorSecretExtend(this.id, derivationPath.id);
     return this;
   }
 
@@ -47,10 +48,9 @@ class DescriptorSecretKeyInterface extends NativeLoader {
    * Create publicSecretKey from xprv
    * @returns {Promise<string>}
    */
-  async asPublic(): Promise<string> {
-    let publicKey = await this._bdk.descriptorSecretAsPublic();
-    DescriptorPublicKey.xpub = publicKey;
-    return publicKey;
+  async asPublic(): Promise<typeof DescriptorPublicKey> {
+    let pubkeyId = await this._bdk.descriptorSecretAsPublic(this.id);
+    return await DescriptorPublicKey.create(pubkeyId);
   }
 
   /**
@@ -58,15 +58,15 @@ class DescriptorSecretKeyInterface extends NativeLoader {
    * @returns {Promise<Array<number>>}
    */
   async secretBytes(): Promise<Array<number>> {
-    return await this._bdk.descriptorSecretAsSecretBytes();
+    return await this._bdk.descriptorSecretAsSecretBytes(this.id);
   }
 
   /**
    * Get secret key as string
    * @returns {string}
    */
-  asString(): string | undefined {
-    return this.xprv;
+  async asString(): Promise<string> {
+    return await this._bdk.descriptorSecretAsString(this.id);
   }
 }
 

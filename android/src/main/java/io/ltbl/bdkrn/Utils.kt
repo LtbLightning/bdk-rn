@@ -23,9 +23,7 @@ fun setNetwork(networkStr: String? = "testnet"): Network {
         "bitcoin" -> Network.BITCOIN
         "regtest" -> Network.REGTEST
         "signet" -> Network.SIGNET
-        else -> {
-            Network.TESTNET
-        }
+        else -> Network.TESTNET
     }
 }
 
@@ -96,4 +94,12 @@ fun createOutPoint(outPoint: ReadableMap): OutPoint {
         outPoint.getString("txid").toString(),
         outPoint.getInt("vout").toUInt(),
     )
+}
+
+fun setKeychainKind(keychainKind: String? = "external"): KeychainKind {
+    return when (keychainKind) {
+        "external" -> KeychainKind.EXTERNAL
+        "internal" -> KeychainKind.INTERNAL
+        else -> KeychainKind.EXTERNAL
+    }
 }

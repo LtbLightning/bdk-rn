@@ -1,4 +1,4 @@
-import { Network, WordCount, AddressIndex } from '../lib/enums';
+import { Network, WordCount, AddressIndex, KeychainKind } from '../lib/enums';
 import { AddressInfo, Balance, LocalUtxo, OutPoint, ScriptAmount, TransactionDetails } from './Bindings';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 export interface NativeBdkRn {
@@ -7,11 +7,15 @@ export interface NativeBdkRn {
     generateSeedFromEntropy(entropy: number): string;
     createDerivationPath(path: string): string;
     createDescriptorSecret(network: Network, mnemonic: string, password?: string): string;
-    descriptorSecretDerive(path: string): string;
-    descriptorSecretExtend(path: string): string;
-    descriptorSecretAsPublic(): string;
-    descriptorSecretAsSecretBytes(): Array<number>;
-    createDescriptorPublic(publicKey: string): string;
+    descriptorSecretDerive(id: string, derivationPathId: string): string;
+    descriptorSecretExtend(id: string, derivationPathId: string): string;
+    descriptorSecretAsPublic(id: string): string;
+    descriptorSecretAsSecretBytes(id: string): Array<number>;
+    descriptorSecretAsString(id: string): string;
+    createDescriptorPublic(id: string): string;
+    descriptorPublicDerive(id: string, derivationPathId: string): string;
+    descriptorPublicExtend(id: string, derivationPathId: string): string;
+    descriptorPublicAsString(id: string): string;
     initElectrumBlockchain(url: string, retry: string, timeout: string, stopGap: string): string;
     initEsploraBlockchain(url: string, proxy: string, concurrency: string, timeout: string, stopGap: string): string;
     getBlockchainHeight(id: string): number;
@@ -51,6 +55,9 @@ export interface NativeBdkRn {
     createDescriptor(descriptor: string, network: string): string;
     descriptorAsString(id: string): string;
     descriptorAsStringPrivate(id: string): string;
+    newBip44(id: string, keychain: KeychainKind, network: Network): any;
+    newBip49(id: string, keychain: KeychainKind, network: Network): any;
+    newBip84(id: string, keychain: KeychainKind, network: Network): any;
 }
 export declare class NativeLoader {
     protected _bdk: NativeBdkRn;

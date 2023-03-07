@@ -4,7 +4,7 @@ import { NativeLoader } from './NativeLoader';
  * A `BIP-32` derivation path
  */
 class DerivationPathInterface extends NativeLoader {
-  private path: string | undefined;
+  public id: string = '';
 
   /**
    * Verify derivation path
@@ -12,16 +12,8 @@ class DerivationPathInterface extends NativeLoader {
    * @returns {Promise<DerivationPathInterface>}
    */
   async create(path: string): Promise<DerivationPathInterface> {
-    await this._bdk.createDerivationPath(path);
-    this.path = path;
+    this.id = await this._bdk.createDerivationPath(path);
     return this;
-  }
-
-  /**
-   * @returns {string}
-   */
-  asString(): string | undefined {
-    return this.path;
   }
 }
 

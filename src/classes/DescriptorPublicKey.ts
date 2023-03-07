@@ -1,17 +1,19 @@
+import { DerivationPath } from './DerivationPath';
 import { NativeLoader } from './NativeLoader';
 
 /**
  * Descriptor Public key methods
  */
 class DescriptorPublicKeyInterface extends NativeLoader {
-  public xpub: string | undefined;
+  public id: string = '';
+  public xpub: string = '';
 
   /**
    * Create xpub
    * @returns {Promise<DescriptorPublicKeyInterface>}
    */
-  async create(): Promise<DescriptorPublicKeyInterface> {
-    this.xpub = await this._bdk.createDescriptorPublic(this.xpub as string);
+  async create(publicKeyId: string): Promise<DescriptorPublicKeyInterface> {
+    this.id = publicKeyId;
     return this;
   }
 
@@ -20,8 +22,8 @@ class DescriptorPublicKeyInterface extends NativeLoader {
    * @param path
    * @returns {Promise<DescriptorPublicKeyInterface>}
    */
-  async derive(path: string): Promise<DescriptorPublicKeyInterface> {
-    this.xpub = await this._bdk.descriptorSecretDerive(path);
+  async derive(derivationPath: typeof DerivationPath): Promise<DescriptorPublicKeyInterface> {
+    await this._bdk.descriptorPublicDerive(this.id, derivationPath.id);
     return this;
   }
 
@@ -30,8 +32,8 @@ class DescriptorPublicKeyInterface extends NativeLoader {
    * @param path
    * @returns {Promise<DescriptorPublicKeyInterface>}
    */
-  async extend(path: string): Promise<DescriptorPublicKeyInterface> {
-    this.xpub = await this._bdk.descriptorSecretExtend(path);
+  async extend(derivationPath: typeof DerivationPath): Promise<DescriptorPublicKeyInterface> {
+    await this._bdk.descriptorPublicExtend(this.id, derivationPath.id);
     return this;
   }
 
@@ -39,8 +41,8 @@ class DescriptorPublicKeyInterface extends NativeLoader {
    * Get public key as string
    * @returns {string}
    */
-  asString(): string | undefined {
-    return this.xpub;
+  async asString(): Promise<string> {
+    return await this._bdk.descriptorPublicAsString(this.id);
   }
 }
 
