@@ -19,7 +19,6 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     private var _blockChains = mutableMapOf<String, Blockchain>()
     private var _blockchainConfig: BlockchainConfig
     private var _emptyBlockChain: Blockchain
-    private var _dbConfig: DatabaseConfig
 
     private var _emptyWallet: Wallet
     private var _defaultDescriptor: String =
@@ -32,6 +31,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     private var _descriptors = mutableMapOf<String, Descriptor>()
 
     private var _derivationPaths = mutableMapOf<String, DerivationPath>()
+    private var _databaseConfigs = mutableMapOf<String, DatabaseConfig>()
 
     init {
         _blockchainConfig = BlockchainConfig.Electrum(
@@ -45,12 +45,11 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             )
         )
         _emptyBlockChain = Blockchain(_blockchainConfig)
-        _dbConfig = DatabaseConfig.Memory
         _emptyWallet = Wallet(
             Descriptor(_defaultDescriptor, Network.TESTNET),
             null,
             Network.TESTNET,
-            _dbConfig
+            DatabaseConfig.Memory
         )
     }
 
@@ -101,10 +100,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         network: String, mnemonic: String, password: String? = null, result: Promise
     ) {
         try {
-            val networkName: Network = setNetwork(network)
             val id = randomId()
             _descriptorSecretKeys[id] =
-                DescriptorSecretKey(networkName, Mnemonic.fromString(mnemonic), password)
+                DescriptorSecretKey(setNetwork(network), Mnemonic.fromString(mnemonic), password)
             result.resolve(id)
         } catch (error: Throwable) {
             return result.reject("DescriptorSecret create error", error.localizedMessage, error)
@@ -289,20 +287,23 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     /** DB configuration methods starts*/
     @ReactMethod
     fun memoryDBInit(result: Promise) {
-        _dbConfig = DatabaseConfig.Memory
-        result.resolve(true)
+        val id = randomId()
+        _databaseConfigs[id] = DatabaseConfig.Memory
+        result.resolve(id)
     }
 
     @ReactMethod
     fun sledDBInit(path: String, treeName: String, result: Promise) {
-        _dbConfig = DatabaseConfig.Sled(SledDbConfiguration(path, treeName))
-        result.resolve(true)
+        val id = randomId()
+        _databaseConfigs[id] = DatabaseConfig.Sled(SledDbConfiguration(path, treeName))
+        result.resolve(id)
     }
 
     @ReactMethod
     fun sqliteDBInit(path: String, result: Promise) {
-        _dbConfig = DatabaseConfig.Sqlite(SqliteDbConfiguration(path))
-        result.resolve(true)
+        val id = randomId()
+        _databaseConfigs[id] = DatabaseConfig.Sqlite(SqliteDbConfiguration(path))
+        result.resolve(id)
     }
     /** DB configuration methods ends*/
 
@@ -313,21 +314,25 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun walletInit(descriptor: String, network: String, result: Promise) {
+    fun walletInit(
+        descriptor: String,
+        changeDescriptor: String? = null,
+        network: String,
+        dbConfigID: String,
+        result: Promise
+    ) {
         try {
             val id = randomId()
-            val networkFromString = setNetwork(network)
-            val descriptorFromString = Descriptor(descriptor, networkFromString)
-            val changeDescriptor = createChangeDescriptor(descriptor)
-            val changeDescriptorFromString = Descriptor(changeDescriptor, networkFromString)
             _wallets[id] = Wallet(
-                descriptorFromString,
-                changeDescriptorFromString,
-                networkFromString,
-                _dbConfig
+                _descriptors[descriptor]!!,
+                if(changeDescriptor!=null) _descriptors[changeDescriptor]!! else null,
+                setNetwork(network),
+                _databaseConfigs[dbConfigID]!!
             )
             result.resolve(id)
         } catch (error: Throwable) {
+            println("Error===========>")
+            println(error)
             result.reject("Init wallet error", error.localizedMessage, error)
         }
     }

@@ -3,35 +3,33 @@ import { NativeLoader } from './NativeLoader';
 /**
  * DatabaseConfig methods
  */
-class DatabaseConfigInterface extends NativeLoader {
-  public isInit: boolean = false;
+export class DatabaseConfig extends NativeLoader {
+  public id: string = '';
 
   /**
    * Init memory DB
-   * @returns {Promise<boolean>}
+   * @returns {Promise<DatabaseConfig>}
    */
-  async memory(): Promise<boolean> {
-    this.isInit = await this._bdk.memoryDBInit();
-    return this.isInit;
+  async memory(): Promise<DatabaseConfig> {
+    this.id = await this._bdk.memoryDBInit();
+    return this;
   }
 
   /**
    * Init sled DB
-   * @returns {Promise<boolean>}
+   * @returns {Promise<DatabaseConfig>}
    */
-  async sled(path: string, treeName: string): Promise<boolean> {
-    this.isInit = await this._bdk.sledDBInit(path, treeName);
-    return this.isInit;
+  async sled(path: string, treeName: string): Promise<DatabaseConfig> {
+    this.id = await this._bdk.sledDBInit(path, treeName);
+    return this;
   }
 
   /**
    * Init sqlite DB
-   * @returns {Promise<boolean>}
+   * @returns {Promise<DatabaseConfig>}
    */
-  async sqlite(path: string): Promise<boolean> {
-    this.isInit = await this._bdk.sqliteDBInit(path);
-    return this.isInit;
+  async sqlite(path: string): Promise<DatabaseConfig> {
+    this.id = await this._bdk.sqliteDBInit(path);
+    return this;
   }
 }
-
-export const DatabaseConfig = new DatabaseConfigInterface();

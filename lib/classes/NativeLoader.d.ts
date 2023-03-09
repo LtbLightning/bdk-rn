@@ -21,10 +21,10 @@ export interface NativeBdkRn {
     getBlockchainHeight(id: string): number;
     getBlockchainHash(id: string, height: number): string;
     broadcast(id: string, signedPsbtBase64: string): boolean;
-    memoryDBInit(): boolean;
-    sledDBInit(path: string, treeName: string): boolean;
-    sqliteDBInit(path: string): boolean;
-    walletInit(descriptor: string, network: Network): any;
+    memoryDBInit(): string;
+    sledDBInit(path: string, treeName: string): string;
+    sqliteDBInit(path: string): string;
+    walletInit(descriptor: string, changeDescriptor: string | null, network: Network, dbConfig: string): any;
     getAddress(id: string, addressIndex: AddressIndex): AddressInfo;
     getBalance(id: string): Balance;
     getNetwork(id: string): string;

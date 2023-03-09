@@ -2,36 +2,37 @@ import { DerivationPath } from './DerivationPath';
 import { Network } from '../lib/enums';
 import { DescriptorPublicKey } from './DescriptorPublicKey';
 import { NativeLoader } from './NativeLoader';
+import { Mnemonic } from './Mnemonic';
 /**
  * Descriptor Secret key methods
  */
-declare class DescriptorSecretKeyInterface extends NativeLoader {
+export declare class DescriptorSecretKey extends NativeLoader {
     id: string;
     /**
      * Create xprv
      * @param network
      * @param mnemonic
      * @param password
-     * @returns {Promise<DescriptorSecretKeyInterface>}
+     * @returns {Promise<DescriptorSecretKey>}
      */
-    create(network: Network, mnemonic: string, password?: string): Promise<DescriptorSecretKeyInterface>;
+    create(network: Network, mnemonic: Mnemonic, password?: string): Promise<DescriptorSecretKey>;
     /**
      * Derive xprv from derivation path
      * @param path
-     * @returns {Promise<DescriptorSecretKeyInterface>}
+     * @returns {Promise<DescriptorSecretKey>}
      */
-    derive(derivationPath: typeof DerivationPath): Promise<DescriptorSecretKeyInterface>;
+    derive(derivationPath: DerivationPath): Promise<string>;
     /**
      * Extend xprv from derivation path
      * @param path
-     * @returns {Promise<DescriptorSecretKeyInterface>}
+     * @returns {Promise<DescriptorSecretKey>}
      */
-    extend(derivationPath: typeof DerivationPath): Promise<DescriptorSecretKeyInterface>;
+    extend(derivationPath: DerivationPath): Promise<string>;
     /**
      * Create publicSecretKey from xprv
      * @returns {Promise<string>}
      */
-    asPublic(): Promise<typeof DescriptorPublicKey>;
+    asPublic(): Promise<DescriptorPublicKey>;
     /**
      * Create secret bytes of xprv
      * @returns {Promise<Array<number>>}
@@ -43,5 +44,3 @@ declare class DescriptorSecretKeyInterface extends NativeLoader {
      */
     asString(): Promise<string>;
 }
-export declare const DescriptorSecretKey: DescriptorSecretKeyInterface;
-export {};

@@ -3,31 +3,33 @@ import { NativeLoader } from './NativeLoader';
 /**
  * Descriptor Public key methods
  */
-declare class DescriptorPublicKeyInterface extends NativeLoader {
+export declare class DescriptorPublicKey extends NativeLoader {
     id: string;
-    xpub: string;
     /**
-     * Create xpub
-     * @returns {Promise<DescriptorPublicKeyInterface>}
+     * Create descriptorPublic
+     * @returns {DescriptorPublicKey}
      */
-    create(publicKeyId: string): Promise<DescriptorPublicKeyInterface>;
+    create(publicKeyId: string): DescriptorPublicKey;
     /**
-     * Derive xpub from derivation path
+     * Create descriptorPublic from public key string
+     * @returns {Promise<DescriptorPublicKey>}
+     */
+    fromString(publicKey: string): Promise<DescriptorPublicKey>;
+    /**
+     * Derive descriptorPublic from derivation path
      * @param path
-     * @returns {Promise<DescriptorPublicKeyInterface>}
+     * @returns {Promise<DescriptorPublicKey>}
      */
-    derive(derivationPath: typeof DerivationPath): Promise<DescriptorPublicKeyInterface>;
+    derive(derivationPath: DerivationPath): Promise<string>;
     /**
-     * Extend xpub from derivation path
+     * Extend descriptorPublic from derivation path
      * @param path
-     * @returns {Promise<DescriptorPublicKeyInterface>}
+     * @returns {Promise<DescriptorPublicKey>}
      */
-    extend(derivationPath: typeof DerivationPath): Promise<DescriptorPublicKeyInterface>;
+    extend(derivationPath: DerivationPath): Promise<string>;
     /**
      * Get public key as string
      * @returns {string}
      */
     asString(): Promise<string>;
 }
-export declare const DescriptorPublicKey: DescriptorPublicKeyInterface;
-export {};

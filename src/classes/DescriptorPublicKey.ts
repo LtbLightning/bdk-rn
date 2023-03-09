@@ -4,37 +4,43 @@ import { NativeLoader } from './NativeLoader';
 /**
  * Descriptor Public key methods
  */
-class DescriptorPublicKeyInterface extends NativeLoader {
+export class DescriptorPublicKey extends NativeLoader {
   public id: string = '';
-  public xpub: string = '';
 
   /**
-   * Create xpub
-   * @returns {Promise<DescriptorPublicKeyInterface>}
+   * Create descriptorPublic
+   * @returns {DescriptorPublicKey}
    */
-  async create(publicKeyId: string): Promise<DescriptorPublicKeyInterface> {
+  create(publicKeyId: string): DescriptorPublicKey {
     this.id = publicKeyId;
     return this;
   }
 
   /**
-   * Derive xpub from derivation path
-   * @param path
-   * @returns {Promise<DescriptorPublicKeyInterface>}
+   * Create descriptorPublic from public key string
+   * @returns {Promise<DescriptorPublicKey>}
    */
-  async derive(derivationPath: typeof DerivationPath): Promise<DescriptorPublicKeyInterface> {
-    await this._bdk.descriptorPublicDerive(this.id, derivationPath.id);
+  async fromString(publicKey: string): Promise<DescriptorPublicKey> {
+    this.id = await this._bdk.createDescriptorPublic(publicKey);
     return this;
   }
 
   /**
-   * Extend xpub from derivation path
+   * Derive descriptorPublic from derivation path
    * @param path
-   * @returns {Promise<DescriptorPublicKeyInterface>}
+   * @returns {Promise<DescriptorPublicKey>}
    */
-  async extend(derivationPath: typeof DerivationPath): Promise<DescriptorPublicKeyInterface> {
-    await this._bdk.descriptorPublicExtend(this.id, derivationPath.id);
-    return this;
+  async derive(derivationPath: DerivationPath): Promise<string> {
+    return await this._bdk.descriptorPublicDerive(this.id, derivationPath.id);
+  }
+
+  /**
+   * Extend descriptorPublic from derivation path
+   * @param path
+   * @returns {Promise<DescriptorPublicKey>}
+   */
+  async extend(derivationPath: DerivationPath): Promise<string> {
+    return await this._bdk.descriptorPublicExtend(this.id, derivationPath.id);
   }
 
   /**
@@ -45,5 +51,3 @@ class DescriptorPublicKeyInterface extends NativeLoader {
     return await this._bdk.descriptorPublicAsString(this.id);
   }
 }
-
-export const DescriptorPublicKey = new DescriptorPublicKeyInterface();

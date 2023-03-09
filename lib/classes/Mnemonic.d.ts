@@ -4,31 +4,29 @@ import { NativeLoader } from './NativeLoader';
  * Mnemonic phrases are a human-readable version of the private keys.
  * Supported number of words are 12, 15, 18, and 24.
  */
-declare class MnemonicInterface extends NativeLoader {
+export declare class Mnemonic extends NativeLoader {
     private mnemonic;
     /**
      * Generates [Mnemonic] with given [WordCount]
      * @param wordCount
-     * @returns {Promise<MnemonicInterface>}
+     * @returns {Promise<Mnemonic>}
      */
-    create(wordCount?: WordCount): Promise<MnemonicInterface>;
+    create(wordCount?: WordCount): Promise<Mnemonic>;
     /**
      * Parse a [Mnemonic] with given string
      * @param mnemonic
-     * @returns {Promise<MnemonicInterface>}
+     * @returns {Promise<Mnemonic>}
      */
-    fromString(mnemonic: string): Promise<MnemonicInterface>;
+    fromString(mnemonic: string): Promise<Mnemonic>;
     /**
      * Generates [Mnemonic] with given [entropy]
      * @param entropy
-     * @returns {Promise<MnemonicInterface>}
+     * @returns {Promise<Mnemonic>}
      */
-    fromEntropy(entropy?: EntropyLength): Promise<MnemonicInterface>;
+    fromEntropy(entropy?: EntropyLength): Promise<Mnemonic>;
     /**
      * Get mnemonic as string
      * @returns {string}
      */
     asString(): string;
 }
-export declare const Mnemonic: MnemonicInterface;
-export {};

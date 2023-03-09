@@ -1,18 +1,18 @@
-import { DescriptorSecretKey } from 'bdk-rn/src';
+import { DescriptorSecretKey } from './DescriptorSecretKey';
 import { KeychainKind, Network } from '../lib/enums';
 import { NativeLoader } from './NativeLoader';
 /**
  * Descriptor methods
  */
-declare class DescriptorInterface extends NativeLoader {
-    private id;
+export declare class Descriptor extends NativeLoader {
+    id: string;
     /**
      * Constructor
      * @param descriptor
      * @param network
-     * @returns {Promise<DescriptorInterface>}
+     * @returns {Promise<Descriptor>}
      */
-    create(descriptor: string, network: Network): Promise<DescriptorInterface>;
+    create(descriptor: string, network: Network): Promise<Descriptor>;
     /**
      * Return the public version of the output descriptor.
      * @returns {Promise<string>}
@@ -26,21 +26,19 @@ declare class DescriptorInterface extends NativeLoader {
     /**
      * BIP44 template. Expands to pkh(key/44'/{0,1}'/0'/{0,1}/*)
      * Since there are hardened derivation steps, this template requires a private derivable key (generally a xprv/tprv).
-     * @returns {Promise<DescriptorInterface>}
+     * @returns {Promise<Descriptor>}
      */
-    newBip44(secretKey: typeof DescriptorSecretKey, keychain: KeychainKind, network: Network): Promise<DescriptorInterface>;
+    newBip44(secretKey: DescriptorSecretKey, keychain: KeychainKind, network: Network): Promise<Descriptor>;
     /**
      * BIP49 template. Expands to sh(wpkh(key/49'/{0,1}'/0'/{0,1}/*))
      * Since there are hardened derivation steps, this template requires a private derivable key (generally a xprv/tprv).
-     * @returns {Promise<DescriptorInterface>}
+     * @returns {Promise<Descriptor>}
      */
-    newBip49(secretKey: typeof DescriptorSecretKey, keychain: KeychainKind, network: Network): Promise<DescriptorInterface>;
+    newBip49(secretKey: DescriptorSecretKey, keychain: KeychainKind, network: Network): Promise<Descriptor>;
     /**
      * BIP84 template. Expands to wpkh(key/84'/{0,1}'/0'/{0,1}/*)
      * Since there are hardened derivation steps, this template requires a private derivable key (generally a xprv/tprv).
-     * @returns {Promise<DescriptorInterface>}
+     * @returns {Promise<Descriptor>}
      */
-    newBip84(secretKey: typeof DescriptorSecretKey, keychain: KeychainKind, network: Network): Promise<DescriptorInterface>;
+    newBip84(secretKey: DescriptorSecretKey, keychain: KeychainKind, network: Network): Promise<Descriptor>;
 }
-export declare const Descriptor: DescriptorInterface;
-export {};

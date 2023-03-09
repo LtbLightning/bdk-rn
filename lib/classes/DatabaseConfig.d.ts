@@ -2,23 +2,21 @@ import { NativeLoader } from './NativeLoader';
 /**
  * DatabaseConfig methods
  */
-declare class DatabaseConfigInterface extends NativeLoader {
-    isInit: boolean;
+export declare class DatabaseConfig extends NativeLoader {
+    id: string;
     /**
      * Init memory DB
-     * @returns {Promise<boolean>}
+     * @returns {Promise<DatabaseConfig>}
      */
-    memory(): Promise<boolean>;
+    memory(): Promise<DatabaseConfig>;
     /**
      * Init sled DB
-     * @returns {Promise<boolean>}
+     * @returns {Promise<DatabaseConfig>}
      */
-    sled(path: string, treeName: string): Promise<boolean>;
+    sled(path: string, treeName: string): Promise<DatabaseConfig>;
     /**
      * Init sqlite DB
-     * @returns {Promise<boolean>}
+     * @returns {Promise<DatabaseConfig>}
      */
-    sqlite(path: string): Promise<boolean>;
+    sqlite(path: string): Promise<DatabaseConfig>;
 }
-export declare const DatabaseConfig: DatabaseConfigInterface;
-export {};

@@ -1,8 +1,7 @@
+import { DatabaseConfig } from 'bdk-rn/src/classes/DatabaseConfig';
 import { NativeModules } from 'react-native';
-import { Script } from 'vm';
 import { Network, WordCount, AddressIndex, KeychainKind } from '../lib/enums';
 import { AddressInfo, Balance, LocalUtxo, OutPoint, ScriptAmount, TransactionDetails } from './Bindings';
-import { Blockchain } from './Blockchain';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 
 export interface NativeBdkRn {
@@ -30,11 +29,11 @@ export interface NativeBdkRn {
   getBlockchainHash(id: string, height: number): string;
   broadcast(id: string, signedPsbtBase64: string): boolean;
 
-  memoryDBInit(): boolean;
-  sledDBInit(path: string, treeName: string): boolean;
-  sqliteDBInit(path: string): boolean;
+  memoryDBInit(): string;
+  sledDBInit(path: string, treeName: string): string;
+  sqliteDBInit(path: string): string;
 
-  walletInit(descriptor: string, network: Network): any;
+  walletInit(descriptor: string, changeDescriptor: string | null, network: Network, dbConfig: string): any;
   getAddress(id: string, addressIndex: AddressIndex): AddressInfo;
   getBalance(id: string): Balance;
   getNetwork(id: string): string;

@@ -3,6 +3,8 @@ import { AddressIndex, Network } from '../lib/enums';
 import { NativeLoader } from './NativeLoader';
 import { Blockchain } from './Blockchain';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
+import { Descriptor } from 'bdk-rn/src/classes/Descriptor';
+import { DatabaseConfig } from 'bdk-rn/src/classes/DatabaseConfig';
 /**
  * Wallet methods
  */
@@ -15,13 +17,13 @@ export declare class Wallet extends NativeLoader {
      * @param network
      * @returns {Promise<Wallet>}
      */
-    create(descriptor: string, network: Network): Promise<Wallet>;
+    create(descriptor: Descriptor, changeDescriptor: Descriptor | null | undefined, network: Network, dbConfig: DatabaseConfig): Promise<Wallet>;
     /**
      * Return a derived address using the external descriptor.
      * @param addressIndex
      * @returns {Promise<AddressInfo>}
      */
-    getAddress(addressIndex?: AddressIndex): Promise<AddressInfo>;
+    getAddress(addressIndex: AddressIndex): Promise<AddressInfo>;
     /**
      * Return balance of current wallet
      * @returns {Promise<Balance>}

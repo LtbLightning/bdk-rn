@@ -2,14 +2,12 @@ import { NativeLoader } from './NativeLoader';
 /**
  * A `BIP-32` derivation path
  */
-declare class DerivationPathInterface extends NativeLoader {
+export declare class DerivationPath extends NativeLoader {
     id: string;
     /**
      * Verify derivation path
      * @param path
-     * @returns {Promise<DerivationPathInterface>}
+     * @returns {Promise<DerivationPath>}
      */
-    create(path: string): Promise<DerivationPathInterface>;
+    create(path: string): Promise<DerivationPath>;
 }
-export declare const DerivationPath: DerivationPathInterface;
-export {};

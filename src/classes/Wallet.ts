@@ -4,6 +4,8 @@ import { NativeLoader } from './NativeLoader';
 import { Blockchain } from './Blockchain';
 import { createTxDetailsObject } from '../lib/utils';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
+import { Descriptor } from 'bdk-rn/src/classes/Descriptor';
+import { DatabaseConfig } from 'bdk-rn/src/classes/DatabaseConfig';
 
 /**
  * Wallet methods
@@ -18,8 +20,18 @@ export class Wallet extends NativeLoader {
    * @param network
    * @returns {Promise<Wallet>}
    */
-  async create(descriptor: string, network: Network): Promise<Wallet> {
-    this.id = await this._bdk.walletInit(descriptor, network);
+  async create(
+    descriptor: Descriptor,
+    changeDescriptor: Descriptor | null = null,
+    network: Network,
+    dbConfig: DatabaseConfig
+  ): Promise<Wallet> {
+    this.id = await this._bdk.walletInit(
+      descriptor.id,
+      changeDescriptor ? changeDescriptor.id : null,
+      network,
+      dbConfig.id
+    );
     this.isInit = true;
     return this;
   }
@@ -29,7 +41,7 @@ export class Wallet extends NativeLoader {
    * @param addressIndex
    * @returns {Promise<AddressInfo>}
    */
-  async getAddress(addressIndex: AddressIndex = AddressIndex.New): Promise<AddressInfo> {
+  async getAddress(addressIndex: AddressIndex): Promise<AddressInfo> {
     let addressInfo = await this._bdk.getAddress(this.id, addressIndex);
     return new AddressInfo(addressInfo.index, addressInfo.address);
   }
