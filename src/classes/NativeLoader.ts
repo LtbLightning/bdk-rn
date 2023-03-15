@@ -1,4 +1,3 @@
-import { DatabaseConfig } from 'bdk-rn/src/classes/DatabaseConfig';
 import { NativeModules } from 'react-native';
 import { Network, WordCount, AddressIndex, KeychainKind } from '../lib/enums';
 import { AddressInfo, Balance, LocalUtxo, OutPoint, ScriptAmount, TransactionDetails } from './Bindings';
@@ -7,7 +6,7 @@ import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 export interface NativeBdkRn {
   generateSeedFromWordCount(wordCount: WordCount): string;
   generateSeedFromString(mnemonic: string): string;
-  generateSeedFromEntropy(entropy: number): string;
+  generateSeedFromEntropy(entropy: Array<number>): string;
 
   createDerivationPath(path: string): string;
 
@@ -71,9 +70,20 @@ export interface NativeBdkRn {
   descriptorAsString(id: string): string;
   descriptorAsStringPrivate(id: string): string;
 
-  newBip44(id: string, keychain: KeychainKind, network: Network): any;
-  newBip49(id: string, keychain: KeychainKind, network: Network): any;
-  newBip84(id: string, keychain: KeychainKind, network: Network): any;
+  newBip44(id: string, keychain: KeychainKind, network: Network): string;
+  newBip49(id: string, keychain: KeychainKind, network: Network): string;
+  newBip84(id: string, keychain: KeychainKind, network: Network): string;
+
+  newBip44Public(id: string, fingerprint: string, keychain: KeychainKind, network: Network): string;
+  newBip49Public(id: string, fingerprint: string, keychain: KeychainKind, network: Network): string;
+  newBip84Public(id: string, fingerprint: string, keychain: KeychainKind, network: Network): string;
+
+  combine(psbt64: string, otherPsbt: string): string;
+  extractTx(psbt64: string): string;
+  serialize(psbt64: string): string;
+  txid(psbt64: string): string;
+  feeAmount(psbt64: string): number;
+  psbtFeeRate(psbt64: string): number;
 }
 
 export class NativeLoader {

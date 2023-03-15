@@ -9,4 +9,5 @@ import { Wallet } from './classes/Wallet';
 import { Address } from './classes/Address';
 import { TxBuilder } from './classes/TxBuilder';
 import { Descriptor } from './classes/Descriptor';
-export { BdkRn, Blockchain, DatabaseConfig, DerivationPath, DescriptorPublicKey, DescriptorSecretKey, Mnemonic, Wallet, Address, TxBuilder, Descriptor, };
+import { PartiallySignedTransaction } from './classes/PartiallySignedTransaction';
+export { BdkRn, Blockchain, DatabaseConfig, DerivationPath, DescriptorPublicKey, DescriptorSecretKey, Mnemonic, Wallet, Address, TxBuilder, Descriptor, PartiallySignedTransaction, };

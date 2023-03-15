@@ -3,8 +3,8 @@ import { AddressIndex, Network } from '../lib/enums';
 import { NativeLoader } from './NativeLoader';
 import { Blockchain } from './Blockchain';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
-import { Descriptor } from 'bdk-rn/src/classes/Descriptor';
-import { DatabaseConfig } from 'bdk-rn/src/classes/DatabaseConfig';
+import { Descriptor } from './Descriptor';
+import { DatabaseConfig } from './DatabaseConfig';
 /**
  * Wallet methods
  */

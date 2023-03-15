@@ -3,8 +3,11 @@ package io.ltbl.bdkrn
 import com.facebook.react.bridge.*
 import org.bitcoindevkit.*
 import org.bitcoindevkit.Descriptor.Companion.newBip44
+import org.bitcoindevkit.Descriptor.Companion.newBip44Public
 import org.bitcoindevkit.Descriptor.Companion.newBip49
+import org.bitcoindevkit.Descriptor.Companion.newBip49Public
 import org.bitcoindevkit.Descriptor.Companion.newBip84
+import org.bitcoindevkit.Descriptor.Companion.newBip84Public
 
 class BdkRnModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -71,9 +74,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun generateSeedFromEntropy(entropyLength: Int, result: Promise) {
+    fun generateSeedFromEntropy(entropy: ReadableArray, result: Promise) {
         try {
-            val response = Mnemonic.fromEntropy(getEntropy(entropyLength))
+            val response = Mnemonic.fromEntropy(getEntropy(entropy))
             result.resolve(response.asString())
         } catch (error: Throwable) {
             return result.reject("Generate seed error", error.localizedMessage, error)
@@ -331,8 +334,6 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             )
             result.resolve(id)
         } catch (error: Throwable) {
-            println("Error===========>")
-            println(error)
             result.reject("Init wallet error", error.localizedMessage, error)
         }
     }
@@ -599,7 +600,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
     /** TxBuilder methods ends */
 
-    /** Description Templates methods */
+    /** Descriptor Templates method starts */
     @ReactMethod
     fun createDescriptor(descriptor: String, network: String, result: Promise) {
         try {
@@ -637,6 +638,22 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun newBip44Public(publicKeyId: String, fingerprint: String , keychain: String, netwrok: String, result: Promise) {
+        try {
+            val id = randomId()
+            _descriptors[id] = newBip44Public(
+                _descriptorPublicKeys[publicKeyId]!!,
+                fingerprint,
+                setKeychainKind(keychain),
+                setNetwork(netwrok)
+            )
+            result.resolve(id)
+        } catch (error: Throwable) {
+            result.reject("Create bip44Public error", error.localizedMessage, error)
+        }
+    }
+
+    @ReactMethod
     fun newBip49(secretKeyId: String, keychain: String, netwrok: String, result: Promise) {
         try {
             val id = randomId()
@@ -648,6 +665,22 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             result.resolve(id)
         } catch (error: Throwable) {
             result.reject("Create bip49 error", error.localizedMessage, error)
+        }
+    }
+
+    @ReactMethod
+    fun newBip49Public(publicKeyId: String, fingerprint: String , keychain: String, netwrok: String, result: Promise) {
+        try {
+            val id = randomId()
+            _descriptors[id] = newBip49Public(
+                _descriptorPublicKeys[publicKeyId]!!,
+                fingerprint,
+                setKeychainKind(keychain),
+                setNetwork(netwrok)
+            )
+            result.resolve(id)
+        } catch (error: Throwable) {
+            result.reject("Create bip49Public error", error.localizedMessage, error)
         }
     }
 
@@ -666,6 +699,79 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         }
     }
 
+    @ReactMethod
+    fun newBip84Public(publicKeyId: String, fingerprint: String , keychain: String, netwrok: String, result: Promise) {
+        try {
+            val id = randomId()
+            _descriptors[id] = newBip84Public(
+                _descriptorPublicKeys[publicKeyId]!!,
+                fingerprint,
+                setKeychainKind(keychain),
+                setNetwork(netwrok)
+            )
+            result.resolve(id)
+        } catch (error: Throwable) {
+            result.reject("Create bip84Public error", error.localizedMessage, error)
+        }
+    }
+    /** Descriptor Templates method ends */
+
+    /** PartiallySignedTransaction method starts */
+    @ReactMethod
+    fun combine(base64: String, other: String, result: Promise){
+        try {
+            val newPsbt = PartiallySignedTransaction(base64).combine(PartiallySignedTransaction(other))
+            result.resolve(newPsbt.serialize())
+        } catch (error: Throwable){
+            result.reject("PSBT combine error", error.localizedMessage, error)
+        }
+    }
+
+    @ReactMethod
+    fun extractTx(base64: String, result: Promise){
+        try {
+            val tx = PartiallySignedTransaction(base64).extractTx()
+            result.resolve(tx.toString())
+        } catch (error: Throwable){
+            result.reject("PSBT extract error", error.localizedMessage, error)
+        }
+    }
+
+    @ReactMethod
+    fun serialize(base64: String, result: Promise){
+        try {
+            result.resolve(PartiallySignedTransaction(base64).serialize())
+        } catch (error: Throwable){
+            result.reject("PSBT serialize error", error.localizedMessage, error)
+        }
+    }
+
+    @ReactMethod
+    fun txid(base64: String, result: Promise){
+        try {
+            result.resolve(PartiallySignedTransaction(base64).txid())
+        } catch (error: Throwable){
+            result.reject("PSBT txid error", error.localizedMessage, error)
+        }
+    }
+
+    @ReactMethod
+    fun feeAmount(base64: String, result: Promise){
+        try {
+            result.resolve(PartiallySignedTransaction(base64).feeAmount()!!.toInt())
+        } catch (error: Throwable){
+            result.reject("PSBT feeAmount error", error.localizedMessage, error)
+        }
+    }
+
+    @ReactMethod
+    fun psbtFeeRate(base64: String, result: Promise){
+        try {
+            result.resolve(PartiallySignedTransaction(base64).feeRate()!!.asSatPerVb())
+        } catch (error: Throwable){
+            result.reject("PSBT feeRate error", error.localizedMessage, error)
+        }
+    }
 
 }
 

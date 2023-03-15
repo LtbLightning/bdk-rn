@@ -34,8 +34,7 @@ export class Mnemonic extends NativeLoader {
    * @param entropy
    * @returns {Promise<Mnemonic>}
    */
-  async fromEntropy(entropy: EntropyLength = EntropyLength.Length16): Promise<Mnemonic> {
-    if (!Object.values(EntropyLength).includes(entropy)) throw 'Invalid entropy length passed';
+  async fromEntropy(entropy: Array<number>): Promise<Mnemonic> {
     this.mnemonic = await this._bdk.generateSeedFromEntropy(entropy);
     return this;
   }

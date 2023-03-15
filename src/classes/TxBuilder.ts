@@ -37,8 +37,7 @@ export class TxBuilder extends NativeLoader {
    */
   async finish(wallet: Wallet): Promise<PartiallySignedTransaction> {
     let psbt = await this._bdk.finish(this.id, wallet.id);
-    const txObject = createTxDetailsObject(psbt.transactionDetails);
-    return new PartiallySignedTransaction(psbt.base64, psbt.txid, psbt.extractTx, psbt.feeAmount, txObject);
+    return new PartiallySignedTransaction(psbt.base64);
   }
 
   /**

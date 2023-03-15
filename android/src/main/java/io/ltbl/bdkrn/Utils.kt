@@ -2,6 +2,7 @@ package io.ltbl.bdkrn
 
 import android.util.Log
 import com.facebook.react.bridge.NativeMap
+import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import org.bitcoindevkit.*
 import java.util.*
@@ -47,10 +48,10 @@ fun setWordCount(wordCount: Int?): WordCount {
     }
 }
 
-fun getEntropy(length: Int): List<UByte> {
+fun getEntropy(entropy: ReadableArray): List<UByte> {
     val entropyArray = ArrayList<UByte>()
-    for (i in 1..length) {
-        entropyArray.add((0..256).random().toUByte())
+    for (i in 0 until entropy.size()) {
+        entropyArray.add(entropy.getInt(i).toUByte())
     }
     return entropyArray
 }
