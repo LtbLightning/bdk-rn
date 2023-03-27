@@ -12,13 +12,13 @@ class BdkRnModule: NSObject {
         return false
     }
 
-    var _descriptorSecretKey: DescriptorSecretKey
-    var _descriptorPublicKey: DescriptorPublicKey
+    var _descriptorSecretKeys: [String: DescriptorSecretKey] = [:]
+    var _descriptorPublicKeys: [String: DescriptorPublicKey] = [:]
+
     let _defaultPublicKey: String = "tpubD6NzVbkrYhZ4X1EWKTKQaGTrfs9cu5wpFiv7XroiRYBgStXFDx88SzijzRo69U7E3nBr8jiKYyb1MtNWaAHD8fhT1A3PGz5Duy6urG8uxLD/*"
 
     var _blockchainConfig: BlockchainConfig
     var _emptyBlockChain: Blockchain
-    var _dbConfig: DatabaseConfig
 
     var _emptyWallet: Wallet
     let _defaultDescriptor = "wpkh([c258d2e4/84h/1h/0h]tpubDDYkZojQFQjht8Tm4jsS3iuEmKjTiEGjG6KnuFNKKJb5A6ZUCUZKdvLdSDWofKi4ToRCwb9poe1XdqfUnP4jaJjCB2Zwv11ZLgSbnZSNecE/0/*)"
@@ -30,28 +30,26 @@ class BdkRnModule: NSObject {
     var _txBuilders: [String: TxBuilder] = [:]
 
 
+    var _descriptors: [String: Descriptor] = [:]
+    var _derivationPaths: [String: DerivationPath] = [:]
+    var _databaseConfigs: [String: DatabaseConfig] = [:]
+
+
     override init() {
-        _descriptorSecretKey = DescriptorSecretKey(
-            network: setNetwork(networkStr: ""),
-            mnemonic: Mnemonic(wordCount: setWordCount(wordCount: 0)),
-            password: ""
-        )
-        _descriptorPublicKey = try! DescriptorPublicKey.fromString(publicKey: _defaultPublicKey)
         _blockchainConfig = BlockchainConfig.electrum(
             config: ElectrumConfig(
                 url: "ssl://electrum.blockstream.info:60002",
                 socks5: nil,
                 retry: 5,
                 timeout: nil,
-                stopGap: 10))
+                stopGap: 10, validateDomain: false))
         _emptyBlockChain = try! Blockchain.init(config: _blockchainConfig)
 
-        _dbConfig = DatabaseConfig.memory
         _emptyWallet = try! Wallet(
-            descriptor: _defaultDescriptor,
-            changeDescriptor: createChangeDescriptor(descriptor: _defaultDescriptor),
+            descriptor: Descriptor(descriptor: _defaultDescriptor, network: Network.testnet),
+            changeDescriptor: nil,
             network: Network.testnet,
-            databaseConfig: _dbConfig
+            databaseConfig: DatabaseConfig.memory
         )
     }
 
@@ -82,12 +80,12 @@ class BdkRnModule: NSObject {
 
     @objc
     func generateSeedFromEntropy(_
-        entropyLength: NSNumber,
+        entropy: NSArray,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let response = try Mnemonic.fromEntropy(entropy: getEntropy(length: entropyLength))
+            let response = try Mnemonic.fromEntropy(entropy: getEntropy(entropy: entropy))
             resolve(response.asString())
         } catch let error {
             reject("Generate seed error", "\(error)", error)
@@ -104,8 +102,9 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            _ = try DerivationPath(path: path)
-            resolve(true)
+            let id = randomId()
+            _derivationPaths[id] = try DerivationPath(path: path)
+            resolve(id)
         } catch let error {
             reject("Create Derivation path error", "\(error)", error)
         }
@@ -122,14 +121,13 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let networkName: Network = setNetwork(networkStr: network)
-            let keyInfo = try DescriptorSecretKey(
-                network: networkName,
+            let id = randomId()
+            _descriptorSecretKeys[id] = try DescriptorSecretKey(
+                network: setNetwork(networkStr: network),
                 mnemonic: Mnemonic.fromString(mnemonic: mnemonic),
                 password: password
             )
-            _descriptorSecretKey = keyInfo
-            resolve(keyInfo.asString())
+            resolve(id)
         } catch let error {
             reject("DescriptorSecret create error", "\(error)", error)
         }
@@ -137,13 +135,13 @@ class BdkRnModule: NSObject {
 
     @objc
     func descriptorSecretDerive(_
-        path: String,
+        secretKeyId: String,
+        derivationPathId: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let _path = try DerivationPath(path: path)
-            let keyInfo = try _descriptorSecretKey.derive(path: _path)
+            let keyInfo = try _descriptorSecretKeys[secretKeyId]!.derive(path: _derivationPaths[derivationPathId]!)
             resolve(keyInfo.asString())
         } catch let error {
             reject("DescriptorSecret derive error", "\(error)", error)
@@ -152,13 +150,13 @@ class BdkRnModule: NSObject {
 
     @objc
     func descriptorSecretExtend(_
-        path: String,
+        secretKeyId: String,
+        derivationPathId: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let _path = try DerivationPath(path: path)
-            let keyInfo = try _descriptorSecretKey.extend(path: _path)
+            let keyInfo = try _descriptorSecretKeys[secretKeyId]!.extend(path: _derivationPaths[derivationPathId]!)
             resolve(keyInfo.asString())
         } catch let error {
             reject("DescriptorSecret extend error", "\(error)", error)
@@ -167,18 +165,31 @@ class BdkRnModule: NSObject {
 
     @objc
     func descriptorSecretAsPublic(_
+        secretKeyId: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        resolve(_descriptorSecretKey.asPublic().asString())
+        let id = randomId()
+        _descriptorPublicKeys[id] = _descriptorSecretKeys[secretKeyId]!.asPublic()
+        resolve(id)
+    }
+
+    @objc
+    func descriptorSecretAsString(_
+        secretKeyId: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(_descriptorSecretKeys[secretKeyId]!.asString())
     }
 
     @objc
     func descriptorSecretAsSecretBytes(_
+        secretKeyId: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        resolve(_descriptorSecretKey.secretBytes())
+        resolve(_descriptorSecretKeys[secretKeyId]!.secretBytes())
     }
     /** Descriptor secret key methods ends */
 
@@ -191,9 +202,9 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let keyInfo = try DescriptorPublicKey.fromString(publicKey: publicKey)
-            _descriptorPublicKey = keyInfo
-            resolve(keyInfo.asString())
+            let id = randomId()
+            _descriptorPublicKeys[id] = try DescriptorPublicKey.fromString(publicKey: publicKey)
+            resolve(id)
         } catch let error {
             reject("DescriptorPublic create error", "\(error)", error)
         }
@@ -201,13 +212,13 @@ class BdkRnModule: NSObject {
 
     @objc
     func descriptorPublicDerive(_
-        path: String,
+        publicKeyId: String,
+        derivationPathId: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let _path = try DerivationPath(path: path)
-            let keyInfo = try _descriptorPublicKey.derive(path: _path)
+            let keyInfo = try _descriptorPublicKeys[publicKeyId]!.derive(path: _derivationPaths[derivationPathId]!)
             resolve(keyInfo.asString())
         } catch let error {
             reject("DescriptorPublic derive error", "\(error)", error)
@@ -216,17 +227,26 @@ class BdkRnModule: NSObject {
 
     @objc
     func descriptorPublicExtend(_
-        path: String,
+        publicKeyId: String,
+        derivationPathId: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let _path = try DerivationPath(path: path)
-            let keyInfo = try _descriptorPublicKey.extend(path: _path)
+            let keyInfo = try _descriptorPublicKeys[publicKeyId]!.extend(path: _derivationPaths[derivationPathId]!)
             resolve(keyInfo.asString())
         } catch let error {
             reject("DescriptorPublic extend error", "\(error)", error)
         }
+    }
+
+    @objc
+    func descriptorPublicAsString(_
+        publicKeyId: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(_descriptorPublicKeys[publicKeyId]!.asString())
     }
 
     /** Descriptor public key methods ends */
@@ -252,7 +272,8 @@ class BdkRnModule: NSObject {
                     socks5: nil,
                     retry: UInt8(retry ?? "") ?? 5,
                     timeout: UInt8(timeOut ?? "") ?? nil,
-                    stopGap: UInt64(stopGap ?? "") ?? 10
+                    stopGap: UInt64(stopGap ?? "") ?? 10,
+                    validateDomain: false
                 )
             )
             let blockChainId = randomId()
@@ -328,7 +349,7 @@ class BdkRnModule: NSObject {
     ) {
         do {
             let psbt = try PartiallySignedTransaction(psbtBase64: signedPsbtBase64)
-            _ = try getBlockchainById(id: id).broadcast(psbt: psbt)
+            _ = try getBlockchainById(id: id).broadcast(transaction: psbt.extractTx())
             resolve(true)
         } catch let error {
             reject("Broadcast transaction error", "\(error)", error)
@@ -342,8 +363,9 @@ class BdkRnModule: NSObject {
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        _dbConfig = DatabaseConfig.memory
-        resolve(true)
+        let id = randomId()
+        _databaseConfigs[id] = DatabaseConfig.memory
+        resolve(id)
     }
 
     @objc
@@ -353,8 +375,9 @@ class BdkRnModule: NSObject {
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        _dbConfig = DatabaseConfig.sled(config: SledDbConfiguration(path: path, treeName: treeName))
-        resolve(true)
+        let id = randomId()
+        _databaseConfigs[id] = DatabaseConfig.sled(config: SledDbConfiguration(path: path, treeName: treeName))
+        resolve(id)
     }
 
     @objc
@@ -363,8 +386,9 @@ class BdkRnModule: NSObject {
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        _dbConfig = DatabaseConfig.sqlite(config: SqliteDbConfiguration(path: path))
-        resolve(true)
+        let id = randomId()
+        _databaseConfigs[id] = DatabaseConfig.sqlite(config: SqliteDbConfiguration(path: path))
+        resolve(id)
     }
     /** DB configuration methods ends*/
 
@@ -376,17 +400,23 @@ class BdkRnModule: NSObject {
     @objc
     func walletInit(_
         descriptor: String,
+        changeDescriptor: String? = nil,
         network: String,
+        dbConfigID: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
+            var changeDes: (Any)? = nil
+            if(changeDescriptor != nil) {
+                changeDes = _descriptors[changeDescriptor ?? ""]!
+            }
             let id = randomId()
             _wallets[id] = try Wallet.init(
-                descriptor: descriptor,
-                changeDescriptor: createChangeDescriptor(descriptor: descriptor),
+                descriptor: _descriptors[descriptor]!,
+                changeDescriptor: changeDes as? Descriptor,
                 network: setNetwork(networkStr: network),
-                databaseConfig: _dbConfig
+                databaseConfig: _databaseConfigs[dbConfigID]!
             )
             resolve(id)
         } catch let error {
@@ -708,11 +738,11 @@ class BdkRnModule: NSObject {
     @objc
     func drainTo(_
         id: String,
-        address: String,
+        scriptId: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        _txBuilders[id] = _txBuilders[id]?.drainTo(address: address)
+        _txBuilders[id] = _txBuilders[id]?.drainTo(script: _scripts[scriptId]!)
         resolve(true)
     }
 
@@ -726,7 +756,7 @@ class BdkRnModule: NSObject {
         _txBuilders[id] = _txBuilders[id]?.enableRbf()
         resolve(true)
     }
-    
+
     // `enableRbfWithSequence`
     @objc
     func enableRbfWithSequence(_
@@ -738,8 +768,8 @@ class BdkRnModule: NSObject {
         _txBuilders[id] = _txBuilders[id]?.enableRbfWithSequence(nsequence: UInt32(truncating: nsequence))
         resolve(true)
     }
-    
-    
+
+
     // `addData`
     @objc
     func addData(_
@@ -755,8 +785,8 @@ class BdkRnModule: NSObject {
         _txBuilders[id] = _txBuilders[id]?.addData(data: dataList)
         resolve(true)
     }
-    
-    
+
+
     // `setRecipients`
     @objc
     func setRecipients(_
@@ -793,6 +823,234 @@ class BdkRnModule: NSObject {
     }
 
     /** TxBuilder methods ends */
+
+    /** Descriptor Templates method starts */
+    @objc
+    func createDescriptor(_
+        descriptor: String,
+        network: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let id = randomId()
+            _descriptors[id] = try Descriptor(descriptor: descriptor, network: setNetwork(networkStr: network))
+            resolve(id)
+        } catch let error {
+            reject("Create Descriptor error", "\(error)", error)
+        }
+    }
+
+    @objc
+    func descriptorAsString(_
+        descriptorId: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(_descriptors[descriptorId]!.asString())
+    }
+
+    @objc
+    func descriptorAsStringPrivate(_
+        descriptorId: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(_descriptors[descriptorId]!.asStringPrivate())
+    }
+
+    @objc
+    func newBip44(_
+        secretKeyId: String,
+        keychain: String,
+        network: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        let id = randomId()
+        _descriptors[id] = Descriptor.newBip44(
+            secretKey: _descriptorSecretKeys[secretKeyId]!,
+            keychain: setKeychainKind(keychainKind: keychain),
+            network: setNetwork(networkStr: network)
+        )
+        resolve(id)
+    }
+
+    @objc
+    func newBip44Public(_
+        publicKeyId: String,
+        fingerprint: String,
+        keychain: String,
+        network: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        let id = randomId()
+        _descriptors[id] = Descriptor.newBip44Public(
+            publicKey: _descriptorPublicKeys[publicKeyId]!,
+            fingerprint: fingerprint,
+            keychain: setKeychainKind(keychainKind: keychain),
+            network: setNetwork(networkStr: network)
+        )
+        resolve(id)
+    }
+
+    @objc
+    func newBip49(_
+        secretKeyId: String,
+        keychain: String,
+        network: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        let id = randomId()
+        _descriptors[id] = Descriptor.newBip49(
+            secretKey: _descriptorSecretKeys[secretKeyId]!,
+            keychain: setKeychainKind(keychainKind: keychain),
+            network: setNetwork(networkStr: network)
+        )
+        resolve(id)
+    }
+
+    @objc
+    func newBip49Public(_
+        publicKeyId: String,
+        fingerprint: String,
+        keychain: String,
+        network: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        let id = randomId()
+        _descriptors[id] = Descriptor.newBip49Public(
+            publicKey: _descriptorPublicKeys[publicKeyId]!,
+            fingerprint: fingerprint,
+            keychain: setKeychainKind(keychainKind: keychain),
+            network: setNetwork(networkStr: network)
+        )
+        resolve(id)
+    }
+
+    @objc
+    func newBip84(_
+        secretKeyId: String,
+        keychain: String,
+        network: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        let id = randomId()
+        _descriptors[id] = Descriptor.newBip84(
+            secretKey: _descriptorSecretKeys[secretKeyId]!,
+            keychain: setKeychainKind(keychainKind: keychain),
+            network: setNetwork(networkStr: network)
+        )
+        resolve(id)
+    }
+
+    @objc
+    func newBip84Public(_
+        publicKeyId: String,
+        fingerprint: String,
+        keychain: String,
+        network: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        let id = randomId()
+        _descriptors[id] = Descriptor.newBip84Public(
+            publicKey: _descriptorPublicKeys[publicKeyId]!,
+            fingerprint: fingerprint,
+            keychain: setKeychainKind(keychainKind: keychain),
+            network: setNetwork(networkStr: network)
+        )
+        resolve(id)
+    }
+    /** Descriptor Templates method ends */
+
+    /** PartiallySignedTransaction method starts */
+    @objc
+    func combine(_
+        base64: String,
+        other: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let newPsbt = try PartiallySignedTransaction(psbtBase64: base64)
+                .combine(other: PartiallySignedTransaction(psbtBase64: other))
+            resolve(newPsbt.serialize())
+        } catch let error {
+            reject("PSBT combine error", "\(error)", error)
+        }
+    }
+
+    @objc
+    func extractTx(_
+        base64: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let tx = try PartiallySignedTransaction(psbtBase64: base64).extractTx()
+            resolve(tx.serialize())
+        } catch let error {
+            reject("PSBT extract error", "\(error)", error)
+        }
+    }
+    
+    @objc
+    func serialize(_
+        base64: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            resolve(try PartiallySignedTransaction(psbtBase64: base64).serialize())
+        } catch let error {
+            reject("PSBT serialize error", "\(error)", error)
+        }
+    }
+    
+    @objc
+    func txid(_
+        base64: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            resolve(try PartiallySignedTransaction(psbtBase64: base64).txid())
+        } catch let error {
+            reject("PSBT txid error", "\(error)", error)
+        }
+    }
+    
+    @objc
+    func feeAmount(_
+        base64: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            resolve(try PartiallySignedTransaction(psbtBase64: base64).feeAmount())
+        } catch let error {
+            reject("PSBT feeAmount error", "\(error)", error)
+        }
+    }
+    
+    @objc
+    func psbtFeeRate(_
+        base64: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            resolve(try PartiallySignedTransaction(psbtBase64: base64).feeRate()?.asSatPerVb())
+        } catch let error {
+            reject("PSBT feeRate error", "\(error)", error)
+        }
+    }
+    
 
 }
 

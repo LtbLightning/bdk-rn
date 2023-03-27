@@ -10,19 +10,19 @@
 /** Mnemonic Methods */
 
 RCT_EXTERN_METHOD(
-    generateSeedFromWordCount: (nonnull NSNumber *)wordCount
+    generateSeedFromWordCount: (nonnull NSNumber*)wordCount
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
 
 RCT_EXTERN_METHOD(
-    generateSeedFromString: (nonnull NSString *)mnemonic
+    generateSeedFromString: (nonnull NSString*)mnemonic
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
 
 RCT_EXTERN_METHOD(
-    generateSeedFromEntropy: (nonnull NSNumber *)entropyLength
+    generateSeedFromEntropy: (nonnull NSArray*)entropy
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
@@ -37,26 +37,43 @@ RCT_EXTERN_METHOD(
 /** DescriptorSecretKey Methods */
 RCT_EXTERN_METHOD(
     createDescriptorSecret: (nonnull NSString*)network
-    mnemonic:(nonnull NSString *)mnemonic
-    password:(nonnull NSString *)password
+    mnemonic:(nonnull NSString*)mnemonic
+    password:(nonnull NSString*)password
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
 
 RCT_EXTERN_METHOD(
-    descriptorSecretDerive: (nonnull NSString*)path
+    descriptorSecretDerive: (nonnull NSString*)secretKeyId
+    derivationPathId:(nonnull NSString*)derivationPathId
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
 
 RCT_EXTERN_METHOD(
-    descriptorSecretExtend: (nonnull NSString*)path
+    descriptorSecretExtend: (nonnull NSString*)secretKeyId
+    derivationPathId:(nonnull NSString*)derivationPathId
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
 
-RCT_EXTERN_METHOD(descriptorSecretAsPublic:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
-RCT_EXTERN_METHOD(descriptorSecretAsSecretBytes:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(
+    descriptorSecretAsPublic: (nonnull NSString*)secretKeyId
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    descriptorSecretAsString: (nonnull NSString*)secretKeyId
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    descriptorSecretAsSecretBytes: (nonnull NSString*)secretKeyId
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
 
 
 /** DescriptorPublicKey Methods */
@@ -67,34 +84,43 @@ RCT_EXTERN_METHOD(
 )
 
 RCT_EXTERN_METHOD(
-    descriptorPublicDerive: (nonnull NSString*)path
+    descriptorPublicDerive: (nonnull NSString*)publicKeyId
+    derivationPathId:(nonnull NSString*)derivationPathId
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
 
 RCT_EXTERN_METHOD(
-    descriptorPublicExtend: (nonnull NSString*)path
+    descriptorPublicExtend: (nonnull NSString*)publicKeyId
+    derivationPathId:(nonnull NSString*)derivationPathId
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
+
+RCT_EXTERN_METHOD(
+    descriptorPublicAsString: (nonnull NSString*)publicKeyId
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
 
 /** Blockchain methods */
 
 RCT_EXTERN_METHOD(
     initElectrumBlockchain: (nonnull NSString*)url
-    retry: (nonnull NSString *)retry
-    stopGap: (nonnull NSString *)stopGap
-    timeOut: (nonnull NSString *)timeOut
+    retry: (nonnull NSString*)retry
+    stopGap: (nonnull NSString*)stopGap
+    timeOut: (nonnull NSString*)timeOut
     resolve: (RCTPromiseResolveBlock)resolve
     reject: (RCTPromiseRejectBlock)reject
 )
 
 RCT_EXTERN_METHOD(
     initEsploraBlockchain: (nonnull NSString*)url
-    proxy: (nonnull NSString *)proxy
-    concurrency: (nonnull NSString *)concurrency
-    stopGap: (nonnull NSString *)stopGap
-    timeOut: (nonnull NSString *)timeOut
+    proxy: (nonnull NSString*)proxy
+    concurrency: (nonnull NSString*)concurrency
+    stopGap: (nonnull NSString*)stopGap
+    timeOut: (nonnull NSString*)timeOut
     resolve: (RCTPromiseResolveBlock)resolve
     reject: (RCTPromiseRejectBlock)reject
 )
@@ -114,7 +140,7 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
     broadcast:(nonnull NSString*)id
-    signedPsbtBase64: (nonnull NSString *)signedPsbtBase64
+    signedPsbtBase64: (nonnull NSString*)signedPsbtBase64
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
@@ -123,7 +149,7 @@ RCT_EXTERN_METHOD(
 RCT_EXTERN_METHOD(memoryDBInit:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
     sledDBInit: (nonnull NSString*)path
-    treeName: (nonnull NSString *)treeName
+    treeName: (nonnull NSString*)treeName
     resolve: (RCTPromiseResolveBlock)resolve
     reject: (RCTPromiseRejectBlock)reject
 )
@@ -136,7 +162,9 @@ RCT_EXTERN_METHOD(
 /** Wallet methods */
 RCT_EXTERN_METHOD(
     walletInit: (nonnull NSString*)descriptor
-    network: (nonnull NSString *)network
+    changeDescriptor: (NSString*)changeDescriptor
+    network: (nonnull NSString*)network
+    dbConfigID: (nonnull NSString*)dbConfigID
     resolve: (RCTPromiseResolveBlock)resolve
     reject: (RCTPromiseRejectBlock)reject
 )
@@ -150,7 +178,7 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
     sync:(nonnull NSString*)id
-    blockChainId: (nonnull NSString *)blockChainId
+    blockChainId: (nonnull NSString*)blockChainId
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
@@ -177,7 +205,7 @@ RCT_EXTERN_METHOD(
 )
 RCT_EXTERN_METHOD(
     sign:(nonnull NSString*)id
-    psbtBase64: (nonnull NSString *)psbtBase64
+    psbtBase64: (nonnull NSString*)psbtBase64
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
@@ -202,8 +230,8 @@ RCT_EXTERN_METHOD(createTxBuilder:(RCTPromiseResolveBlock)resolve reject:(RCTPro
 
 RCT_EXTERN_METHOD(
     addRecipient:(nonnull NSString*)id
-    scriptId: (nonnull NSString *)scriptId
-    amount: (nonnull NSNumber *)amount
+    scriptId: (nonnull NSString*)scriptId
+    amount: (nonnull NSNumber*)amount
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
@@ -277,7 +305,7 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
     drainTo:(nonnull NSString*)id
-    address:(nonnull NSString*)address
+    scriptId:(nonnull NSString*)scriptId
     resolve:(RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
@@ -311,9 +339,118 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
     finish:(nonnull NSString*)id
-    walletId: (nonnull NSString *)walletId
+    walletId: (nonnull NSString*)walletId
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
+)
+
+/** Descriptor Templates methods */
+RCT_EXTERN_METHOD(
+    createDescriptor:(nonnull NSString*)descriptor
+    network: (nonnull NSString*)network
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    descriptorAsString:(nonnull NSString*)descriptorId
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    descriptorAsStringPrivate:(nonnull NSString*)descriptorId
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    newBip44: (nonnull NSString*)secretKeyId
+    keychain:(nonnull NSString*)keychain
+    network:(nonnull NSString*)network
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    newBip44Public: (nonnull NSString*)publicKeyId
+    fingerprint:(nonnull NSString*)fingerprint
+    keychain:(nonnull NSString*)keychain
+    network:(nonnull NSString*)network
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    newBip49: (nonnull NSString*)secretKeyId
+    keychain:(nonnull NSString*)keychain
+    network:(nonnull NSString*)network
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    newBip49Public: (nonnull NSString*)publicKeyId
+    fingerprint:(nonnull NSString*)fingerprint
+    keychain:(nonnull NSString*)keychain
+    network:(nonnull NSString*)network
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    newBip84: (nonnull NSString*)secretKeyId
+    keychain:(nonnull NSString*)keychain
+    network:(nonnull NSString*)network
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    newBip84Public: (nonnull NSString*)publicKeyId
+    fingerprint:(nonnull NSString*)fingerprint
+    keychain:(nonnull NSString*)keychain
+    network:(nonnull NSString*)network
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+/** PartiallySignedTransaction methods */
+RCT_EXTERN_METHOD(
+    combine: (nonnull NSString*)base64
+    other: (nonnull NSString*)other
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    extractTx: (nonnull NSString*)base64
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    serialize: (nonnull NSString*)base64
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    txid: (nonnull NSString*)base64
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    feeAmount: (nonnull NSString*)base64
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    psbtFeeRate: (nonnull NSString*)base64
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
 )
 
 @end

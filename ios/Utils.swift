@@ -47,11 +47,10 @@ func setWordCount(wordCount: NSNumber?) -> WordCount {
     }
 }
 
-func getEntropy(length: NSNumber) -> Array<UInt8> {
+func getEntropy(entropy: NSArray) -> Array<UInt8> {
     var entropyArray: [UInt8] = []
-    var g = SystemRandomNumberGenerator()
-    for _ in 1...length.intValue {
-        entropyArray.append(UInt8(Int.random(in: 1...256, using: &g)))
+    for i in entropy {
+        entropyArray.append(UInt8(Int8(i as! UInt8)))
     }
     return entropyArray
 }
@@ -99,4 +98,12 @@ func createOutPoint(outPoint: NSDictionary) -> OutPoint {
         txid: outPoint["txid"] as! String,
         vout: UInt32(truncating: outPoint["vout"] as! NSNumber)
     )
+}
+
+func setKeychainKind(keychainKind: String? = "external") -> KeychainKind {
+    switch (keychainKind) {
+        case "external": return KeychainKind.external
+        case "internal": return KeychainKind.internal
+        default: return KeychainKind.external
+    }
 }

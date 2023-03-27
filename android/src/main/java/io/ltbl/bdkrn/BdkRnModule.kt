@@ -623,13 +623,13 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun newBip44(secretKeyId: String, keychain: String, netwrok: String, result: Promise) {
+    fun newBip44(secretKeyId: String, keychain: String, network: String, result: Promise) {
         try {
             val id = randomId()
             _descriptors[id] = newBip44(
                 _descriptorSecretKeys[secretKeyId]!!,
                 setKeychainKind(keychain),
-                setNetwork(netwrok)
+                setNetwork(network)
             )
             result.resolve(id)
         } catch (error: Throwable) {
@@ -638,14 +638,14 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun newBip44Public(publicKeyId: String, fingerprint: String , keychain: String, netwrok: String, result: Promise) {
+    fun newBip44Public(publicKeyId: String, fingerprint: String, keychain: String, network: String, result: Promise) {
         try {
             val id = randomId()
             _descriptors[id] = newBip44Public(
                 _descriptorPublicKeys[publicKeyId]!!,
                 fingerprint,
                 setKeychainKind(keychain),
-                setNetwork(netwrok)
+                setNetwork(network)
             )
             result.resolve(id)
         } catch (error: Throwable) {
@@ -654,13 +654,13 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun newBip49(secretKeyId: String, keychain: String, netwrok: String, result: Promise) {
+    fun newBip49(secretKeyId: String, keychain: String, network: String, result: Promise) {
         try {
             val id = randomId()
             _descriptors[id] = newBip49(
                 _descriptorSecretKeys[secretKeyId]!!,
                 setKeychainKind(keychain),
-                setNetwork(netwrok)
+                setNetwork(network)
             )
             result.resolve(id)
         } catch (error: Throwable) {
@@ -669,14 +669,14 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun newBip49Public(publicKeyId: String, fingerprint: String , keychain: String, netwrok: String, result: Promise) {
+    fun newBip49Public(publicKeyId: String, fingerprint: String , keychain: String, network: String, result: Promise) {
         try {
             val id = randomId()
             _descriptors[id] = newBip49Public(
                 _descriptorPublicKeys[publicKeyId]!!,
                 fingerprint,
                 setKeychainKind(keychain),
-                setNetwork(netwrok)
+                setNetwork(network)
             )
             result.resolve(id)
         } catch (error: Throwable) {
@@ -685,13 +685,13 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun newBip84(secretKeyId: String, keychain: String, netwrok: String, result: Promise) {
+    fun newBip84(secretKeyId: String, keychain: String, network: String, result: Promise) {
         try {
             val id = randomId()
             _descriptors[id] = newBip84(
                 _descriptorSecretKeys[secretKeyId]!!,
                 setKeychainKind(keychain),
-                setNetwork(netwrok)
+                setNetwork(network)
             )
             result.resolve(id)
         } catch (error: Throwable) {
@@ -700,14 +700,14 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun newBip84Public(publicKeyId: String, fingerprint: String , keychain: String, netwrok: String, result: Promise) {
+    fun newBip84Public(publicKeyId: String, fingerprint: String , keychain: String, network: String, result: Promise) {
         try {
             val id = randomId()
             _descriptors[id] = newBip84Public(
                 _descriptorPublicKeys[publicKeyId]!!,
                 fingerprint,
                 setKeychainKind(keychain),
-                setNetwork(netwrok)
+                setNetwork(network)
             )
             result.resolve(id)
         } catch (error: Throwable) {
