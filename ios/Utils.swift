@@ -83,12 +83,8 @@ func getTransactionObject(transaction: TransactionDetails?) -> [String: Any] {
 
 
 func getPSBTObject(txResult: TxBuilderResult?) -> [String: Any] {
-    let psbt = txResult?.psbt
     return [
-        "base64": psbt?.serialize() as Any,
-        "txid": psbt?.txid() as Any,
-        "extractTx": psbt?.extractTx() as Any,
-        "feeAmount": psbt?.feeAmount() as Any,
+        "base64": txResult?.psbt.serialize() as Any,
         "transactionDetails": getTransactionObject(transaction: txResult?.transactionDetails)
     ] as [String: Any]
 }

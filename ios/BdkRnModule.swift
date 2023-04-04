@@ -33,6 +33,7 @@ class BdkRnModule: NSObject {
     var _descriptors: [String: Descriptor] = [:]
     var _derivationPaths: [String: DerivationPath] = [:]
     var _databaseConfigs: [String: DatabaseConfig] = [:]
+    var _bumpFeeTxBuilders: [String: BumpFeeTxBuilder] = [:]
 
 
     override init() {
@@ -353,6 +354,21 @@ class BdkRnModule: NSObject {
             resolve(true)
         } catch let error {
             reject("Broadcast transaction error", "\(error)", error)
+        }
+    }
+
+    @objc
+    func estimateFee(_
+        id: String,
+        target: NSNumber,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let fee = try getBlockchainById(id: id).estimateFee(target: UInt64(truncating: target))
+            resolve(fee.asSatPerVb())
+        } catch let error {
+            reject("Estimate Fee error", "\(error)", error)
         }
     }
     /** Blockchain methods ends */
@@ -998,7 +1014,7 @@ class BdkRnModule: NSObject {
             reject("PSBT extract error", "\(error)", error)
         }
     }
-    
+
     @objc
     func serialize(_
         base64: String,
@@ -1008,10 +1024,10 @@ class BdkRnModule: NSObject {
         do {
             resolve(try PartiallySignedTransaction(psbtBase64: base64).serialize())
         } catch let error {
-            reject("PSBT serialize error", "\(error)", error)
+            reject("Bump TX finish error", "\(error)", error)
         }
     }
-    
+
     @objc
     func txid(_
         base64: String,
@@ -1024,7 +1040,7 @@ class BdkRnModule: NSObject {
             reject("PSBT txid error", "\(error)", error)
         }
     }
-    
+
     @objc
     func feeAmount(_
         base64: String,
@@ -1037,7 +1053,7 @@ class BdkRnModule: NSObject {
             reject("PSBT feeAmount error", "\(error)", error)
         }
     }
-    
+
     @objc
     func psbtFeeRate(_
         base64: String,
@@ -1050,7 +1066,68 @@ class BdkRnModule: NSObject {
             reject("PSBT feeRate error", "\(error)", error)
         }
     }
-    
+    /** PartiallySignedTransaction method ends */
 
+
+    /** BumpFeeTxBuilder methods starts*/
+    @objc
+    func bumpFeeTxBuilderInit(_
+        txid: String,
+        newFeeRate: NSNumber,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        let id = randomId()
+        _bumpFeeTxBuilders[id] = BumpFeeTxBuilder(txid: txid, newFeeRate: newFeeRate.floatValue)
+        resolve(id)
+    }
+
+    @objc
+    func bumpFeeTxBuilderAllowShrinking(_
+        id: String,
+        address: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        _bumpFeeTxBuilders[id] = _bumpFeeTxBuilders[id]!.allowShrinking(address: address)
+        resolve(true)
+    }
+
+    @objc
+    func bumpFeeTxBuilderEnableRbf(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        _bumpFeeTxBuilders[id] = _bumpFeeTxBuilders[id]!.enableRbf()
+        resolve(true)
+    }
+
+    @objc
+    func bumpFeeTxBuilderEnableRbfWithSequence(_
+        id: String,
+        nSequence: NSNumber,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        _bumpFeeTxBuilders[id] = _bumpFeeTxBuilders[id]!.enableRbfWithSequence(nsequence: UInt32(truncating: nSequence))
+        resolve(true)
+    }
+
+    @objc
+    func bumpFeeTxBuilderFinish(_
+        id: String,
+        walletId: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let res = try _bumpFeeTxBuilders[id]!.finish(wallet: getWalletById(id: walletId))
+            resolve(res)
+        } catch let error {
+            reject("BumpFee Txbuilder finish error", "\(error)", error)
+        }
+    }
+    /** BumpFeeTxBuilder methods ends*/
 }
 

@@ -10,6 +10,7 @@ import { Address } from './classes/Address';
 import { TxBuilder } from './classes/TxBuilder';
 import { Descriptor } from './classes/Descriptor';
 import { PartiallySignedTransaction } from './classes/PartiallySignedTransaction';
+import { BumpFeeTxBuilder } from './classes/BumpFeeTxBuilder';
 
 export {
   BdkRn,
@@ -24,4 +25,5 @@ export {
   TxBuilder,
   Descriptor,
   PartiallySignedTransaction,
+  BumpFeeTxBuilder,
 };

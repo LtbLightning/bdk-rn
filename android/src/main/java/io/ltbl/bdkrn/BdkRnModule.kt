@@ -284,6 +284,16 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             return result.reject("Broadcast transaction error", error.localizedMessage, error)
         }
     }
+
+    @ReactMethod
+    fun estimateFee(id: String, target: Int, result: Promise) {
+        try {
+            val fee = getBlockchainById(id).estimateFee(target.toULong())
+            result.resolve(fee.asSatPerVb())
+        } catch (error: Throwable) {
+            return result.reject("Estimate Fee error", error.localizedMessage, error)
+        }
+    }
     /** Blockchain methods ends */
 
 
@@ -328,7 +338,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             val id = randomId()
             _wallets[id] = Wallet(
                 _descriptors[descriptor]!!,
-                if(changeDescriptor!=null) _descriptors[changeDescriptor]!! else null,
+                if (changeDescriptor != null) _descriptors[changeDescriptor]!! else null,
                 setNetwork(network),
                 _databaseConfigs[dbConfigID]!!
             )
@@ -638,7 +648,13 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun newBip44Public(publicKeyId: String, fingerprint: String, keychain: String, network: String, result: Promise) {
+    fun newBip44Public(
+        publicKeyId: String,
+        fingerprint: String,
+        keychain: String,
+        network: String,
+        result: Promise
+    ) {
         try {
             val id = randomId()
             _descriptors[id] = newBip44Public(
@@ -669,7 +685,13 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun newBip49Public(publicKeyId: String, fingerprint: String , keychain: String, network: String, result: Promise) {
+    fun newBip49Public(
+        publicKeyId: String,
+        fingerprint: String,
+        keychain: String,
+        network: String,
+        result: Promise
+    ) {
         try {
             val id = randomId()
             _descriptors[id] = newBip49Public(
@@ -700,7 +722,13 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun newBip84Public(publicKeyId: String, fingerprint: String , keychain: String, network: String, result: Promise) {
+    fun newBip84Public(
+        publicKeyId: String,
+        fingerprint: String,
+        keychain: String,
+        network: String,
+        result: Promise
+    ) {
         try {
             val id = randomId()
             _descriptors[id] = newBip84Public(
@@ -718,57 +746,58 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     /** PartiallySignedTransaction method starts */
     @ReactMethod
-    fun combine(base64: String, other: String, result: Promise){
+    fun combine(base64: String, other: String, result: Promise) {
         try {
-            val newPsbt = PartiallySignedTransaction(base64).combine(PartiallySignedTransaction(other))
+            val newPsbt =
+                PartiallySignedTransaction(base64).combine(PartiallySignedTransaction(other))
             result.resolve(newPsbt.serialize())
-        } catch (error: Throwable){
+        } catch (error: Throwable) {
             result.reject("PSBT combine error", error.localizedMessage, error)
         }
     }
 
     @ReactMethod
-    fun extractTx(base64: String, result: Promise){
+    fun extractTx(base64: String, result: Promise) {
         try {
             val tx = PartiallySignedTransaction(base64).extractTx()
             result.resolve(tx.toString())
-        } catch (error: Throwable){
+        } catch (error: Throwable) {
             result.reject("PSBT extract error", error.localizedMessage, error)
         }
     }
 
     @ReactMethod
-    fun serialize(base64: String, result: Promise){
+    fun serialize(base64: String, result: Promise) {
         try {
             result.resolve(PartiallySignedTransaction(base64).serialize())
-        } catch (error: Throwable){
+        } catch (error: Throwable) {
             result.reject("PSBT serialize error", error.localizedMessage, error)
         }
     }
 
     @ReactMethod
-    fun txid(base64: String, result: Promise){
+    fun txid(base64: String, result: Promise) {
         try {
             result.resolve(PartiallySignedTransaction(base64).txid())
-        } catch (error: Throwable){
+        } catch (error: Throwable) {
             result.reject("PSBT txid error", error.localizedMessage, error)
         }
     }
 
     @ReactMethod
-    fun feeAmount(base64: String, result: Promise){
+    fun feeAmount(base64: String, result: Promise) {
         try {
             result.resolve(PartiallySignedTransaction(base64).feeAmount()!!.toInt())
-        } catch (error: Throwable){
+        } catch (error: Throwable) {
             result.reject("PSBT feeAmount error", error.localizedMessage, error)
         }
     }
 
     @ReactMethod
-    fun psbtFeeRate(base64: String, result: Promise){
+    fun psbtFeeRate(base64: String, result: Promise) {
         try {
             result.resolve(PartiallySignedTransaction(base64).feeRate()!!.asSatPerVb())
-        } catch (error: Throwable){
+        } catch (error: Throwable) {
             result.reject("PSBT feeRate error", error.localizedMessage, error)
         }
     }

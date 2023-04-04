@@ -1,5 +1,5 @@
 import { Wallet } from './Wallet';
-import { OutPoint, Script, ScriptAmount } from './Bindings';
+import { OutPoint, Script, ScriptAmount, TransactionDetails, TxBuilderResult } from './Bindings';
 import { NativeLoader } from './NativeLoader';
 import { createTxDetailsObject } from '../lib/utils';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
@@ -28,16 +28,6 @@ export class TxBuilder extends NativeLoader {
   async addRecipient(script: Script, amount: number): Promise<TxBuilder> {
     await this._bdk.addRecipient(this.id, script.id, amount);
     return this;
-  }
-
-  /**
-   * Finishes the transaction building
-   * @param wallet
-   * @returns
-   */
-  async finish(wallet: Wallet): Promise<PartiallySignedTransaction> {
-    let psbt = await this._bdk.finish(this.id, wallet.id);
-    return new PartiallySignedTransaction(psbt.base64);
   }
 
   /**
@@ -182,5 +172,16 @@ export class TxBuilder extends NativeLoader {
   async setRecipients(recipients: Array<ScriptAmount>): Promise<TxBuilder> {
     await this._bdk.setRecipients(this.id, recipients);
     return this;
+  }
+
+  /**
+   * Finishes the transaction building
+   * @param wallet
+   * @returns
+   */
+  async finish(wallet: Wallet): Promise<TxBuilderResult> {
+    let response = await this._bdk.finish(this.id, wallet.id);
+    let psbt = new PartiallySignedTransaction(response.base64);
+    return new TxBuilderResult(psbt, createTxDetailsObject(response.transactionDetails));
   }
 }

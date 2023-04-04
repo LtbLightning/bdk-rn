@@ -1,6 +1,5 @@
 import { Network, WordCount, AddressIndex, KeychainKind } from '../lib/enums';
 import { AddressInfo, Balance, LocalUtxo, OutPoint, ScriptAmount, TransactionDetails } from './Bindings';
-import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 export interface NativeBdkRn {
     generateSeedFromWordCount(wordCount: WordCount): string;
     generateSeedFromString(mnemonic: string): string;
@@ -21,6 +20,7 @@ export interface NativeBdkRn {
     getBlockchainHeight(id: string): number;
     getBlockchainHash(id: string, height: number): string;
     broadcast(id: string, signedPsbtBase64: string): boolean;
+    estimateFee(id: string, target: number): number;
     memoryDBInit(): string;
     sledDBInit(path: string, treeName: string): string;
     sqliteDBInit(path: string): string;
@@ -36,7 +36,10 @@ export interface NativeBdkRn {
     addressToScriptPubkeyHex(id: string): string;
     createTxBuilder(): string;
     addRecipient(id: string, scriptId: string, amount: number): string;
-    finish(id: string, walletId: string): PartiallySignedTransaction;
+    finish(id: string, walletId: string): {
+        base64: string;
+        transactionDetails: any;
+    };
     addUnspendable(id: string, outPoint: OutPoint): boolean;
     addUtxo(id: string, outPoint: OutPoint): boolean;
     addUtxos(id: string, outPoints: Array<OutPoint>): boolean;
@@ -67,6 +70,11 @@ export interface NativeBdkRn {
     txid(psbt64: string): string;
     feeAmount(psbt64: string): number;
     psbtFeeRate(psbt64: string): number;
+    bumpFeeTxBuilderInit(txid: string, newFeeRate: number): string;
+    bumpFeeTxBuilderAllowShrinking(id: string, address: string): string;
+    bumpFeeTxBuilderEnableRbf(id: string): any;
+    bumpFeeTxBuilderEnableRbfWithSequence(id: string, nsequence: number): any;
+    bumpFeeTxBuilderFinish(id: string, walletId: string): any;
 }
 export declare class NativeLoader {
     protected _bdk: NativeBdkRn;

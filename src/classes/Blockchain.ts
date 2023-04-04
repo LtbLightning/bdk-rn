@@ -1,6 +1,7 @@
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 import { BlockchainElectrumConfig, BlockchainEsploraConfig, BlockChainNames } from '../lib/enums';
 import { NativeLoader } from './NativeLoader';
+import { FeeRate } from './Bindings';
 
 /**
  * Blockchain methods
@@ -57,5 +58,14 @@ export class Blockchain extends NativeLoader {
    */
   async broadcast(psbt: PartiallySignedTransaction): Promise<boolean> {
     return await this._bdk.broadcast(this.id, psbt.signedBase64);
+  }
+
+  /**
+   * Estimate the fee rate required to confirm a transaction in a given target of blocks
+   * @returns {Promise<number>}
+   */
+  async estimateFee(target: number): Promise<FeeRate> {
+    let feeRate = await this._bdk.estimateFee(this.id, target);
+    return new FeeRate(feeRate);
   }
 }

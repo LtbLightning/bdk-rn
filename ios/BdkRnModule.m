@@ -145,6 +145,13 @@ RCT_EXTERN_METHOD(
     reject:(RCTPromiseRejectBlock)reject
 )
 
+RCT_EXTERN_METHOD(
+    estimateFee:(nonnull NSString*)id
+    target: (nonnull NSNumber*)target
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
 /** DB configuration methods */
 RCT_EXTERN_METHOD(memoryDBInit:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(
@@ -449,6 +456,41 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
     psbtFeeRate: (nonnull NSString*)base64
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+/** BumpFeeTxBuilder methods */
+RCT_EXTERN_METHOD(
+    bumpFeeTxBuilderInit: (nonnull NSString*)txid
+    newFeeRate: (nonnull NSNumber*)newFeeRate
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    bumpFeeTxBuilderAllowShrinking: (nonnull NSString*)id
+    address: (nonnull NSString*)address
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    bumpFeeTxBuilderEnableRbf: (nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    bumpFeeTxBuilderEnableRbfWithSequence: (nonnull NSString*)id
+    nSequence: (nonnull NSNumber*)nSequence
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    bumpFeeTxBuilderFinish: (nonnull NSString*)id
+    walletId: (nonnull NSString*)walletId
     resolve: (RCTPromiseResolveBlock)resolve
     reject: (RCTPromiseRejectBlock)reject
 )

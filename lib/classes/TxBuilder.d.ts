@@ -1,7 +1,6 @@
 import { Wallet } from './Wallet';
-import { OutPoint, Script, ScriptAmount } from './Bindings';
+import { OutPoint, Script, ScriptAmount, TxBuilderResult } from './Bindings';
 import { NativeLoader } from './NativeLoader';
-import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 /**
  * TxBuilder methods
  */
@@ -19,12 +18,6 @@ export declare class TxBuilder extends NativeLoader {
      * @returns {Promise<TxBuilder>}
      */
     addRecipient(script: Script, amount: number): Promise<TxBuilder>;
-    /**
-     * Finishes the transaction building
-     * @param wallet
-     * @returns
-     */
-    finish(wallet: Wallet): Promise<PartiallySignedTransaction>;
     /**
      * Add unspendable
      * @param outPoint
@@ -109,4 +102,10 @@ export declare class TxBuilder extends NativeLoader {
      * @returns {Promise<TxBuilder>}
      */
     setRecipients(recipients: Array<ScriptAmount>): Promise<TxBuilder>;
+    /**
+     * Finishes the transaction building
+     * @param wallet
+     * @returns
+     */
+    finish(wallet: Wallet): Promise<TxBuilderResult>;
 }

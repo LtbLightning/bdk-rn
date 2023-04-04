@@ -1,3 +1,5 @@
+import { PartiallySignedTransaction } from './PartiallySignedTransaction';
+
 /**
  * A derived address and the index it was found at For convenience this automatically derefs to Address
  */
@@ -201,5 +203,33 @@ export class ScriptAmount {
   constructor(script: Script, amount: number) {
     this.script = script;
     this.amount = amount;
+  }
+}
+
+/**
+ * Fee Rate class
+ */
+export class FeeRate {
+  _feeRate: number;
+
+  constructor(_feeRate: number) {
+    this._feeRate = _feeRate;
+  }
+
+  asSatPerVb(): number {
+    return this._feeRate;
+  }
+}
+
+/**
+ * The value returned from calling the .finish() method on the [TxBuilder] or [BumpFeeTxBuilder].
+ */
+export class TxBuilderResult {
+  psbt: PartiallySignedTransaction;
+  txDetails: TransactionDetails;
+
+  constructor(psbt: PartiallySignedTransaction, txDetails: TransactionDetails) {
+    this.psbt = psbt;
+    this.txDetails = txDetails;
   }
 }

@@ -80,12 +80,8 @@ fun getTransactionObject(transaction: TransactionDetails): MutableMap<String, An
 }
 
 fun getPSBTObject(txResult: TxBuilderResult?): MutableMap<String, Any> {
-    val psbt = txResult!!.psbt
     return mutableMapOf(
-        "base64" to psbt!!.serialize(),
-        "txid" to psbt.txid(),
-        "extractTx" to psbt.extractTx().toString(),
-        "feeAmount" to psbt.feeAmount()!!.toInt(),
+        "base64" to txResult!!.psbt.serialize(),
         "transactionDetails" to getTransactionObject(txResult.transactionDetails),
     )
 }
