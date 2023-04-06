@@ -1,4 +1,5 @@
 import { NativeLoader } from './NativeLoader';
+import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 import { Wallet } from './Wallet';
 /**
  * BumpFeeTxBuilder methods
@@ -40,5 +41,5 @@ export declare class BumpFeeTxBuilder extends NativeLoader {
      * @param wallet
      * @returns
      */
-    finish(wallet: Wallet): Promise<any>;
+    finish(wallet: Wallet): Promise<PartiallySignedTransaction>;
 }

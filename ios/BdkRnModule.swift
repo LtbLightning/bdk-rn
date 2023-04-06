@@ -1123,7 +1123,7 @@ class BdkRnModule: NSObject {
     ) {
         do {
             let res = try _bumpFeeTxBuilders[id]!.finish(wallet: getWalletById(id: walletId))
-            resolve(res)
+            resolve(res.serialize())
         } catch let error {
             reject("BumpFee Txbuilder finish error", "\(error)", error)
         }

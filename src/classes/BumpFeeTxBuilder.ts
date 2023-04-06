@@ -1,5 +1,3 @@
-import { createTxDetailsObject } from '../lib/utils';
-import { TxBuilderResult } from './Bindings';
 import { NativeLoader } from './NativeLoader';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 import { Wallet } from './Wallet';
@@ -61,9 +59,8 @@ export class BumpFeeTxBuilder extends NativeLoader {
    * @param wallet
    * @returns
    */
-  async finish(wallet: Wallet): Promise<any> {
+  async finish(wallet: Wallet): Promise<PartiallySignedTransaction> {
     let response = await this._bdk.bumpFeeTxBuilderFinish(this.id, wallet.id);
-    let psbt = new PartiallySignedTransaction(response.base64);
-    return new TxBuilderResult(psbt, createTxDetailsObject(response.transactionDetails));
+    return new PartiallySignedTransaction(response);
   }
 }

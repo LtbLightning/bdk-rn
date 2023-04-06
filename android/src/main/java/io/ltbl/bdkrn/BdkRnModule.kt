@@ -35,6 +35,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     private var _derivationPaths = mutableMapOf<String, DerivationPath>()
     private var _databaseConfigs = mutableMapOf<String, DatabaseConfig>()
+    private var _bumpFeeTxBuilders = mutableMapOf<String, BumpFeeTxBuilder>()
 
     init {
         _blockchainConfig = BlockchainConfig.Electrum(
@@ -801,6 +802,43 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             result.reject("PSBT feeRate error", error.localizedMessage, error)
         }
     }
+    /** PartiallySignedTransaction method ends */
 
+    /** BumpFeeTxBuilder methods starts*/
+    @ReactMethod
+    fun bumpFeeTxBuilderInit(txid: String, newFeeRate: Int, result: Promise) {
+        val id = randomId()
+        _bumpFeeTxBuilders[id] = BumpFeeTxBuilder(txid, newFeeRate.toFloat())
+        result.resolve(id)
+    }
+
+    @ReactMethod
+    fun bumpFeeTxBuilderAllowShrinking(id: String, address: String, result: Promise) {
+        _bumpFeeTxBuilders[id] = _bumpFeeTxBuilders[id]!!.allowShrinking(address)
+        result.resolve(true)
+    }
+
+    @ReactMethod
+    fun bumpFeeTxBuilderEnableRbf(id: String, result: Promise) {
+        _bumpFeeTxBuilders[id] = _bumpFeeTxBuilders[id]!!.enableRbf()
+        result.resolve(true)
+    }
+
+    @ReactMethod
+    fun bumpFeeTxBuilderEnableRbfWithSequence(id: String, nSequence: Int, result: Promise) {
+        _bumpFeeTxBuilders[id] = _bumpFeeTxBuilders[id]!!.enableRbfWithSequence(nSequence.toUInt())
+        result.resolve(true)
+    }
+
+    @ReactMethod
+    fun bumpFeeTxBuilderFinish(id: String, walletId: String, result: Promise) {
+        try {
+            val res = _bumpFeeTxBuilders[id]!!.finish(getWalletById(walletId))
+            result.resolve(res.serialize())
+        } catch (error: Throwable) {
+            result.reject("BumpFee Txbuilder finish error", error.localizedMessage, error)
+        }
+    }
+    /** BumpFeeTxBuilder methods ends*/
 }
 
