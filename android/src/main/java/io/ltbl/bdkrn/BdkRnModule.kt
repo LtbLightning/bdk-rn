@@ -36,6 +36,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     private var _derivationPaths = mutableMapOf<String, DerivationPath>()
     private var _databaseConfigs = mutableMapOf<String, DatabaseConfig>()
     private var _bumpFeeTxBuilders = mutableMapOf<String, BumpFeeTxBuilder>()
+    private var _transactions = mutableMapOf<String, Transaction>()
 
     init {
         _blockchainConfig = BlockchainConfig.Electrum(
@@ -149,10 +150,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun descriptorSecretAsSecretBytes(secretKeyId: String, result: Promise) {
-        val arr = WritableNativeArray()
         val scretBytes = _descriptorSecretKeys[secretKeyId]!!.secretBytes()
-        for (i in scretBytes) arr.pushInt(i.toInt())
-        result.resolve(arr)
+        result.resolve(makeNativeArray(scretBytes))
     }
     /** Descriptor secret key methods ends */
 
@@ -276,10 +275,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun broadcast(id: String, signedPsbtBase64: String, result: Promise) {
+    fun broadcast(id: String, txId: String, result: Promise) {
         try {
-            val psbt = PartiallySignedTransaction(signedPsbtBase64)
-            getBlockchainById(id).broadcast(psbt.extractTx())
+            getBlockchainById(id).broadcast(_transactions[txId]!!)
             result.resolve(true)
         } catch (error: Throwable) {
             return result.reject("Broadcast transaction error", error.localizedMessage, error)
@@ -760,8 +758,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun extractTx(base64: String, result: Promise) {
         try {
-            val tx = PartiallySignedTransaction(base64).extractTx()
-            result.resolve(tx.toString())
+            val id = randomId()
+            _transactions[id] = PartiallySignedTransaction(base64).extractTx()
+            result.resolve(id)
         } catch (error: Throwable) {
             result.reject("PSBT extract error", error.localizedMessage, error)
         }
@@ -770,7 +769,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun serialize(base64: String, result: Promise) {
         try {
-            result.resolve(PartiallySignedTransaction(base64).serialize())
+            val bytes = PartiallySignedTransaction(base64).serialize();
+            result.resolve(bytes)
         } catch (error: Throwable) {
             result.reject("PSBT serialize error", error.localizedMessage, error)
         }
@@ -840,5 +840,24 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         }
     }
     /** BumpFeeTxBuilder methods ends*/
+
+    /** Transaction methods starts*/
+    @ReactMethod
+    fun createTransaction(bytes: ReadableArray, result: Promise) {
+        try {
+            val id = randomId()
+            _transactions[id] = Transaction(getTxBytes(bytes))
+            result.resolve(id)
+        } catch (error: Throwable) {
+            result.reject("BumpFee Txbuilder finish error", error.localizedMessage, error)
+        }
+    }
+
+    @ReactMethod
+    fun serializeTransaction(id: String, result: Promise) {
+        val uBytes = _transactions[id]!!.serialize()
+        result.resolve(makeNativeArray(uBytes))
+    }
+    /** Transaction methods ends*/
 }
 

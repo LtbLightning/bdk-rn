@@ -4,6 +4,7 @@ import android.util.Log
 import com.facebook.react.bridge.NativeMap
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableNativeArray
 import org.bitcoindevkit.*
 import java.util.*
 import kotlin.collections.ArrayList
@@ -12,10 +13,6 @@ object BdkProgress : Progress {
     override fun update(progress: Float, message: String?) {
         Log.i(progress.toString(), "Progress Log")
     }
-}
-
-fun createChangeDescriptor(descriptor: String): String {
-    return descriptor.replace("/84'/1'/0'/0/*", "/84'/1'/0'/1/*")
 }
 
 fun setNetwork(networkStr: String? = "testnet"): Network {
@@ -99,4 +96,18 @@ fun setKeychainKind(keychainKind: String? = "external"): KeychainKind {
         "internal" -> KeychainKind.INTERNAL
         else -> KeychainKind.EXTERNAL
     }
+}
+
+fun getTxBytes(bytes: ReadableArray): List<UByte> {
+    val bytesArray = ArrayList<UByte>()
+    for (i in 0 until bytes.size()) {
+        bytesArray.add(bytes.getInt(i).toUByte())
+    }
+    return bytesArray
+}
+
+fun makeNativeArray(bytes: List<UByte>): WritableNativeArray{
+    val arr = WritableNativeArray()
+    for (i in bytes) arr.pushInt(i.toInt())
+    return  arr
 }
