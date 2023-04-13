@@ -1,8 +1,8 @@
-import { Wallet } from './Wallet';
-import { OutPoint, Script, ScriptAmount, TransactionDetails, TxBuilderResult } from './Bindings';
-import { NativeLoader } from './NativeLoader';
 import { createTxDetailsObject } from '../lib/utils';
+import { OutPoint, Script, ScriptAmount, TxBuilderResult } from './Bindings';
+import { NativeLoader } from './NativeLoader';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
+import { Wallet } from './Wallet';
 
 /**
  * TxBuilder methods

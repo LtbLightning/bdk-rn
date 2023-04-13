@@ -1,6 +1,6 @@
-import { Wallet } from './Wallet';
 import { OutPoint, Script, ScriptAmount, TxBuilderResult } from './Bindings';
 import { NativeLoader } from './NativeLoader';
+import { Wallet } from './Wallet';
 /**
  * TxBuilder methods
  */

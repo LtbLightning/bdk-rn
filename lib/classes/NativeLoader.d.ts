@@ -19,7 +19,7 @@ export interface NativeBdkRn {
     initEsploraBlockchain(url: string, proxy: string, concurrency: string, timeout: string, stopGap: string): string;
     getBlockchainHeight(id: string): number;
     getBlockchainHash(id: string, height: number): string;
-    broadcast(id: string, signedPsbtBase64: string): boolean;
+    broadcast(id: string, txId: string): boolean;
     estimateFee(id: string, target: number): number;
     memoryDBInit(): string;
     sledDBInit(path: string, treeName: string): string;
@@ -75,6 +75,8 @@ export interface NativeBdkRn {
     bumpFeeTxBuilderEnableRbf(id: string): any;
     bumpFeeTxBuilderEnableRbfWithSequence(id: string, nsequence: number): any;
     bumpFeeTxBuilderFinish(id: string, walletId: string): any;
+    createTransaction(bytes: Array<number>): string;
+    serializeTransaction(id: string): Array<number>;
 }
 export declare class NativeLoader {
     protected _bdk: NativeBdkRn;

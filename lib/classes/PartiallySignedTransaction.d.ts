@@ -1,12 +1,11 @@
+import { Transaction } from './Transaction';
 import { NativeLoader } from './NativeLoader';
 /**
  * A Partially Signed Transaction
  */
 export declare class PartiallySignedTransaction extends NativeLoader {
     base64: string;
-    signedBase64: string;
     constructor(base64: string);
-    setSignedPsbt(sbt: string): PartiallySignedTransaction;
     /**
      * Combines this [PartiallySignedTransaction] with other PSBT as described by BIP 174.
      * In accordance with BIP 174 this function is commutative i.e., `A.combine(B) == B.combine(A)`
@@ -18,7 +17,7 @@ export declare class PartiallySignedTransaction extends NativeLoader {
      * Return the transaction as bytes.
      * @returns {Promise<any>}
      */
-    extractTx(): Promise<any>;
+    extractTx(): Promise<Transaction>;
     /**
      * Return transaction as string
      * @returns {Promise<string>}

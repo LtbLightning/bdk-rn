@@ -1,7 +1,6 @@
 import { NativeModules } from 'react-native';
 import { Network, WordCount, AddressIndex, KeychainKind } from '../lib/enums';
 import { AddressInfo, Balance, LocalUtxo, OutPoint, ScriptAmount, TransactionDetails } from './Bindings';
-import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 
 export interface NativeBdkRn {
   generateSeedFromWordCount(wordCount: WordCount): string;
@@ -26,7 +25,7 @@ export interface NativeBdkRn {
   initEsploraBlockchain(url: string, proxy: string, concurrency: string, timeout: string, stopGap: string): string;
   getBlockchainHeight(id: string): number;
   getBlockchainHash(id: string, height: number): string;
-  broadcast(id: string, signedPsbtBase64: string): boolean;
+  broadcast(id: string, txId: string): boolean;
   estimateFee(id: string, target: number): number;
 
   memoryDBInit(): string;
@@ -91,6 +90,9 @@ export interface NativeBdkRn {
   bumpFeeTxBuilderEnableRbf(id: string): any;
   bumpFeeTxBuilderEnableRbfWithSequence(id: string, nsequence: number): any;
   bumpFeeTxBuilderFinish(id: string, walletId: string): any;
+
+  createTransaction(bytes: Array<number>): string;
+  serializeTransaction(id: string): Array<number>;
 }
 
 export class NativeLoader {

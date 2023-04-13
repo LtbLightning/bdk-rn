@@ -12,12 +12,6 @@ class BdkProgress: Progress {
     }
 }
 
-
-func createChangeDescriptor(descriptor: String) -> String {
-    return descriptor.replacingOccurrences(of: "/84'/1'/0'/0/*", with: "/84'/1'/0'/1/*")
-}
-
-
 func setNetwork(networkStr: String?) -> Network {
     switch (networkStr) {
         case "testnet": return Network.testnet
@@ -102,4 +96,13 @@ func setKeychainKind(keychainKind: String? = "external") -> KeychainKind {
         case "internal": return KeychainKind.internal
         default: return KeychainKind.external
     }
+}
+
+
+func getTxBytes(bytes: NSArray) -> Array<UInt8> {
+    var bytesArray: [UInt8] = []
+    for i in bytes {
+        bytesArray.append(UInt8(Int16(i as! UInt8)))
+    }
+    return bytesArray
 }

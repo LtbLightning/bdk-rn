@@ -140,7 +140,7 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
     broadcast:(nonnull NSString*)id
-    signedPsbtBase64: (nonnull NSString*)signedPsbtBase64
+    txId: (nonnull NSString*)txId
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
@@ -495,4 +495,17 @@ RCT_EXTERN_METHOD(
     reject: (RCTPromiseRejectBlock)reject
 )
 
+
+/** Transaction methods */
+RCT_EXTERN_METHOD(
+    createTransaction: (nonnull NSArray*)bytes
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    serializeTransaction: (nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
 @end

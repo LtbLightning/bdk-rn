@@ -15,8 +15,6 @@ class BdkRnModule: NSObject {
     var _descriptorSecretKeys: [String: DescriptorSecretKey] = [:]
     var _descriptorPublicKeys: [String: DescriptorPublicKey] = [:]
 
-    let _defaultPublicKey: String = "tpubD6NzVbkrYhZ4X1EWKTKQaGTrfs9cu5wpFiv7XroiRYBgStXFDx88SzijzRo69U7E3nBr8jiKYyb1MtNWaAHD8fhT1A3PGz5Duy6urG8uxLD/*"
-
     var _blockchainConfig: BlockchainConfig
     var _emptyBlockChain: Blockchain
 
@@ -34,6 +32,7 @@ class BdkRnModule: NSObject {
     var _derivationPaths: [String: DerivationPath] = [:]
     var _databaseConfigs: [String: DatabaseConfig] = [:]
     var _bumpFeeTxBuilders: [String: BumpFeeTxBuilder] = [:]
+    var _transactions: [String: Transaction] = [:]
 
 
     override init() {
@@ -344,13 +343,12 @@ class BdkRnModule: NSObject {
     @objc
     func broadcast(_
         id: String,
-        signedPsbtBase64: String,
+        txId: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let psbt = try PartiallySignedTransaction(psbtBase64: signedPsbtBase64)
-            _ = try getBlockchainById(id: id).broadcast(transaction: psbt.extractTx())
+            _ = try getBlockchainById(id: id).broadcast(transaction: _transactions[txId]!)
             resolve(true)
         } catch let error {
             reject("Broadcast transaction error", "\(error)", error)
@@ -1008,8 +1006,9 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let tx = try PartiallySignedTransaction(psbtBase64: base64).extractTx()
-            resolve(tx.serialize())
+            let id = randomId()
+            _transactions[id] = try PartiallySignedTransaction(psbtBase64: base64).extractTx()
+            resolve(id)
         } catch let error {
             reject("PSBT extract error", "\(error)", error)
         }
@@ -1129,5 +1128,33 @@ class BdkRnModule: NSObject {
         }
     }
     /** BumpFeeTxBuilder methods ends*/
+    
+    
+    /** Transaction methods starts*/
+    @objc
+    func createTransaction(_
+        bytes: NSArray,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let id = randomId()
+            _transactions[id] = try Transaction(transactionBytes: getTxBytes(bytes: bytes))
+            resolve(id)
+        } catch let error {
+            reject("Create transaction error", "\(error)", error)
+        }
+    }
+    
+    
+    @objc
+    func serializeTransaction(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(_transactions[id]!.serialize())
+    }
+    /** Transaction methods ends*/
 }
 

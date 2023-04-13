@@ -11,6 +11,7 @@ import { TxBuilder } from './classes/TxBuilder';
 import { Descriptor } from './classes/Descriptor';
 import { PartiallySignedTransaction } from './classes/PartiallySignedTransaction';
 import { BumpFeeTxBuilder } from './classes/BumpFeeTxBuilder';
+import { Transaction } from './classes/Transaction';
 
 export {
   BdkRn,
@@ -26,4 +27,5 @@ export {
   Descriptor,
   PartiallySignedTransaction,
   BumpFeeTxBuilder,
+  Transaction,
 };

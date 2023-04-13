@@ -1,3 +1,4 @@
+import { Transaction } from './Transaction';
 import { NativeLoader } from './NativeLoader';
 
 /**
@@ -5,16 +6,10 @@ import { NativeLoader } from './NativeLoader';
  */
 export class PartiallySignedTransaction extends NativeLoader {
   base64: string;
-  signedBase64: string = '';
 
   constructor(base64: string) {
     super();
     this.base64 = base64;
-  }
-
-  setSignedPsbt(sbt: string): PartiallySignedTransaction {
-    this.signedBase64 = sbt;
-    return this;
   }
 
   /**
@@ -32,8 +27,9 @@ export class PartiallySignedTransaction extends NativeLoader {
    * Return the transaction as bytes.
    * @returns {Promise<any>}
    */
-  async extractTx(): Promise<any> {
-    return await this._bdk.extractTx(this.base64);
+  async extractTx(): Promise<Transaction> {
+    let id = await this._bdk.extractTx(this.base64);
+    return new Transaction()._setTransaction(id);
   }
 
   /**

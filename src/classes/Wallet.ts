@@ -1,4 +1,4 @@
-import { AddressInfo, Balance, BlockTime, LocalUtxo, OutPoint, TransactionDetails, TxOut } from './Bindings';
+import { AddressInfo, Balance, LocalUtxo, OutPoint, TransactionDetails, TxOut } from './Bindings';
 import { AddressIndex, Network } from '../lib/enums';
 import { NativeLoader } from './NativeLoader';
 import { Blockchain } from './Blockchain';
@@ -115,7 +115,6 @@ export class Wallet extends NativeLoader {
    */
   async sign(psbt: PartiallySignedTransaction): Promise<PartiallySignedTransaction> {
     let signed = await this._bdk.sign(this.id, psbt.base64);
-    psbt.setSignedPsbt(signed);
-    return psbt;
+    return new PartiallySignedTransaction(signed);
   }
 }

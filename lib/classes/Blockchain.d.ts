@@ -1,7 +1,7 @@
-import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 import { BlockchainElectrumConfig, BlockchainEsploraConfig, BlockChainNames } from '../lib/enums';
 import { NativeLoader } from './NativeLoader';
 import { FeeRate } from './Bindings';
+import { Transaction } from 'bdk-rn/src/classes/Transaction';
 /**
  * Blockchain methods
  * Blockchain backends module provides the implementation of a few commonly-used backends like Electrum, and Esplora.
@@ -32,7 +32,7 @@ export declare class Blockchain extends NativeLoader {
      * Broadcast transaction
      * @returns {Promise<boolean>}
      */
-    broadcast(psbt: PartiallySignedTransaction): Promise<boolean>;
+    broadcast(tx: Transaction): Promise<boolean>;
     /**
      * Estimate the fee rate required to confirm a transaction in a given target of blocks
      * @returns {Promise<number>}
