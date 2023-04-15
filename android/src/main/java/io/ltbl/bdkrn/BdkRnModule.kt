@@ -257,6 +257,49 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun initRpcBlockchain(config: ReadableMap, result: Promise) {
+        try {
+            var authType: Auth = Auth.None
+            if (config.getString("authCookie") != null) {
+                authType = Auth.Cookie(config.getString("authCookie")!!)
+            }
+
+            if (config.getMap("authUserPass") != null) {
+                val userPass = config.getMap("authUserPass") as ReadableMap
+                authType = Auth.UserPass(
+                    userPass.getString("username")!!,
+                    userPass.getString("password")!!
+                )
+            }
+            var syncParams: RpcSyncParams? = null
+            if (config.getMap("syncParams") != null) {
+                val syncParamsConfig = config.getMap("syncParams") as ReadableMap
+                syncParams = RpcSyncParams(
+                    syncParamsConfig.getInt("startScriptCount").toULong()!!,
+                    syncParamsConfig.getInt("startTime").toULong()!!,
+                    syncParamsConfig.getBoolean("forceStartTime"),
+                    syncParamsConfig.getInt("pollRateSec").toULong()!!,
+                )
+            }
+
+            _blockchainConfig = BlockchainConfig.Rpc(
+                RpcConfig(
+                    config.getString("url")!!,
+                    authType,
+                    setNetwork(config.getString("network")!!),
+                    config.getString("walletName")!!,
+                    syncParams
+                )
+            )
+            val blockChainId = randomId()
+            _blockChains[blockChainId] = Blockchain(_blockchainConfig)
+            result.resolve(blockChainId)
+        } catch (error: Throwable) {
+            return result.reject("BlockchainRpc init error", error.localizedMessage, error)
+        }
+    }
+
+    @ReactMethod
     fun getBlockchainHeight(id: String, result: Promise) {
         try {
             result.resolve(getBlockchainById(id).getHeight().toInt())

@@ -33,7 +33,7 @@ export declare class Wallet extends NativeLoader {
      * Get the Bitcoin network the wallet is using.
      * @returns {Promise<string>}
      */
-    network(): Promise<string>;
+    network(): Promise<Network>;
     /**
      * Sync the internal database with the [Blockchain]
      * @returns {Promise<boolean>}

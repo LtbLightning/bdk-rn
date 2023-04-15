@@ -1,4 +1,3 @@
-import { BdkRn } from './classes/BdkRn';
 import { Blockchain } from './classes/Blockchain';
 import { DatabaseConfig } from './classes/DatabaseConfig';
 import { DerivationPath } from './classes/DerivationPath';
@@ -12,4 +11,4 @@ import { Descriptor } from './classes/Descriptor';
 import { PartiallySignedTransaction } from './classes/PartiallySignedTransaction';
 import { BumpFeeTxBuilder } from './classes/BumpFeeTxBuilder';
 import { Transaction } from './classes/Transaction';
-export { BdkRn, Blockchain, DatabaseConfig, DerivationPath, DescriptorPublicKey, DescriptorSecretKey, Mnemonic, Wallet, Address, TxBuilder, Descriptor, PartiallySignedTransaction, BumpFeeTxBuilder, Transaction, };
+export { Blockchain, DatabaseConfig, DerivationPath, DescriptorPublicKey, DescriptorSecretKey, Mnemonic, Wallet, Address, TxBuilder, Descriptor, PartiallySignedTransaction, BumpFeeTxBuilder, Transaction, };

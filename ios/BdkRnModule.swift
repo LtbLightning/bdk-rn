@@ -311,6 +311,54 @@ class BdkRnModule: NSObject {
             reject("BlockchainEsplora init error", "\(error)", error)
         }
     }
+    
+    @objc
+    func initRpcBlockchain(_
+        config: NSDictionary,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            var authType = Auth.none
+            if config["authCookie"] != nil {
+                authType = Auth.cookie(file: config["authCookie"] as! String)
+            }
+            
+            if config["authUserPass"] != nil {
+                let userPass = config["authUserPass"] as! NSDictionary
+                authType = Auth.userPass(
+                    username: userPass["username"] as! String,
+                    password: userPass["password"] as! String
+                )
+            }
+            
+            var syncParams: RpcSyncParams? = nil
+            if config["syncParams"] != nil {
+                let syncParamsConfig = config["syncParams"] as! NSDictionary
+                syncParams = RpcSyncParams(
+                    startScriptCount: syncParamsConfig["startScriptCount"] as! UInt64,
+                    startTime: syncParamsConfig["startTime"] as! UInt64,
+                    forceStartTime: syncParamsConfig["forceStartTime"] as! Bool,
+                    pollRateSec: syncParamsConfig["pollRateSec"] as! UInt64
+                )
+            }
+            
+            _blockchainConfig = BlockchainConfig.rpc(
+                config: RpcConfig(
+                    url: config["url"] as! String,
+                    auth: authType,
+                    network: setNetwork(networkStr: config["network"] as? String),
+                    walletName: config["walletName"] as! String,
+                    syncParams: syncParams
+                )
+            )
+            let blockChainId = randomId()
+            _blockChains[blockChainId] = try Blockchain(config: _blockchainConfig)
+            resolve(blockChainId)
+        } catch let error {
+            reject("BlockchainRpc init error", "\(error)", error)
+        }
+    }
 
     @objc
     func getBlockchainHeight(_

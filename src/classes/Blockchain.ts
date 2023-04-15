@@ -1,5 +1,5 @@
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
-import { BlockchainElectrumConfig, BlockchainEsploraConfig, BlockChainNames } from '../lib/enums';
+import { BlockchainElectrumConfig, BlockchainEsploraConfig, BlockChainNames, BlockchainRpcConfig } from '../lib/enums';
 import { NativeLoader } from './NativeLoader';
 import { FeeRate } from './Bindings';
 import { Transaction } from 'bdk-rn/src/classes/Transaction';
@@ -21,15 +21,17 @@ export class Blockchain extends NativeLoader {
    * @returns {Promise<Blockchain>}
    */
   async create(
-    config: BlockchainElectrumConfig | BlockchainEsploraConfig,
+    config: BlockchainElectrumConfig | BlockchainEsploraConfig | BlockchainRpcConfig,
     blockchainName: BlockChainNames = BlockChainNames.Electrum
   ): Promise<Blockchain> {
     if (BlockChainNames.Electrum === blockchainName) {
       const { url, retry, stopGap, timeout } = config as BlockchainElectrumConfig;
       this.id = await this._bdk.initElectrumBlockchain(url, retry, stopGap, timeout);
-    } else {
+    } else if (BlockChainNames.Esplora === blockchainName) {
       const { url, proxy, concurrency, timeout, stopGap } = config as BlockchainEsploraConfig;
       this.id = await this._bdk.initEsploraBlockchain(url, proxy, concurrency, timeout, stopGap);
+    } else if (BlockChainNames.Rpc === blockchainName) {
+      this.id = await this._bdk.initRpcBlockchain(config as BlockchainRpcConfig);
     }
     this.isInit = true;
     return this;

@@ -65,8 +65,24 @@ export class Wallet extends NativeLoader {
    * Get the Bitcoin network the wallet is using.
    * @returns {Promise<string>}
    */
-  async network(): Promise<string> {
-    return await this._bdk.getNetwork(this.id);
+  async network(): Promise<Network> {
+    let networkName = await this._bdk.getNetwork(this.id);
+    let networkEnum = Network.Testnet;
+    switch (networkName) {
+      case 'testnet':
+        networkEnum = Network.Testnet;
+        break;
+      case 'regtest':
+        networkEnum = Network.Regtest;
+        break;
+      case 'bitcoin':
+        networkEnum = Network.Bitcoin;
+        break;
+      case 'signet':
+        networkEnum = Network.Signet;
+        break;
+    }
+    return networkEnum;
   }
 
   /**

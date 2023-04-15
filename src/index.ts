@@ -1,4 +1,3 @@
-import { BdkRn } from './classes/BdkRn';
 import { Blockchain } from './classes/Blockchain';
 import { DatabaseConfig } from './classes/DatabaseConfig';
 import { DerivationPath } from './classes/DerivationPath';
@@ -14,7 +13,6 @@ import { BumpFeeTxBuilder } from './classes/BumpFeeTxBuilder';
 import { Transaction } from './classes/Transaction';
 
 export {
-  BdkRn,
   Blockchain,
   DatabaseConfig,
   DerivationPath,

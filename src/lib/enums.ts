@@ -22,6 +22,17 @@ export enum EntropyLength {
 export enum BlockChainNames {
   Electrum = 'Electrum',
   Esplora = 'Esplora',
+  Rpc = 'Rpc',
+}
+
+export enum AddressIndex {
+  New = 'new',
+  LastUnused = 'lastUnused',
+}
+
+export enum KeychainKind {
+  External = 'external',
+  Internal = 'internal',
 }
 
 export interface BlockchainElectrumConfig {
@@ -38,12 +49,22 @@ export interface BlockchainEsploraConfig {
   stopGap: string;
 }
 
-export enum AddressIndex {
-  New = 'new',
-  LastUnused = 'lastUnused',
+export interface UserPass {
+  username: string;
+  password: string;
+}
+export interface RpcSyncParams {
+  startScriptCount: number;
+  startTime: number;
+  forceStartTime: boolean;
+  pollRateSec: number;
 }
 
-export enum KeychainKind {
-  External = 'external',
-  Internal = 'internal',
+export interface BlockchainRpcConfig {
+  url: string;
+  authCookie?: string;
+  authUserPass?: UserPass;
+  network: Network;
+  walletName: string;
+  syncParams?: RpcSyncParams;
 }

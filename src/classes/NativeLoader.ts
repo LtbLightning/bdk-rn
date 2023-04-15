@@ -1,5 +1,13 @@
 import { NativeModules } from 'react-native';
-import { Network, WordCount, AddressIndex, KeychainKind } from '../lib/enums';
+import {
+  Network,
+  WordCount,
+  AddressIndex,
+  KeychainKind,
+  UserPass,
+  RpcSyncParams,
+  BlockchainRpcConfig,
+} from '../lib/enums';
 import { AddressInfo, Balance, LocalUtxo, OutPoint, ScriptAmount, TransactionDetails } from './Bindings';
 
 export interface NativeBdkRn {
@@ -23,6 +31,7 @@ export interface NativeBdkRn {
 
   initElectrumBlockchain(url: string, retry: string, timeout: string, stopGap: string): string;
   initEsploraBlockchain(url: string, proxy: string, concurrency: string, timeout: string, stopGap: string): string;
+  initRpcBlockchain(config: BlockchainRpcConfig): string;
   getBlockchainHeight(id: string): number;
   getBlockchainHash(id: string, height: number): string;
   broadcast(id: string, txId: string): boolean;
