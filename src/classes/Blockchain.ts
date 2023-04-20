@@ -2,7 +2,7 @@ import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 import { BlockchainElectrumConfig, BlockchainEsploraConfig, BlockChainNames, BlockchainRpcConfig } from '../lib/enums';
 import { NativeLoader } from './NativeLoader';
 import { FeeRate } from './Bindings';
-import { Transaction } from 'bdk-rn/src/classes/Transaction';
+import { Transaction } from './Transaction';
 
 /**
  * Blockchain methods
