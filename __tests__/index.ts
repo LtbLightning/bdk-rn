@@ -1,10 +1,20 @@
-import { Balance, LocalUtxo, Script } from '../src/classes/Bindings';
+import { Balance, LocalUtxo, Script, TxBuilderResult } from '../src/classes/Bindings';
 import { OutPoint } from '../src/classes/Bindings';
 import { TransactionDetails } from '../src/classes/Bindings';
 import { BlockTime } from '../src/classes/Bindings';
 import { TxOut } from '../src/classes/Bindings';
 import { AddressInfo } from '../src/classes/Bindings';
-import { Address, Blockchain, DerivationPath, DescriptorPublicKey, DescriptorSecretKey, Wallet } from '../src/index';
+import {
+  Address,
+  Blockchain,
+  BumpFeeTxBuilder,
+  DerivationPath,
+  DescriptorPublicKey,
+  DescriptorSecretKey,
+  PartiallySignedTransaction,
+  TxBuilder,
+  Wallet,
+} from '../src/index';
 import { AddressIndex, Network } from '../src/lib/enums';
 import { when } from 'jest-when';
 jest.mock('./../src/index.ts');
@@ -16,14 +26,27 @@ const mockDescriptorSecret = new DescriptorSecretKey();
 const mockDescriptorPublic = new DescriptorPublicKey();
 const mockDerivationPath = new DerivationPath();
 const mockAddress = new Address();
-const mockScript = new Script('test_id');
+const mockScript = new Script('mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB');
+const mockTxBuilder = new TxBuilder();
+const mockBumpFeeTxBuilder = new BumpFeeTxBuilder();
 
 /** Blockchain test suite */
 const height = 2396450;
 const hash = '0000000000004c01f2723acaa5e87467ebd2768cc5eadcf1ea0d0c4f1731efce';
 const mockedNumber = 150;
-const mockedString = 'test';
-const mockedBool = true;
+const psbtString =
+  'cHNidP8BAJoBAAAAAivIGwj79VJdDEMC6DTEBFWNRXh8i63O5Bj2ul/ckLSiAAAAAAD+////q/fYDAwa/ovXiOHXMMJWBzSSppAfXu8xVBWr97kc60kAAAAAAP7///8CCwUAAAAAAAAWABTiG3occFHBPEfIFYEno1q+KemyBNwFAAAAAAAAFgAUJeosBE8pPYv+vWAJxdrAq2HPlb50ByUAAAEA3gEAAAAAAQG1SXpVEroudlm2vsvLISuSLWqp3SMiU8bE/zFmMfSlrAEAAAAA/v///wLcBQAAAAAAABYAFCXqLARPKT2L/r1gCcXawKthz5W+kRAAAAAAAAAWABRIuasG/iTpawzZOHBRQUPdiAgtjwJHMEQCICkgZhWePD/RuE7V87/VcxX6PIv9LPg8+K6O42bX49usAiBe+ohVk1/abwUqmeqYuSM8x/e6sDrnZB1rD6GFdfm9iQEhApqPApANDfpFbG9N/WKaIz7W/c4Mf/7J8Zw2Usaj0G/InfEkAAEBH9wFAAAAAAAAFgAUJeosBE8pPYv+vWAJxdrAq2HPlb4iBgKn69zak6elBqiAOr/Z//pXXXHCW9JlHB6Nh9ccRCENABgJwK/eVAAAgAEAAIAAAACAAAAAAAcAAAAAAQD9cgEBAAAAAAECovbyC3Cz7gh5c5NeEl+NmyrVHkJ1d2rhU7Uh+DmS7NkBAAAAAP7///+SPhXvmO5lpEkSYDX3pXJX4UQxOwl3kr/j1zniiE3ZngEAAAAA/v///wLcBQAAAAAAABYAFCXqLARPKT2L/r1gCcXawKthz5W+sBoAAAAAAAAWABRAhHNCgth+tfSl0MjNpNs3O47FEgJHMEQCIHl0XcCSCH7JKLwvO32VdRO0J9W0V/IL3RaQ0Vp4ac3WAiBW5cHlrtP+mxBDJ+wMj8DCjptEnO9zxDw9heSw6CL7GwEhAqfr3NqTp6UGqIA6v9n/+lddccJb0mUcHo2H1xxEIQ0AAkcwRAIgUzTkO+PIbFWFVbZRl6ygi7yt/hCYEmVijPrJFr1E458CIAbTRLNvI8lsnDhcoze8mHZTkrAhfQQxexiy4AVxPYvJASEDNiD45tgRtvrlY6QCHTSPq/yyeARojSMzPVWTgO7tHite+SQAAQEf3AUAAAAAAAAWABQl6iwETyk9i/69YAnF2sCrYc+VviIGAqfr3NqTp6UGqIA6v9n/+lddccJb0mUcHo2H1xxEIQ0AGAnAr95UAACAAQAAgAAAAIAAAAAABwAAAAAiAgI2ReskgqkBRuwxJXtQ26XViRJaolnh8310DqkZHcZkzRgJwK/eVAAAgAEAAIAAAACAAAAAAAkAAAAAIgICp+vc2pOnpQaogDq/2f/6V11xwlvSZRwejYfXHEQhDQAYCcCv3lQAAIABAACAAAAAgAAAAAAHAAAAAA==';
+
+const mockPsbt = new PartiallySignedTransaction(psbtString);
+const mockTransactionDetails = new TransactionDetails(
+  'c9bb2ad8612a4774c903b1d9be86ecddb374e8fd43262802542d4c903bd9002e',
+  7625,
+  8564,
+  141,
+  new BlockTime(2410324, 1670479190)
+);
+const mockTxBuilderResult = new TxBuilderResult(mockPsbt, mockTransactionDetails);
+
 describe('Blockchain', () => {
   it('verify getHeight', async () => {
     jest.spyOn(mockBlockchain, 'getHeight').mockResolvedValue(height);
@@ -94,15 +117,7 @@ describe('Wallet', () => {
   });
 
   it('Should return list of TransactionDetails', async () => {
-    let localTxObject = [
-      new TransactionDetails(
-        'c9bb2ad8612a4774c903b1d9be86ecddb374e8fd43262802542d4c903bd9002e',
-        7625,
-        8564,
-        141,
-        new BlockTime(2410324, 1670479190)
-      ),
-    ];
+    let localTxObject = [mockTransactionDetails];
     when(mockWallet.listTransactions).mockResolvedValue(localTxObject);
     let res = await mockWallet.listTransactions();
     expect(res).toBe(localTxObject);
@@ -185,5 +200,89 @@ describe('Script', () => {
   it('verify create', async () => {
     let res = mockScript;
     expect(res).toBeInstanceOf(Script);
+  });
+});
+
+/** TxBuilder test suite*/
+describe('TxBuilder', () => {
+  it('Should return a exception when funds are insufficient', async () => {
+    try {
+      jest.spyOn(mockTxBuilder, 'finish').mockRejectedValue(new Error('{ needed: 751, available: 0 }'));
+      await mockTxBuilder.finish(mockWallet);
+    } catch (e) {
+      expect(e.message).toBe('{ needed: 751, available: 0 }');
+    }
+  });
+
+  it('Should return a exception when no recipients are added', async () => {
+    try {
+      jest.spyOn(mockTxBuilder, 'finish').mockRejectedValue(new Error('No Recipients'));
+      await mockTxBuilder.finish(mockWallet);
+    } catch (e) {
+      expect(e.message).toBe('No Recipients');
+    }
+  });
+
+  test('Verify addData() Exception', async () => {
+    try {
+      jest.spyOn(mockTxBuilder, 'addData').mockRejectedValue(new Error('List must not be empty'));
+      await mockTxBuilder.addData([]);
+    } catch (e) {
+      expect(e.message).toBe('List must not be empty');
+    }
+  });
+
+  test('Verify unSpendable()', async () => {
+    when(mockTxBuilder.addUnspendable)
+      .calledWith(new OutPoint('efc5d0e6ad6611f22b05d3c1fc8888c3552e8929a4231f2944447e4426f52056', 1))
+      .mockResolvedValue(mockTxBuilder);
+    let res = await mockTxBuilder.addUnspendable(
+      new OutPoint('efc5d0e6ad6611f22b05d3c1fc8888c3552e8929a4231f2944447e4426f52056', 1)
+    );
+    expect(res).toBeInstanceOf(TxBuilder);
+  });
+
+  test('Should not return a exception when, a drainTo script address is added (with feeRate)', async () => {
+    when(mockTxBuilder.drainTo).calledWith(mockScript).mockResolvedValue(mockTxBuilder);
+    when(mockTxBuilder.feeRate).calledWith(25).mockResolvedValue(mockTxBuilder);
+    when(mockTxBuilder.finish).calledWith(mockWallet).mockResolvedValue(mockTxBuilderResult);
+
+    const txBuilder = await mockTxBuilder.drainTo(mockScript);
+    await txBuilder.feeRate(25);
+    const res = await txBuilder.finish(mockWallet);
+    expect(res.psbt).toBeInstanceOf(PartiallySignedTransaction);
+    expect(res.txDetails).toBeInstanceOf(TransactionDetails);
+  });
+
+  test('Should not return a exception when, a drainTo script address is added, instead of addRecipients', async () => {
+    when(mockTxBuilder.drainTo).calledWith(mockScript).mockResolvedValue(mockTxBuilder);
+    when(mockTxBuilder.finish).calledWith(mockWallet).mockResolvedValue(mockTxBuilderResult);
+
+    const txBuilder = await mockTxBuilder.drainTo(mockScript);
+    const res = await txBuilder.finish(mockWallet);
+    expect(res.psbt).toBeInstanceOf(PartiallySignedTransaction);
+    expect(res.txDetails).toBeInstanceOf(TransactionDetails);
+  });
+
+  test('Create a proper psbt transaction ', async () => {
+    when(mockAddress.scriptPubKey).mockResolvedValue(mockScript);
+    when(mockTxBuilder.addRecipient).calledWith(mockScript, 1200).mockResolvedValue(mockTxBuilder);
+    when(mockTxBuilder.finish).calledWith(mockWallet).mockResolvedValue(mockTxBuilderResult);
+    let script = await mockAddress.scriptPubKey();
+    let txBuilder = await mockTxBuilder.addRecipient(script, 1200);
+    let res = await txBuilder.finish(mockWallet);
+    expect(res).toBe(mockTxBuilderResult);
+  });
+});
+
+/** BumpFeeTxBuilder test suite*/
+describe('Bump Fee Tx Builder', () => {
+  test('Should return a exception when txid is invalid', async () => {
+    try {
+      jest.spyOn(mockBumpFeeTxBuilder, 'finish').mockRejectedValue(new Error('TransactionNotFound'));
+      await mockBumpFeeTxBuilder.finish(mockWallet);
+    } catch (e) {
+      expect(e.message).toBe('TransactionNotFound');
+    }
   });
 });
