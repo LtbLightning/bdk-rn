@@ -29,7 +29,7 @@
   ],
   "scripts": {
     "compile": "rm -rf lib && tsc -p .",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint": "eslint . --ext .js,.ts",
     "prepare": "yarn compile",
     "test": "jest",
     "postinstall": "node ./src/installer.js"

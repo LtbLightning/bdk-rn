@@ -1,4 +1,4 @@
-import { EntropyLength, WordCount } from '../lib/enums';
+import { WordCount } from '../lib/enums';
 import { NativeLoader } from './NativeLoader';
 
 /**

@@ -1,8 +1,8 @@
-import { DerivationPath } from './DerivationPath';
 import { Network } from '../lib/enums';
+import { DerivationPath } from './DerivationPath';
 import { DescriptorPublicKey } from './DescriptorPublicKey';
-import { NativeLoader } from './NativeLoader';
 import { Mnemonic } from './Mnemonic';
+import { NativeLoader } from './NativeLoader';
 
 /**
  * Descriptor Secret key methods
