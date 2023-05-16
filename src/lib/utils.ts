@@ -1,15 +1,11 @@
 import { BlockTime, TransactionDetails } from '../classes/Bindings';
 
-type ConfirmationTime = {
-  height?: number,
-  timestamp?: number
-}
 type Props = {
   txid: string,
   received: number,
   sent: number,
   fee?: number
-  confirmationTime?: ConfirmationTime
+  confirmationTime?: BlockTime
 }
 
 /** Create TransactionDetails object */
