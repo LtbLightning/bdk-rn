@@ -1,4 +1,4 @@
-import { BlockTime, TransactionDetails } from '../classes/Bindings';
+import { BlockTime, TransactionDetails } from '../../classes/Bindings';
 
 type Props = {
   txid: string,

@@ -1,5 +1,5 @@
-import { TransactionDetails } from '../../src/classes/Bindings'
-import { createTxDetailsObject } from '../../src/lib/utils'
+import { TransactionDetails } from '../../../src/classes/Bindings'
+import { createTxDetailsObject } from '../../../src/lib/utils'
 
 describe('createTxDetailsObject', ()=> {
   const item = {
