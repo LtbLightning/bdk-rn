@@ -1,9 +1,16 @@
-import { Balance, LocalUtxo, Script, TxBuilderResult } from '../src/classes/Bindings';
-import { OutPoint } from '../src/classes/Bindings';
-import { TransactionDetails } from '../src/classes/Bindings';
-import { BlockTime } from '../src/classes/Bindings';
-import { TxOut } from '../src/classes/Bindings';
-import { AddressInfo } from '../src/classes/Bindings';
+import { when } from 'jest-when';
+
+import {
+  AddressInfo,
+  Balance,
+  BlockTime,
+  LocalUtxo,
+  OutPoint,
+  Script,
+  TransactionDetails,
+  TxBuilderResult,
+  TxOut,
+} from '../src/classes/Bindings';
 import {
   Address,
   Blockchain,
@@ -16,7 +23,6 @@ import {
   Wallet,
 } from '../src/index';
 import { AddressIndex, Network } from '../src/lib/enums';
-import { when } from 'jest-when';
 jest.mock('./../src/index.ts');
 
 /** Mocked all needed classes */
