@@ -48,7 +48,7 @@ mockBdkRnModule.initEsploraBlockchain.mockReturnValue('esplora');
 mockBdkRnModule.initRpcBlockchain.mockReturnValue('rpc');
 
 describe('Blockchain', () => {
-  let blockChain;
+  let blockChain: Blockchain;
 
   beforeEach(async () => {
     blockChain = await new Blockchain().create(electrumConfig);
