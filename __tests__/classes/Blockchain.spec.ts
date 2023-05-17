@@ -9,7 +9,6 @@ import {
 } from '../../src/lib/enums';
 import { mockBdkRnModule } from '../setup';
 
-const mockBlockchain = new Blockchain();
 const height = 2396450;
 const hash = '0000000000004c01f2723acaa5e87467ebd2768cc5eadcf1ea0d0c4f1731efce';
 
@@ -91,28 +90,28 @@ describe('Blockchain', () => {
     const newHeight = height + 2;
     mockBdkRnModule.getBlockchainHeight.mockResolvedValue(newHeight);
     mockBdkRnModule.getBlockchainHash.mockResolvedValue(hash);
-    await mockBlockchain.getHeight();
-    let res = await mockBlockchain.getBlockHash();
-    expect(mockBdkRnModule.getBlockchainHash).toHaveBeenCalledWith(newHeight);
+    await blockChain.getHeight();
+    let res = await blockChain.getBlockHash();
+    expect(mockBdkRnModule.getBlockchainHash).toHaveBeenCalledWith('electrum', newHeight);
 
     expect(res).toBe(hash);
   });
   it('gets block hash based on height', async () => {
     mockBdkRnModule.getBlockchainHash.mockResolvedValue(hash);
-    let res = await mockBlockchain.getBlockHash(height);
-    expect(mockBdkRnModule.getBlockchainHash).toHaveBeenCalledWith(height);
+    let res = await blockChain.getBlockHash(height);
+    expect(mockBdkRnModule.getBlockchainHash).toHaveBeenCalledWith('electrum', height);
     expect(res).toBe(hash);
   });
 
   it('broadcasts tx', async () => {
     mockBdkRnModule.broadcast.mockResolvedValue(true);
     const mockTx = await new Transaction().create([1, 2, 34]);
-    let res = await mockBlockchain.broadcast(mockTx);
+    let res = await blockChain.broadcast(mockTx);
     expect(res).toBe(true);
   });
   it('estimates fees based on target number', async () => {
     mockBdkRnModule.estimateFee.mockResolvedValue(10);
-    let res = await mockBlockchain.estimateFee(6);
+    let res = await blockChain.estimateFee(6);
     expect(res).toEqual(new FeeRate(10));
   });
 });
