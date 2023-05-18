@@ -25,6 +25,7 @@ export const mockBdkRnModule = {
   broadcast: jest.fn(),
   estimateFee: jest.fn(),
 
+  memoryDBInit: jest.fn(),
   sledDBInit: jest.fn(),
   sqliteDBInit: jest.fn(),
 

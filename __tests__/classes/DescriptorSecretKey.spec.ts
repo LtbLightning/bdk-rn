@@ -63,7 +63,7 @@ describe('DescriptorSecretKey', () => {
     expect(res.id).toBe(descriptorPublicId);
   });
   it('returns secret bytes', async () => {
-    const secretBytes = [1,2,3];
+    const secretBytes = [1, 2, 3];
     mockBdkRnModule.descriptorSecretAsSecretBytes.mockResolvedValueOnce(secretBytes);
     let res = await descriptorSecret.secretBytes();
     expect(mockBdkRnModule.descriptorSecretAsSecretBytes).toHaveBeenCalledWith(descriptorSecret.id);
