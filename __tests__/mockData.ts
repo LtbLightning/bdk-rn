@@ -11,6 +11,8 @@ import {
   Wallet,
 } from '../src/index';
 
+export const seedPhrase = 'mom mom mom mom mom mom mom mom mom mom mom mom';
+
 export const mockBlockchain = new Blockchain();
 export const mockWallet = new Wallet();
 export const mockDescriptorSecret = new DescriptorSecretKey();

@@ -1,10 +1,9 @@
 import { DerivationPath, DescriptorPublicKey, DescriptorSecretKey, Mnemonic } from '../../src';
 import { Network } from '../../src/lib/enums';
-import { mockDescriptorSecret } from '../mockData';
+import { mockDescriptorSecret, seedPhrase } from '../mockData';
 import { mockBdkRnModule } from '../setup';
 
 describe('DescriptorSecretKey', () => {
-  const seedPhrase = 'mom mom mom mom mom mom mom mom mom mom mom mom';
   let mnemonic: Mnemonic;
   const secretKeyId = 'secretKeyId';
   let descriptorSecret: DescriptorSecretKey;
