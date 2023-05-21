@@ -1,9 +1,9 @@
 import { Mnemonic } from '../../src';
 import { WordCount } from '../../src/lib/enums';
+import { seedPhrase } from '../mockData';
 import { mockBdkRnModule } from '../setup';
 
 describe('Mnemonic', () => {
-  const seedPhrase = 'mom mom mom mom mom mom mom mom mom mom mom mom';
   const randomSeephrase = 'daughter stock episode hour ankle scissors shrug vivid problem bar zero spy';
   let mnemonic: Mnemonic;
   mockBdkRnModule.generateSeedFromWordCount.mockResolvedValue(randomSeephrase);

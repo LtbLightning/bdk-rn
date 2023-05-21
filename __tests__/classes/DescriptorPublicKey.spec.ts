@@ -30,17 +30,17 @@ describe('DescriptorPublicKey', () => {
   });
 
   it('derives a new descriptor from derivation path', async () => {
-    mockBdkRnModule.descriptorPublicDerive.mockResolvedValueOnce(mockDescriptorPublic);
+    mockBdkRnModule.descriptorPublicDerive.mockResolvedValueOnce(mockDescriptorPublic.id);
     let res = await descriptorPublic.derive(mockDerivationPath);
     expect(mockBdkRnModule.descriptorPublicDerive).toHaveBeenCalledWith(publicKeyId, derivationPathId);
-    expect(res).toBeInstanceOf(DescriptorPublicKey);
+    expect(res).toBe(mockDescriptorPublic.id);
   });
 
   it('extends descriptorPublic from derivation path', async () => {
-    mockBdkRnModule.descriptorPublicExtend.mockResolvedValueOnce(mockDescriptorPublic);
+    mockBdkRnModule.descriptorPublicExtend.mockResolvedValueOnce(mockDescriptorPublic.id);
     let res = await descriptorPublic.extend(mockDerivationPath);
     expect(mockBdkRnModule.descriptorPublicExtend).toHaveBeenCalledWith(publicKeyId, derivationPathId);
-    expect(res).toBeInstanceOf(DescriptorPublicKey);
+    expect(res).toBe(mockDescriptorPublic.id);
   });
 
   it('returns string representation', async () => {

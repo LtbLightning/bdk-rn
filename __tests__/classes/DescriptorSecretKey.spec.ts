@@ -34,17 +34,17 @@ describe('DescriptorSecretKey', () => {
   });
 
   it('derives a new descriptor from derivation path', async () => {
-    mockBdkRnModule.descriptorSecretDerive.mockResolvedValueOnce(mockDescriptorSecret);
+    mockBdkRnModule.descriptorSecretDerive.mockResolvedValueOnce(mockDescriptorSecret.id);
     let res = await descriptorSecret.derive(mockDerivationPath);
     expect(mockBdkRnModule.descriptorSecretDerive).toHaveBeenCalledWith(secretKeyId, derivationPathId);
-    expect(res).toBeInstanceOf(DescriptorSecretKey);
+    expect(res).toBe(mockDescriptorSecret.id);
   });
 
   it('extends descriptorSecret from derivation path', async () => {
-    mockBdkRnModule.descriptorSecretExtend.mockResolvedValueOnce(mockDescriptorSecret);
+    mockBdkRnModule.descriptorSecretExtend.mockResolvedValueOnce(mockDescriptorSecret.id);
     let res = await descriptorSecret.extend(mockDerivationPath);
     expect(mockBdkRnModule.descriptorSecretExtend).toHaveBeenCalledWith(secretKeyId, derivationPathId);
-    expect(res).toBeInstanceOf(DescriptorSecretKey);
+    expect(res).toBe(mockDescriptorSecret.id);
   });
 
   it('returns string representation', async () => {
