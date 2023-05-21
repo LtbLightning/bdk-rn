@@ -1,12 +1,14 @@
 import { when } from 'jest-when';
 
+import { Blockchain } from '../../src';
 import { AddressInfo, Balance, LocalUtxo, OutPoint, TxOut } from '../../src/classes/Bindings';
 import { AddressIndex, Network } from '../../src/lib/enums';
-import { mockBlockchain, mockTransactionDetails, mockWallet } from '../mockData';
-
-const mockedNumber = 150;
+import { mockTransactionDetails, mockWallet } from '../mockData';
 
 describe('Wallet', () => {
+  const mockedNumber = 150;
+  const mockBlockchain = new Blockchain();
+
   let addressIndex = 82;
   let address = 'tb1qzn0qsh9wdp0m7sx877p9u8kptnvmykm9ld5lyd';
   jest.spyOn(mockWallet, 'getAddress').mockResolvedValue(new AddressInfo(addressIndex, address));

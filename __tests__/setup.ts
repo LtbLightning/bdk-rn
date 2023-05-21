@@ -89,6 +89,8 @@ export const mockBdkRnModule = {
 
   createTransaction: jest.fn(),
   serializeTransaction: jest.fn(),
+
+  createTxBuilder: jest.fn(),
 };
 
 jest.mock('react-native', () => ({

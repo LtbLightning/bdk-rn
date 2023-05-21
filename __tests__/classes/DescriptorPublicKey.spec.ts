@@ -1,8 +1,8 @@
 import { DerivationPath, DescriptorPublicKey } from '../../src';
-import { mockDescriptorPublic } from '../mockData';
 import { mockBdkRnModule } from '../setup';
 
 describe('DescriptorPublicKey', () => {
+  const mockDescriptorPublic = new DescriptorPublicKey();
   const publicKeyId = 'publicKeyId';
   const publicKey = 'publicKey';
   let descriptorPublic: DescriptorPublicKey;
