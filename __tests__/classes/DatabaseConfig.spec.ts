@@ -21,7 +21,7 @@ describe('DatabaseConfig', () => {
   it('inits sled db', async () => {
     const path = 'path';
     const treeName = 'treeName';
-    mockBdkRnModule.sledDBInit.mockResolvedValue(memoryDBId);
+    mockBdkRnModule.sledDBInit.mockResolvedValue(sledDBId);
     let res = await databaseConfig.sled(path, treeName);
     expect(mockBdkRnModule.sledDBInit).toHaveBeenCalledWith(path, treeName);
     expect(res).toBeInstanceOf(DatabaseConfig);
@@ -29,7 +29,7 @@ describe('DatabaseConfig', () => {
   });
   it('inits sqlite db', async () => {
     const path = 'path';
-    mockBdkRnModule.sqliteDBInit.mockResolvedValue(memoryDBId);
+    mockBdkRnModule.sqliteDBInit.mockResolvedValue(sqliteId);
     let res = await databaseConfig.sqlite(path);
     expect(mockBdkRnModule.sqliteDBInit).toHaveBeenCalledWith(path);
     expect(res).toBeInstanceOf(DatabaseConfig);
