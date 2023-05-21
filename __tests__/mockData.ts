@@ -1,4 +1,4 @@
-import { BlockTime, TransactionDetails } from '../src/classes/Bindings';
+import { BlockTime, Script, TransactionDetails } from '../src/classes/Bindings';
 import { DescriptorSecretKey, Wallet } from '../src/index';
 
 export const seedPhrase = 'mom mom mom mom mom mom mom mom mom mom mom mom';
@@ -6,6 +6,8 @@ export const descriptorString = 'descriptorString';
 export const changeDescriptorString = 'changeDescriptorString';
 
 export const mockWallet = new Wallet();
+export const mockScript = new Script('mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB');
+
 export const mockDescriptorSecret = new DescriptorSecretKey();
 
 export const mockTransactionDetails = new TransactionDetails(

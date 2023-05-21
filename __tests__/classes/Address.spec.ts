@@ -1,9 +1,9 @@
 import { Address } from '../../src';
 import { Script } from '../../src/classes/Bindings';
+import { mockScript } from '../mockData';
 import { mockBdkRnModule } from '../setup';
 
 describe('Address', () => {
-  const mockScript = new Script('mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB');
   const addressId = 'addressId';
   let address: Address;
   mockBdkRnModule.initAddress.mockResolvedValue(addressId);

@@ -1,12 +1,11 @@
 import { Address, PartiallySignedTransaction, TxBuilder, Wallet } from '../../src';
-import { OutPoint, Script, ScriptAmount, TxBuilderResult } from '../../src/classes/Bindings';
-import { mockTransactionDetails } from '../mockData';
+import { OutPoint, ScriptAmount, TxBuilderResult } from '../../src/classes/Bindings';
+import { mockScript, mockTransactionDetails } from '../mockData';
 import { mockBdkRnModule } from '../setup';
 
 describe('TxBuilder', () => {
   const mockWallet = new Wallet();
   const mockAddress = new Address();
-  const mockScript = new Script('mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB');
 
   const txBuilderId = 'txBuilderId';
   const outPoint = new OutPoint('efc5d0e6ad6611f22b05d3c1fc8888c3552e8929a4231f2944447e4426f52056', 1);
