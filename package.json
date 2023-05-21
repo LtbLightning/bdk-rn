@@ -32,6 +32,8 @@
     "lint": "eslint . --ext .js,.ts",
     "prepare": "yarn compile",
     "test": "jest",
+    "test:ci": "jest --ci",
+
     "postinstall": "node ./src/installer.js"
   },
   "devDependencies": {
