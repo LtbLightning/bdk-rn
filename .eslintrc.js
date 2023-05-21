@@ -8,4 +8,5 @@ module.exports = {
     'simple-import-sort/imports': 'error',
     'sort-imports': 'off',
   },
+  ignorePatterns: ['coverage/**/*.js'],
 };
