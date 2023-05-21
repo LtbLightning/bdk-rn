@@ -1,10 +1,5 @@
 import { Address, PartiallySignedTransaction, TxBuilder, Wallet } from '../../src';
-import {
-  OutPoint,
-  Script,
-  ScriptAmount,
-  TxBuilderResult
-} from '../../src/classes/Bindings';
+import { OutPoint, Script, ScriptAmount, TxBuilderResult } from '../../src/classes/Bindings';
 import { mockTransactionDetails } from '../mockData';
 import { mockBdkRnModule } from '../setup';
 
@@ -22,7 +17,7 @@ describe('TxBuilder', () => {
 
   let txBuilder: TxBuilder;
 
-  mockBdkRnModule.createTxBuilder.mockResolvedValueOnce(txBuilderId);
+  mockBdkRnModule.createTxBuilder.mockResolvedValue(txBuilderId);
 
   beforeAll(async () => {
     txBuilder = await new TxBuilder().create();

@@ -1,11 +1,10 @@
 import { Descriptor, DescriptorPublicKey } from '../../src';
 import { KeychainKind, Network } from '../../src/lib/enums';
-import { mockDescriptorSecret } from '../mockData';
+import { descriptorString, mockDescriptorSecret } from '../mockData';
 import { mockBdkRnModule } from '../setup';
 
 describe('Descriptor', () => {
   const mockDescriptorPublic = new DescriptorPublicKey();
-  const descriptorString = 'descriptorString';
   let descriptor: Descriptor;
   const descriptorId = 'descriptorId';
   const fingerPrint = 'fingerPrint';
