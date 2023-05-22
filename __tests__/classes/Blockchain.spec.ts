@@ -80,6 +80,15 @@ describe('Blockchain', () => {
     expect(mockBdkRnModule.initRpcBlockchain).toHaveBeenCalledWith(rpcConfig);
   });
 
+  it('throws error if invalid name is passed', async () => {
+    try {
+      // @ts-ignore
+      blockChain = await new Blockchain().create(rpcConfig, 'wrong');
+    } catch (e) {
+      expect(e).toBe('Invalid blockchain name passed. Allowed values are Electrum,Esplora,Rpc');
+    }
+  });
+
   it('gets block height', async () => {
     mockBdkRnModule.getBlockchainHeight.mockResolvedValue(height);
     let res = await blockChain.getHeight();

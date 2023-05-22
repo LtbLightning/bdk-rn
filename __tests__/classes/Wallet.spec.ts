@@ -34,6 +34,11 @@ describe('Wallet', () => {
     expect(wallet.isInit).toBe(true);
     expect(wallet.id).toBe(walletId);
   });
+  it('should create a wallet instance without change descriptor', async () => {
+    wallet = await new Wallet().create(descriptor, undefined, Network.Regtest, databaseConfig);
+    expect(wallet.isInit).toBe(true);
+    expect(wallet.id).toBe(walletId);
+  });
 
   it('Should return a new AddressInfo', async () => {
     let res = await wallet.getAddress(AddressIndex.New);
