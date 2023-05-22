@@ -1,6 +1,6 @@
 import { BlockchainElectrumConfig, BlockchainEsploraConfig, BlockChainNames, BlockchainRpcConfig } from '../lib/enums';
-import { NativeLoader } from './NativeLoader';
 import { FeeRate } from './Bindings';
+import { NativeLoader } from './NativeLoader';
 import { Transaction } from './Transaction';
 /**
  * Blockchain methods

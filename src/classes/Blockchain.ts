@@ -31,6 +31,8 @@ export class Blockchain extends NativeLoader {
       this.id = await this._bdk.initEsploraBlockchain(url, proxy, concurrency, timeout, stopGap);
     } else if (BlockChainNames.Rpc === blockchainName) {
       this.id = await this._bdk.initRpcBlockchain(config as BlockchainRpcConfig);
+    } else {
+      throw `Invalid blockchain name passed. Allowed values are ${Object.values(BlockChainNames)}`;
     }
     this.isInit = true;
     return this;
