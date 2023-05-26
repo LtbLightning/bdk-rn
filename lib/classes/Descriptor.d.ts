@@ -1,7 +1,7 @@
-import { DescriptorSecretKey } from './DescriptorSecretKey';
 import { KeychainKind, Network } from '../lib/enums';
-import { NativeLoader } from './NativeLoader';
 import { DescriptorPublicKey } from './DescriptorPublicKey';
+import { DescriptorSecretKey } from './DescriptorSecretKey';
+import { NativeLoader } from './NativeLoader';
 /**
  * Descriptor methods
  */

@@ -1,5 +1,5 @@
-import { Transaction } from './Transaction';
 import { NativeLoader } from './NativeLoader';
+import { Transaction } from './Transaction';
 
 /**
  * A Partially Signed Transaction

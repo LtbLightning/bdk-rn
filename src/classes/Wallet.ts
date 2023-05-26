@@ -1,11 +1,11 @@
-import { AddressInfo, Balance, LocalUtxo, OutPoint, TransactionDetails, TxOut } from './Bindings';
 import { AddressIndex, Network } from '../lib/enums';
-import { NativeLoader } from './NativeLoader';
-import { Blockchain } from './Blockchain';
 import { createTxDetailsObject } from '../lib/utils';
-import { PartiallySignedTransaction } from './PartiallySignedTransaction';
-import { Descriptor } from './Descriptor';
+import { AddressInfo, Balance, LocalUtxo, OutPoint, TransactionDetails, TxOut } from './Bindings';
+import { Blockchain } from './Blockchain';
 import { DatabaseConfig } from './DatabaseConfig';
+import { Descriptor } from './Descriptor';
+import { NativeLoader } from './NativeLoader';
+import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 
 /**
  * Wallet methods

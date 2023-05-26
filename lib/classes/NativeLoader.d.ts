@@ -1,4 +1,4 @@
-import { Network, WordCount, AddressIndex, KeychainKind, BlockchainRpcConfig } from '../lib/enums';
+import { AddressIndex, BlockchainRpcConfig, KeychainKind, Network, WordCount } from '../lib/enums';
 import { AddressInfo, Balance, LocalUtxo, OutPoint, ScriptAmount, TransactionDetails } from './Bindings';
 export interface NativeBdkRn {
     generateSeedFromWordCount(wordCount: WordCount): string;

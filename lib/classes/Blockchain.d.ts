@@ -1,7 +1,7 @@
 import { BlockchainElectrumConfig, BlockchainEsploraConfig, BlockChainNames, BlockchainRpcConfig } from '../lib/enums';
-import { NativeLoader } from './NativeLoader';
 import { FeeRate } from './Bindings';
-import { Transaction } from 'bdk-rn/src/classes/Transaction';
+import { NativeLoader } from './NativeLoader';
+import { Transaction } from './Transaction';
 /**
  * Blockchain methods
  * Blockchain backends module provides the implementation of a few commonly-used backends like Electrum, and Esplora.

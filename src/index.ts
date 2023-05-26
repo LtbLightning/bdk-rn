@@ -1,29 +1,29 @@
+import { Address } from './classes/Address';
 import { Blockchain } from './classes/Blockchain';
+import { BumpFeeTxBuilder } from './classes/BumpFeeTxBuilder';
 import { DatabaseConfig } from './classes/DatabaseConfig';
 import { DerivationPath } from './classes/DerivationPath';
+import { Descriptor } from './classes/Descriptor';
 import { DescriptorPublicKey } from './classes/DescriptorPublicKey';
 import { DescriptorSecretKey } from './classes/DescriptorSecretKey';
 import { Mnemonic } from './classes/Mnemonic';
-import { Wallet } from './classes/Wallet';
-import { Address } from './classes/Address';
-import { TxBuilder } from './classes/TxBuilder';
-import { Descriptor } from './classes/Descriptor';
 import { PartiallySignedTransaction } from './classes/PartiallySignedTransaction';
-import { BumpFeeTxBuilder } from './classes/BumpFeeTxBuilder';
 import { Transaction } from './classes/Transaction';
+import { TxBuilder } from './classes/TxBuilder';
+import { Wallet } from './classes/Wallet';
 
 export {
+  Address,
   Blockchain,
+  BumpFeeTxBuilder,
   DatabaseConfig,
   DerivationPath,
+  Descriptor,
   DescriptorPublicKey,
   DescriptorSecretKey,
   Mnemonic,
-  Wallet,
-  Address,
-  TxBuilder,
-  Descriptor,
   PartiallySignedTransaction,
-  BumpFeeTxBuilder,
   Transaction,
+  TxBuilder,
+  Wallet,
 };

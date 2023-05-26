@@ -1,5 +1,5 @@
-import { NativeLoader } from './NativeLoader';
 import { Script } from './Bindings';
+import { NativeLoader } from './NativeLoader';
 
 /**
  * Address methods

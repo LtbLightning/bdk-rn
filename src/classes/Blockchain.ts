@@ -1,7 +1,6 @@
-import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 import { BlockchainElectrumConfig, BlockchainEsploraConfig, BlockChainNames, BlockchainRpcConfig } from '../lib/enums';
-import { NativeLoader } from './NativeLoader';
 import { FeeRate } from './Bindings';
+import { NativeLoader } from './NativeLoader';
 import { Transaction } from './Transaction';
 
 /**
@@ -32,6 +31,8 @@ export class Blockchain extends NativeLoader {
       this.id = await this._bdk.initEsploraBlockchain(url, proxy, concurrency, timeout, stopGap);
     } else if (BlockChainNames.Rpc === blockchainName) {
       this.id = await this._bdk.initRpcBlockchain(config as BlockchainRpcConfig);
+    } else {
+      throw `Invalid blockchain name passed. Allowed values are ${Object.values(BlockChainNames)}`;
     }
     this.isInit = true;
     return this;
