@@ -1,6 +1,6 @@
 {
   "name": "bdk-rn",
-  "version": "0.1.0",
+  "version": "0.27.0",
   "description": "A React Native library for the Bitcon Development Kit (https://bitcoindevkit.org/)",
   "homepage": "https://github.com/LtbLightning/bdk-rn",
   "main": "src/index.ts",
@@ -29,9 +29,11 @@
   ],
   "scripts": {
     "compile": "rm -rf lib && tsc -p .",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint": "eslint . --ext .js,.ts",
     "prepare": "yarn compile",
     "test": "jest",
+    "test:ci": "jest --ci",
+
     "postinstall": "node ./src/installer.js"
   },
   "devDependencies": {
@@ -44,8 +46,9 @@
     "babel-jest": "^27.4.6",
     "eslint": "^7.32.0",
     "eslint-plugin-simple-import-sort": "^7.0.0",
-    "jest": "^27.4.7",
+    "jest": "^27.5.1",
     "metro-react-native-babel-preset": "^0.67.0",
+    "prettier": "^2.8.1",
     "react": "^17.0.2",
     "react-native": "^0.67.1",
     "react-test-renderer": "^17.0.2",
@@ -55,21 +58,9 @@
     "react": "*",
     "react-native": "*"
   },
-  "jest": {
-    "preset": "react-native",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json",
-      "node"
-    ]
-  },
   "dependencies": {
     "@synonymdev/result": "0.0.2",
     "adm-zip": "^0.5.9",
-    "is_js": "^0.9.0",
     "request": "^2.88.2"
   }
 }

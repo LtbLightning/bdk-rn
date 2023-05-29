@@ -47,8 +47,6 @@ buck-out/
 !debug.keystore
 
 #misc
-.com.greenworldsoft.syncfolderspro
-_DelSyncFiles/*
 .vscode/settings.json
 
 # fastlane
@@ -68,3 +66,5 @@ _DelSyncFiles/*
 # CocoaPods
 /ios/Pods/
 
+# dev
+coverage
