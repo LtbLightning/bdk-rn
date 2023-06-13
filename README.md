@@ -37,8 +37,8 @@ import { WordCount, Network } from 'bdk-rn/lib/lib/enums';
 
 const mnemonic = await new Mnemonic().create(WordCount.WORDS12);
 const descriptorSecretKey = await new DescriptorSecretKey().create(Network.Testnet, mnemonic);
-const externalDescriptor = await new Descriptor().newBip44(descriptorSecretKey, Network.Testnet, KeyChainKind.External);
-const internalDescriptor = await new Descriptor().newBip44(descriptorSecretKey, Network.Testnet, KeyChainKind.Internal);
+const externalDescriptor = await new Descriptor().newBip44(descriptorSecretKey, KeyChainKind.External, Network.Testnet);
+const internalDescriptor = await new Descriptor().newBip44(descriptorSecretKey, KeyChainKind.Internal, Network.Testnet);
 
 const config: BlockchainElectrumConfig = {
   url: 'ssl://electrum.blockstream.info:60002',
@@ -64,9 +64,9 @@ import { WordCount, Network, KeyChainKind } from 'bdk-rn/lib/lib/enums';
 
 const mnemonic = await new Mnemonic().create(WordCount.WORDS12);
 const descriptorSecretKey = await new DescriptorSecretKey().create(Network.Testnet, mnemonic);
-const externalDescriptor = await new Descriptor().newBip44(descriptorSecretKey, Network.Testnet, KeyChainKind.External);
+const externalDescriptor = await new Descriptor().newBip44(descriptorSecretKey, KeyChainKind.External, Network.Testnet);
 const externalPublicDescriptorStr = await externalDescriptor.asString();
-const externalPublicDescriptor = await new Descriptor().newBip44Public(externalPublicDescriptorStr, Network.Testnet);
+const externalPublicDescriptor = await new Descriptor().newBip44Public(externalPublicDescriptorStr, undefined, KeyChainKind.External, Network.Testnet);
 ```
 
 ---
