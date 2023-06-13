@@ -71,7 +71,7 @@ describe('Blockchain', () => {
 
     blockChain = await new Blockchain().create(esploraConfig, BlockChainNames.Esplora);
     expect(blockChain.id).toBe('esplora');
-    expect(mockBdkRnModule.initEsploraBlockchain).toHaveBeenCalledWith(url, proxy, concurrency, timeout, stopGap);
+    expect(mockBdkRnModule.initEsploraBlockchain).toHaveBeenCalledWith(url, proxy, concurrency, stopGap, timeout);
   });
 
   it('initialises with rpc config', async () => {
