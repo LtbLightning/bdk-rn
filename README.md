@@ -66,7 +66,8 @@ const mnemonic = await new Mnemonic().create(WordCount.WORDS12);
 const descriptorSecretKey = await new DescriptorSecretKey().create(Network.Testnet, mnemonic);
 const externalDescriptor = await new Descriptor().newBip44(descriptorSecretKey, KeyChainKind.External, Network.Testnet);
 const externalPublicDescriptorStr = await externalDescriptor.asString();
-const externalPublicDescriptor = await new Descriptor().newBip44Public(externalPublicDescriptorStr, undefined, KeyChainKind.External, Network.Testnet);
+const fingerprint = 'd1d04177';
+const externalPublicDescriptor = await new Descriptor().newBip44Public(externalPublicDescriptorStr, fingerprint, KeychainKind.External, Network.Testnet);
 ```
 
 ---
