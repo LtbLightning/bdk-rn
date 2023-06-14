@@ -28,7 +28,7 @@ export class Blockchain extends NativeLoader {
       this.id = await this._bdk.initElectrumBlockchain(url, retry, stopGap, timeout);
     } else if (BlockChainNames.Esplora === blockchainName) {
       const { url, proxy, concurrency, timeout, stopGap } = config as BlockchainEsploraConfig;
-      this.id = await this._bdk.initEsploraBlockchain(url, proxy, concurrency, stopGap, timeout);
+      this.id = await this._bdk.initEsploraBlockchain(url, proxy, concurrency, timeout, stopGap);
     } else if (BlockChainNames.Rpc === blockchainName) {
       this.id = await this._bdk.initRpcBlockchain(config as BlockchainRpcConfig);
     } else {
