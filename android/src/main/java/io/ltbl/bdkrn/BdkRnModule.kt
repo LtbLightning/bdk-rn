@@ -1,7 +1,6 @@
 package io.ltbl.bdkrn
 
 import com.facebook.react.bridge.*
-import com.facebook.react.bridge.UiThreadUtil.runOnUiThread
 import org.bitcoindevkit.*
 import org.bitcoindevkit.Descriptor.Companion.newBip44
 import org.bitcoindevkit.Descriptor.Companion.newBip44Public
@@ -395,10 +394,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun sync(id: String, blockChainId: String, result: Promise) {
         try {
             Thread {
-                runOnUiThread {
-                    getWalletById(id).sync(getBlockchainById(blockChainId), BdkProgress)
-                    result.resolve(true)
-                }
+                getWalletById(id).sync(getBlockchainById(blockChainId), BdkProgress)
+                result.resolve(true)
             }.start()
         } catch (error: Throwable) {
             result.reject("Sync wallet error", error.localizedMessage, error)
