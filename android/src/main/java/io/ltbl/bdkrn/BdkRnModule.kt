@@ -393,8 +393,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun sync(id: String, blockChainId: String, result: Promise) {
         try {
-            getWalletById(id).sync(getBlockchainById(blockChainId), BdkProgress)
-            result.resolve(true)
+            Thread {
+                getWalletById(id).sync(getBlockchainById(blockChainId), BdkProgress)
+                result.resolve(true)
+            }.start()
         } catch (error: Throwable) {
             result.reject("Sync wallet error", error.localizedMessage, error)
         }
