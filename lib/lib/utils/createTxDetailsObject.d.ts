@@ -1,5 +1,5 @@
 import { BlockTime, TransactionDetails } from '../../classes/Bindings';
-type Props = {
+declare type Props = {
     txid: string;
     received: number;
     sent: number;
