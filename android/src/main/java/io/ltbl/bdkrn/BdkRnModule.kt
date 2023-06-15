@@ -1,7 +1,7 @@
 package io.ltbl.bdkrn
 
+import android.R.attr.description
 import com.facebook.react.bridge.*
-import com.facebook.react.bridge.UiThreadUtil.runOnUiThread
 import org.bitcoindevkit.*
 import org.bitcoindevkit.Descriptor.Companion.newBip44
 import org.bitcoindevkit.Descriptor.Companion.newBip44Public
@@ -9,6 +9,7 @@ import org.bitcoindevkit.Descriptor.Companion.newBip49
 import org.bitcoindevkit.Descriptor.Companion.newBip49Public
 import org.bitcoindevkit.Descriptor.Companion.newBip84
 import org.bitcoindevkit.Descriptor.Companion.newBip84Public
+
 
 class BdkRnModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -395,10 +396,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun sync(id: String, blockChainId: String, result: Promise) {
         try {
             Thread {
-                runOnUiThread {
-                    getWalletById(id).sync(getBlockchainById(blockChainId), BdkProgress)
-                    result.resolve(true)
-                }
+                getWalletById(id).sync(getBlockchainById(blockChainId), BdkProgress)
+                result.resolve(true)
             }.start()
         } catch (error: Throwable) {
             result.reject("Sync wallet error", error.localizedMessage, error)
@@ -408,12 +407,14 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun getAddress(id: String, addressIndex: String, result: Promise) {
         try {
-            val addressInfo = getWalletById(id).getAddress(setAddressIndex(addressIndex))
-            val responseObject = mutableMapOf<String, Any?>()
-            responseObject["index"] = addressInfo.index.toInt()
-            responseObject["address"] = addressInfo.address
+            Thread {
+                val addressInfo = getWalletById(id).getAddress(setAddressIndex(addressIndex))
+                val responseObject = mutableMapOf<String, Any?>()
+                responseObject["index"] = addressInfo.index.toInt()
+                responseObject["address"] = addressInfo.address
 
-            result.resolve(Arguments.makeNativeMap(responseObject))
+                result.resolve(Arguments.makeNativeMap(responseObject))
+            }.start()
         } catch (error: Throwable) {
             result.reject("Get wallet address error", error.localizedMessage, error)
         }
@@ -422,14 +423,16 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun getBalance(id: String, result: Promise) {
         try {
-            val balance = getWalletById(id).getBalance()
-            val responseObject = mutableMapOf<String, Any?>()
-            responseObject["trustedPending"] = balance.trustedPending.toInt()
-            responseObject["untrustedPending"] = balance.untrustedPending.toInt()
-            responseObject["confirmed"] = balance.confirmed.toInt()
-            responseObject["spendable"] = balance.spendable.toInt()
-            responseObject["total"] = balance.total.toInt()
-            result.resolve(Arguments.makeNativeMap(responseObject))
+            Thread {
+                val balance = getWalletById(id).getBalance()
+                val responseObject = mutableMapOf<String, Any?>()
+                responseObject["trustedPending"] = balance.trustedPending.toInt()
+                responseObject["untrustedPending"] = balance.untrustedPending.toInt()
+                responseObject["confirmed"] = balance.confirmed.toInt()
+                responseObject["spendable"] = balance.spendable.toInt()
+                responseObject["total"] = balance.total.toInt()
+                result.resolve(Arguments.makeNativeMap(responseObject))
+            }.start()
         } catch (error: Throwable) {
             result.reject("Get wallet balance error", error.localizedMessage, error)
         }
