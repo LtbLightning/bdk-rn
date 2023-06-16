@@ -217,8 +217,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     url,
                     null,
                     retry?.toUByte() ?: 5u,
-                    timeOut?.toUByte(),
                     stopGap?.toULong() ?: 10u,
+                    timeOut?.toUByte(),
                     false
                 )
             )
