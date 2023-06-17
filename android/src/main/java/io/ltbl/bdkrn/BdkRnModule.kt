@@ -1,7 +1,7 @@
 package io.ltbl.bdkrn
 
-import android.R.attr.description
 import com.facebook.react.bridge.*
+import com.facebook.react.bridge.UiThreadUtil.runOnUiThread
 import org.bitcoindevkit.*
 import org.bitcoindevkit.Descriptor.Companion.newBip44
 import org.bitcoindevkit.Descriptor.Companion.newBip44Public
@@ -9,7 +9,6 @@ import org.bitcoindevkit.Descriptor.Companion.newBip49
 import org.bitcoindevkit.Descriptor.Companion.newBip49Public
 import org.bitcoindevkit.Descriptor.Companion.newBip84
 import org.bitcoindevkit.Descriptor.Companion.newBip84Public
-
 
 class BdkRnModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -217,8 +216,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     url,
                     null,
                     retry?.toUByte() ?: 5u,
-                    stopGap?.toULong() ?: 10u,
                     timeOut?.toUByte(),
+                    stopGap?.toULong() ?: 10u,
                     false
                 )
             )
@@ -396,8 +395,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun sync(id: String, blockChainId: String, result: Promise) {
         try {
             Thread {
-                getWalletById(id).sync(getBlockchainById(blockChainId), BdkProgress)
-                result.resolve(true)
+              getWalletById(id).sync(getBlockchainById(blockChainId), BdkProgress)
+              result.resolve(true)
             }.start()
         } catch (error: Throwable) {
             result.reject("Sync wallet error", error.localizedMessage, error)
@@ -412,7 +411,6 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val responseObject = mutableMapOf<String, Any?>()
                 responseObject["index"] = addressInfo.index.toInt()
                 responseObject["address"] = addressInfo.address
-
                 result.resolve(Arguments.makeNativeMap(responseObject))
             }.start()
         } catch (error: Throwable) {

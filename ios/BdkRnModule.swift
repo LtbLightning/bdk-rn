@@ -271,8 +271,8 @@ class BdkRnModule: NSObject {
                     url: url,
                     socks5: nil,
                     retry: UInt8(retry ?? "") ?? 5,
-                    stopGap: UInt64(stopGap ?? "") ?? 10,
                     timeout: UInt8(timeOut ?? "") ?? nil,
+                    stopGap: UInt64(stopGap ?? "") ?? 10,
                     validateDomain: false
                 )
             )
