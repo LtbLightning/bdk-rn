@@ -15,16 +15,16 @@ const hash = '0000000000004c01f2723acaa5e87467ebd2768cc5eadcf1ea0d0c4f1731efce';
 const electrumConfig: BlockchainElectrumConfig = {
   url: 'url',
   retry: '',
-  timeout: '1000',
   stopGap: '25',
+  timeout: '1000',
 };
 
 const esploraConfig: BlockchainEsploraConfig = {
   url: 'url',
   proxy: 'proxy',
   concurrency: 'concurrency',
-  timeout: '1000',
   stopGap: '25',
+  timeout: '1000',
 };
 const rpcConfig: BlockchainRpcConfig = {
   url: 'url',
@@ -67,7 +67,7 @@ describe('Blockchain', () => {
   });
 
   it('initialises with esplora config', async () => {
-    const { url, proxy, concurrency, timeout, stopGap } = esploraConfig;
+    const { url, proxy, concurrency, stopGap, timeout } = esploraConfig;
 
     blockChain = await new Blockchain().create(esploraConfig, BlockChainNames.Esplora);
     expect(blockChain.id).toBe('esplora');

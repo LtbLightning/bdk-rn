@@ -2180,18 +2180,18 @@ public struct ElectrumConfig {
     public var `url`: String
     public var `socks5`: String?
     public var `retry`: UInt8
-    public var `timeout`: UInt8?
     public var `stopGap`: UInt64
+    public var `timeout`: UInt8?
     public var `validateDomain`: Bool
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(`url`: String, `socks5`: String?, `retry`: UInt8, `timeout`: UInt8?, `stopGap`: UInt64, `validateDomain`: Bool) {
+    public init(`url`: String, `socks5`: String?, `retry`: UInt8,` stopGap`: UInt64, `timeout`: UInt8?, `validateDomain`: Bool) {
         self.`url` = `url`
         self.`socks5` = `socks5`
         self.`retry` = `retry`
-        self.`timeout` = `timeout`
         self.`stopGap` = `stopGap`
+        self.`timeout` = `timeout`
         self.`validateDomain` = `validateDomain`
     }
 }
@@ -2208,10 +2208,10 @@ extension ElectrumConfig: Equatable, Hashable {
         if lhs.`retry` != rhs.`retry` {
             return false
         }
-        if lhs.`timeout` != rhs.`timeout` {
+        if lhs.`stopGap` != rhs.`stopGap` {
             return false
         }
-        if lhs.`stopGap` != rhs.`stopGap` {
+        if lhs.`timeout` != rhs.`timeout` {
             return false
         }
         if lhs.`validateDomain` != rhs.`validateDomain` {
@@ -2224,8 +2224,8 @@ extension ElectrumConfig: Equatable, Hashable {
         hasher.combine(`url`)
         hasher.combine(`socks5`)
         hasher.combine(`retry`)
-        hasher.combine(`timeout`)
         hasher.combine(`stopGap`)
+        hasher.combine(`timeout`)
         hasher.combine(`validateDomain`)
     }
 }
@@ -2237,8 +2237,8 @@ fileprivate struct FfiConverterTypeElectrumConfig: FfiConverterRustBuffer {
             `url`: FfiConverterString.read(from: buf),
             `socks5`: FfiConverterOptionString.read(from: buf),
             `retry`: FfiConverterUInt8.read(from: buf),
-            `timeout`: FfiConverterOptionUInt8.read(from: buf),
             `stopGap`: FfiConverterUInt64.read(from: buf),
+            `timeout`: FfiConverterOptionUInt8.read(from: buf),
             `validateDomain`: FfiConverterBool.read(from: buf)
         )
     }
@@ -2247,8 +2247,8 @@ fileprivate struct FfiConverterTypeElectrumConfig: FfiConverterRustBuffer {
         FfiConverterString.write(value.`url`, into: buf)
         FfiConverterOptionString.write(value.`socks5`, into: buf)
         FfiConverterUInt8.write(value.`retry`, into: buf)
-        FfiConverterOptionUInt8.write(value.`timeout`, into: buf)
         FfiConverterUInt64.write(value.`stopGap`, into: buf)
+        FfiConverterOptionUInt8.write(value.`timeout`, into: buf)
         FfiConverterBool.write(value.`validateDomain`, into: buf)
     }
 }
