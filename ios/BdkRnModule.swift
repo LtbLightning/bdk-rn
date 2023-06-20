@@ -488,18 +488,23 @@ class BdkRnModule: NSObject {
 
 
     @objc
-    func sync(_
+    func sync(
         id: String,
         blockChainId: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        DispatchQueue.main.async { [self] in
-            do {
-                try getWalletById(id: id).sync(blockchain: self.getBlockchainById(id: blockChainId), progress: BdkProgress())
+    DispatchQueue.global().async { [self] in
+        do {
+            try getWalletById(id: id).sync(blockchain: self.getBlockchainById(id: blockChainId), progress: BdkProgress())
+            
+            DispatchQueue.main.async {
                 resolve(true)
-            } catch let error {
+            }
+        } catch let error {
+            DispatchQueue.main.async {
                 reject("Sync wallet error", "\(error)", error)
+                }
             }
         }
     }
