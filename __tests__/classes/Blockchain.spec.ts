@@ -14,17 +14,19 @@ const hash = '0000000000004c01f2723acaa5e87467ebd2768cc5eadcf1ea0d0c4f1731efce';
 
 const electrumConfig: BlockchainElectrumConfig = {
   url: 'url',
-  retry: '',
-  timeout: '1000',
-  stopGap: '25',
+  sock5: null,
+  retry: 5,
+  timeout: 1000,
+  stopGap: 25,
+  validateDomain: false,
 };
 
 const esploraConfig: BlockchainEsploraConfig = {
-  url: 'url',
+  baseUrl: 'url',
   proxy: 'proxy',
-  concurrency: 'concurrency',
-  timeout: '1000',
-  stopGap: '25',
+  concurrency: 5,
+  timeout: 1000,
+  stopGap: 25,
 };
 const rpcConfig: BlockchainRpcConfig = {
   url: 'url',
@@ -59,19 +61,26 @@ describe('Blockchain', () => {
   });
 
   it('initialises with electrum config', async () => {
-    const { url, retry, stopGap, timeout } = electrumConfig;
+    const { url, sock5, retry, timeout, stopGap, validateDomain } = electrumConfig;
 
     blockChain = await new Blockchain().create(electrumConfig, BlockChainNames.Electrum);
     expect(blockChain.id).toBe('electrum');
-    expect(mockBdkRnModule.initElectrumBlockchain).toHaveBeenCalledWith(url, retry, stopGap, timeout);
+    expect(mockBdkRnModule.initElectrumBlockchain).toHaveBeenCalledWith(
+      url,
+      sock5,
+      retry,
+      timeout,
+      stopGap,
+      validateDomain
+    );
   });
 
   it('initialises with esplora config', async () => {
-    const { url, proxy, concurrency, timeout, stopGap } = esploraConfig;
+    const { baseUrl, proxy, concurrency, timeout, stopGap } = esploraConfig;
 
     blockChain = await new Blockchain().create(esploraConfig, BlockChainNames.Esplora);
     expect(blockChain.id).toBe('esplora');
-    expect(mockBdkRnModule.initEsploraBlockchain).toHaveBeenCalledWith(url, proxy, concurrency, stopGap, timeout);
+    expect(mockBdkRnModule.initEsploraBlockchain).toHaveBeenCalledWith(baseUrl, proxy, concurrency, stopGap, timeout);
   });
 
   it('initialises with rpc config', async () => {
