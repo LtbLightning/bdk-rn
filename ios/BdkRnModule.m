@@ -108,19 +108,21 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
     initElectrumBlockchain: (nonnull NSString*)url
-    retry: (nonnull NSString*)retry
-    stopGap: (nonnull NSString*)stopGap
-    timeOut: (nonnull NSString*)timeOut
+    sock5: (nullable NSString*)sock5
+    retry: (nonnull NSNumber*)retry
+    timeout: (nonnull NSNumber*)timeout
+    stopGap: (nonnull NSNumber*)stopGap
+    validateDomain: (nonnull BOOL*)validateDomain
     resolve: (RCTPromiseResolveBlock)resolve
     reject: (RCTPromiseRejectBlock)reject
 )
 
 RCT_EXTERN_METHOD(
-    initEsploraBlockchain: (nonnull NSString*)url
-    proxy: (nonnull NSString*)proxy
-    concurrency: (nonnull NSString*)concurrency
-    stopGap: (nonnull NSString*)stopGap
-    timeOut: (nonnull NSString*)timeOut
+    initEsploraBlockchain: (nonnull NSString*)baseUrl
+    proxy: (nullable NSString*)proxy
+    concurrency: (nonnull NSNumber*)concurrency
+    stopGap: (nonnull NSNumber*)stopGap
+    timeout: (nonnull NSNumber*)timeout
     resolve: (RCTPromiseResolveBlock)resolve
     reject: (RCTPromiseRejectBlock)reject
 )

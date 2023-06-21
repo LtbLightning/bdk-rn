@@ -15,8 +15,8 @@ export interface NativeBdkRn {
     descriptorPublicDerive(id: string, derivationPathId: string): string;
     descriptorPublicExtend(id: string, derivationPathId: string): string;
     descriptorPublicAsString(id: string): string;
-    initElectrumBlockchain(url: string, retry: string, timeout: string, stopGap: string): string;
-    initEsploraBlockchain(url: string, proxy: string, concurrency: string, timeout: string, stopGap: string): string;
+    initElectrumBlockchain(url: string, sock5: string | null, retry: number, timeout: number, stopGap: number, validateDomain: boolean): string;
+    initEsploraBlockchain(baseUrl: string, proxy: string | null, concurrency: number, stopGap: number, timeout: number): string;
     initRpcBlockchain(config: BlockchainRpcConfig): string;
     getBlockchainHeight(id: string): number;
     getBlockchainHash(id: string, height: number): string;

@@ -205,20 +205,22 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun initElectrumBlockchain(
         url: String,
-        retry: String?,
-        stopGap: String?,
-        timeOut: String?,
+        sock5: String?,
+        retry: Int,
+        timeout: Int,
+        stopGap: Int,
+        validateDomain: Boolean,
         result: Promise
     ) {
         try {
             _blockchainConfig = BlockchainConfig.Electrum(
                 ElectrumConfig(
                     url,
-                    null,
-                    retry?.toUByte() ?: 5u,
-                    timeOut?.toUByte(),
-                    stopGap?.toULong() ?: 10u,
-                    false
+                    sock5 ?: null,
+                    retry.toUByte(),
+                    timeout.toUByte(),
+                    stopGap.toULong(),
+                    validateDomain
                 )
             )
             val blockChainId = randomId()
@@ -232,21 +234,21 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun initEsploraBlockchain(
-        url: String,
+        baseUrl: String,
         proxy: String?,
-        concurrency: String?,
-        stopGap: String?,
-        timeOut: String?,
+        concurrency: Int,
+        stopGap: Int,
+        timeout: Int,
         result: Promise
     ) {
         try {
             _blockchainConfig = BlockchainConfig.Esplora(
                 EsploraConfig(
-                    url,
-                    null,
-                    concurrency?.toUByte() ?: 5u,
-                    stopGap?.toULong() ?: 10u,
-                    timeOut?.toULong(),
+                    baseUrl,
+                    proxy ?: null,
+                    concurrency.toUByte(),
+                    stopGap.toULong(),
+                    timeout.toULong(),
                 )
             )
             val blockChainId = randomId()
@@ -395,8 +397,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun sync(id: String, blockChainId: String, result: Promise) {
         try {
             Thread {
-              getWalletById(id).sync(getBlockchainById(blockChainId), BdkProgress)
-              result.resolve(true)
+                getWalletById(id).sync(getBlockchainById(blockChainId), BdkProgress)
+                result.resolve(true)
             }.start()
         } catch (error: Throwable) {
             result.reject("Sync wallet error", error.localizedMessage, error)
