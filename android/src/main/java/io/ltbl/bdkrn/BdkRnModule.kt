@@ -19,14 +19,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     private var _descriptorSecretKeys = mutableMapOf<String, DescriptorSecretKey>()
     private var _descriptorPublicKeys = mutableMapOf<String, DescriptorPublicKey>()
-
     private var _blockChains = mutableMapOf<String, Blockchain>()
-    private var _blockchainConfig: BlockchainConfig
-    private var _emptyBlockChain: Blockchain
-
-    private var _emptyWallet: Wallet
-    private var _defaultDescriptor: String =
-        "wpkh([c258d2e4/84h/1h/0h]tpubDDYkZojQFQjht8Tm4jsS3iuEmKjTiEGjG6KnuFNKKJb5A6ZUCUZKdvLdSDWofKi4ToRCwb9poe1XdqfUnP4jaJjCB2Zwv11ZLgSbnZSNecE/0/*)"
 
     private var _wallets = mutableMapOf<String, Wallet>()
     private var _addresses = mutableMapOf<String, Address>()
@@ -39,25 +32,6 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     private var _bumpFeeTxBuilders = mutableMapOf<String, BumpFeeTxBuilder>()
     private var _transactions = mutableMapOf<String, Transaction>()
 
-    init {
-        _blockchainConfig = BlockchainConfig.Electrum(
-            ElectrumConfig(
-                "ssl://electrum.blockstream.info:60002",
-                null,
-                5u,
-                null,
-                10u,
-                false
-            )
-        )
-        _emptyBlockChain = Blockchain(_blockchainConfig)
-        _emptyWallet = Wallet(
-            Descriptor(_defaultDescriptor, Network.TESTNET),
-            null,
-            Network.TESTNET,
-            DatabaseConfig.Memory
-        )
-    }
 
     /** Mnemonic methods starts */
     @ReactMethod
@@ -199,7 +173,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     /** Blockchain methods starts */
     private fun getBlockchainById(id: String): Blockchain {
-        return _blockChains[id] ?: _emptyBlockChain
+        return _blockChains[id]!!
     }
 
     @ReactMethod
@@ -213,7 +187,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         result: Promise
     ) {
         try {
-            _blockchainConfig = BlockchainConfig.Electrum(
+            val _blockchainConfig = BlockchainConfig.Electrum(
                 ElectrumConfig(
                     url,
                     sock5 ?: null,
@@ -242,7 +216,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         result: Promise
     ) {
         try {
-            _blockchainConfig = BlockchainConfig.Esplora(
+            val _blockchainConfig = BlockchainConfig.Esplora(
                 EsploraConfig(
                     baseUrl,
                     proxy ?: null,
@@ -285,7 +259,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 )
             }
 
-            _blockchainConfig = BlockchainConfig.Rpc(
+            val _blockchainConfig = BlockchainConfig.Rpc(
                 RpcConfig(
                     config.getString("url")!!,
                     authType,
@@ -368,7 +342,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     /** Wallet methods starts*/
     private fun getWalletById(id: String): Wallet {
-        return _wallets[id] ?: _emptyWallet
+        return _wallets[id]!!
     }
 
     @ReactMethod

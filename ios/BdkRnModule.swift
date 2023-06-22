@@ -15,12 +15,6 @@ class BdkRnModule: NSObject {
     var _descriptorSecretKeys: [String: DescriptorSecretKey] = [:]
     var _descriptorPublicKeys: [String: DescriptorPublicKey] = [:]
 
-    var _blockchainConfig: BlockchainConfig
-    var _emptyBlockChain: Blockchain
-
-    var _emptyWallet: Wallet
-    let _defaultDescriptor = "wpkh([c258d2e4/84h/1h/0h]tpubDDYkZojQFQjht8Tm4jsS3iuEmKjTiEGjG6KnuFNKKJb5A6ZUCUZKdvLdSDWofKi4ToRCwb9poe1XdqfUnP4jaJjCB2Zwv11ZLgSbnZSNecE/0/*)"
-
     var _wallets: [String: Wallet] = [:]
     var _blockChains: [String: Blockchain] = [:]
     var _addresses: [String: Address] = [:]
@@ -34,24 +28,6 @@ class BdkRnModule: NSObject {
     var _bumpFeeTxBuilders: [String: BumpFeeTxBuilder] = [:]
     var _transactions: [String: Transaction] = [:]
 
-
-    override init() {
-        _blockchainConfig = BlockchainConfig.electrum(
-            config: ElectrumConfig(
-                url: "ssl://electrum.blockstream.info:60002",
-                socks5: nil,
-                retry: 5,
-                timeout: nil,
-                stopGap: 10, validateDomain: false))
-        _emptyBlockChain = try! Blockchain.init(config: _blockchainConfig)
-
-        _emptyWallet = try! Wallet(
-            descriptor: Descriptor(descriptor: _defaultDescriptor, network: Network.testnet),
-            changeDescriptor: nil,
-            network: Network.testnet,
-            databaseConfig: DatabaseConfig.memory
-        )
-    }
 
     /** Mnemonic methods starts */
     @objc
@@ -254,7 +230,7 @@ class BdkRnModule: NSObject {
 
     /** Blockchain methods starts */
     func getBlockchainById(id: String) -> Blockchain {
-        return _blockChains[id] ?? _emptyBlockChain
+        return _blockChains[id]!
     }
     @objc
     func initElectrumBlockchain(_
@@ -268,7 +244,7 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            _blockchainConfig = BlockchainConfig.electrum(
+            let _blockchainConfig = BlockchainConfig.electrum(
                 config: ElectrumConfig(
                     url: url,
                     socks5: sock5.isEmpty ? nil : sock5,
@@ -297,7 +273,7 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            _blockchainConfig = BlockchainConfig.esplora(
+            let _blockchainConfig = BlockchainConfig.esplora(
                 config: EsploraConfig(
                     baseUrl: baseUrl,
                     proxy: proxy.isEmpty ? nil : proxy,
@@ -345,7 +321,7 @@ class BdkRnModule: NSObject {
                 )
             }
 
-            _blockchainConfig = BlockchainConfig.rpc(
+            let _blockchainConfig = BlockchainConfig.rpc(
                 config: RpcConfig(
                     url: config["url"] as! String,
                     auth: authType,
@@ -458,7 +434,7 @@ class BdkRnModule: NSObject {
 
     /** Wallet methods starts*/
     func getWalletById(id: String) -> Wallet {
-        return _wallets[id] ?? _emptyWallet
+        return _wallets[id]!
     }
 
     @objc
@@ -490,7 +466,7 @@ class BdkRnModule: NSObject {
 
 
     @objc
-    func sync(
+    func sync(_
         id: String,
         blockChainId: String,
         resolve: @escaping RCTPromiseResolveBlock,
@@ -571,8 +547,8 @@ class BdkRnModule: NSObject {
             var responseObject: [Any] = []
             for item in unspent {
                 let unspentObject = [
-                    "outpoint": ["txid": item.outpoint.txid, "vout": item.outpoint.vout],
-                    "txout": ["value": item.txout.value, "address": item.txout.address],
+                    "outpoint": ["txid": item.outpoint.txid, "vout": item.outpoint.vout] as [String : Any],
+                    "txout": ["value": item.txout.value, "address": item.txout.address] as [String : Any],
                     "isSpent": item.isSpent
                 ] as [String: Any]
                 responseObject.append(unspentObject)
