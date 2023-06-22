@@ -259,9 +259,11 @@ class BdkRnModule: NSObject {
     @objc
     func initElectrumBlockchain(_
         url: String,
-        retry: String?,
-        stopGap: String?,
-        timeOut: String?,
+        sock5: String,
+        retry: NSNumber,
+        timeout: NSNumber,
+        stopGap: NSNumber,
+        validateDomain: Bool,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
@@ -269,11 +271,11 @@ class BdkRnModule: NSObject {
             _blockchainConfig = BlockchainConfig.electrum(
                 config: ElectrumConfig(
                     url: url,
-                    socks5: nil,
-                    retry: UInt8(retry ?? "") ?? 5,
-                    stopGap: UInt64(stopGap ?? "") ?? 10,
-                    timeout: UInt8(timeOut ?? "") ?? nil,
-                    validateDomain: false
+                    socks5: sock5.isEmpty ? nil : sock5,
+                    retry: UInt8(truncating: retry),
+                    timeout: UInt8(truncating: timeout),
+                    stopGap: UInt64(truncating: stopGap),
+                    validateDomain: validateDomain
                 )
             )
             let blockChainId = randomId()
@@ -286,22 +288,22 @@ class BdkRnModule: NSObject {
 
     @objc
     func initEsploraBlockchain(_
-        url: String,
-        proxy: String?,
-        concurrency: String?,
-        stopGap: String?,
-        timeOut: String?,
+        baseUrl: String,
+        proxy: String,
+        concurrency: NSNumber,
+        stopGap: NSNumber,
+        timeout: NSNumber,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
             _blockchainConfig = BlockchainConfig.esplora(
                 config: EsploraConfig(
-                    baseUrl: url,
-                    proxy: nil,
-                    concurrency: UInt8(concurrency ?? "") ?? nil,
-                    stopGap: UInt64(stopGap ?? "") ?? 10,
-                    timeout: UInt64(timeOut ?? "") ?? 10
+                    baseUrl: baseUrl,
+                    proxy: proxy.isEmpty ? nil : proxy,
+                    concurrency: UInt8(truncating: concurrency),
+                    stopGap: UInt64(truncating: stopGap),
+                    timeout: UInt64(truncating: timeout)
                 )
             )
             let blockChainId = randomId()
@@ -311,7 +313,7 @@ class BdkRnModule: NSObject {
             reject("BlockchainEsplora init error", "\(error)", error)
         }
     }
-    
+
     @objc
     func initRpcBlockchain(_
         config: NSDictionary,
@@ -323,7 +325,7 @@ class BdkRnModule: NSObject {
             if config["authCookie"] != nil {
                 authType = Auth.cookie(file: config["authCookie"] as! String)
             }
-            
+
             if config["authUserPass"] != nil {
                 let userPass = config["authUserPass"] as! NSDictionary
                 authType = Auth.userPass(
@@ -331,7 +333,7 @@ class BdkRnModule: NSObject {
                     password: userPass["password"] as! String
                 )
             }
-            
+
             var syncParams: RpcSyncParams? = nil
             if config["syncParams"] != nil {
                 let syncParamsConfig = config["syncParams"] as! NSDictionary
@@ -342,7 +344,7 @@ class BdkRnModule: NSObject {
                     pollRateSec: syncParamsConfig["pollRateSec"] as! UInt64
                 )
             }
-            
+
             _blockchainConfig = BlockchainConfig.rpc(
                 config: RpcConfig(
                     url: config["url"] as! String,
@@ -1182,8 +1184,8 @@ class BdkRnModule: NSObject {
         }
     }
     /** BumpFeeTxBuilder methods ends*/
-    
-    
+
+
     /** Transaction methods starts*/
     @objc
     func createTransaction(_
@@ -1199,8 +1201,8 @@ class BdkRnModule: NSObject {
             reject("Create transaction error", "\(error)", error)
         }
     }
-    
-    
+
+
     @objc
     func serializeTransaction(_
         id: String,

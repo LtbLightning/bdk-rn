@@ -37,16 +37,18 @@ export enum KeychainKind {
 
 export interface BlockchainElectrumConfig {
   url: string;
-  retry: string;
-  stopGap: string;
-  timeout: string;
+  sock5: string | null;
+  retry: number;
+  timeout: number;
+  stopGap: number;
+  validateDomain: boolean;
 }
 export interface BlockchainEsploraConfig {
-  url: string;
-  proxy: string;
-  concurrency: string;
-  stopGap: string;
-  timeout: string;
+  baseUrl: string;
+  proxy: string | null;
+  concurrency: number;
+  stopGap: number;
+  timeout: number;
 }
 
 export interface UserPass {
