@@ -24,11 +24,11 @@ export class Blockchain extends NativeLoader {
     blockchainName: BlockChainNames = BlockChainNames.Electrum
   ): Promise<Blockchain> {
     if (BlockChainNames.Electrum === blockchainName) {
-      const { url, retry, stopGap, timeout } = config as BlockchainElectrumConfig;
-      this.id = await this._bdk.initElectrumBlockchain(url, retry, stopGap, timeout);
+      const { url, sock5, retry, timeout, stopGap, validateDomain } = config as BlockchainElectrumConfig;
+      this.id = await this._bdk.initElectrumBlockchain(url, sock5, retry, timeout, stopGap, validateDomain);
     } else if (BlockChainNames.Esplora === blockchainName) {
-      const { url, proxy, concurrency, stopGap, timeout } = config as BlockchainEsploraConfig;
-      this.id = await this._bdk.initEsploraBlockchain(url, proxy, concurrency, stopGap, timeout);
+      const { baseUrl, proxy, concurrency, stopGap, timeout } = config as BlockchainEsploraConfig;
+      this.id = await this._bdk.initEsploraBlockchain(baseUrl, proxy, concurrency, stopGap, timeout);
     } else if (BlockChainNames.Rpc === blockchainName) {
       this.id = await this._bdk.initRpcBlockchain(config as BlockchainRpcConfig);
     } else {

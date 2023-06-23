@@ -1,7 +1,7 @@
 package io.ltbl.bdkrn
 
-import android.R.attr.description
 import com.facebook.react.bridge.*
+import com.facebook.react.bridge.UiThreadUtil.runOnUiThread
 import org.bitcoindevkit.*
 import org.bitcoindevkit.Descriptor.Companion.newBip44
 import org.bitcoindevkit.Descriptor.Companion.newBip44Public
@@ -9,7 +9,6 @@ import org.bitcoindevkit.Descriptor.Companion.newBip49
 import org.bitcoindevkit.Descriptor.Companion.newBip49Public
 import org.bitcoindevkit.Descriptor.Companion.newBip84
 import org.bitcoindevkit.Descriptor.Companion.newBip84Public
-
 
 class BdkRnModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -206,20 +205,22 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun initElectrumBlockchain(
         url: String,
-        retry: String?,
-        stopGap: String?,
-        timeOut: String?,
+        sock5: String?,
+        retry: Int,
+        timeout: Int,
+        stopGap: Int,
+        validateDomain: Boolean,
         result: Promise
     ) {
         try {
             _blockchainConfig = BlockchainConfig.Electrum(
                 ElectrumConfig(
                     url,
-                    null,
-                    retry?.toUByte() ?: 5u,
-                    stopGap?.toULong() ?: 10u,
-                    timeOut?.toUByte(),
-                    false
+                    sock5 ?: null,
+                    retry.toUByte(),
+                    timeout.toUByte(),
+                    stopGap.toULong(),
+                    validateDomain
                 )
             )
             val blockChainId = randomId()
@@ -233,21 +234,21 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun initEsploraBlockchain(
-        url: String,
+        baseUrl: String,
         proxy: String?,
-        concurrency: String?,
-        stopGap: String?,
-        timeOut: String?,
+        concurrency: Int,
+        stopGap: Int,
+        timeout: Int,
         result: Promise
     ) {
         try {
             _blockchainConfig = BlockchainConfig.Esplora(
                 EsploraConfig(
-                    url,
-                    null,
-                    concurrency?.toUByte() ?: 5u,
-                    stopGap?.toULong() ?: 10u,
-                    timeOut?.toULong(),
+                    baseUrl,
+                    proxy ?: null,
+                    concurrency.toUByte(),
+                    stopGap.toULong(),
+                    timeout.toULong(),
                 )
             )
             val blockChainId = randomId()
@@ -412,7 +413,6 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val responseObject = mutableMapOf<String, Any?>()
                 responseObject["index"] = addressInfo.index.toInt()
                 responseObject["address"] = addressInfo.address
-
                 result.resolve(Arguments.makeNativeMap(responseObject))
             }.start()
         } catch (error: Throwable) {

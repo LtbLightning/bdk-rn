@@ -70,9 +70,12 @@ const fingerprint = 'd1d04177';
 const externalPublicDescriptor = await new Descriptor().newBip44Public(externalPublicDescriptorStr, fingerprint, KeychainKind.External, Network.Testnet);
 ```
 
+### References:
+- Setting up a local Esplora instance for testing:
+https://bitcoin.stackexchange.com/questions/116937/how-do-i-setup-an-esplora-instance-for-local-testing/116938#116938
 ---
 
-_Note: Caution this is pre-Alpha at this stage
+_Note: Caution this is an Alpha at this stage
 Please consider reviewing, experimenting and contributing ⚡️_
 
 Thanks for taking a look!
