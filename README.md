@@ -42,10 +42,10 @@ const internalDescriptor = await new Descriptor().newBip44(descriptorSecretKey, 
 
 const config: BlockchainElectrumConfig = {
   url: 'ssl://electrum.blockstream.info:60002',
+  sock5: null,
   retry: 5,
   timeout: 5,
-  stopGap: 5,
-  sock5: null,
+  stopGap: 100,
   validateDomain: false,
 };
 
