@@ -38,4 +38,9 @@ export declare class PartiallySignedTransaction extends NativeLoader {
      * @returns {Promise<number>}
      */
     feeRate(): Promise<number>;
+    /**
+     * Return transaction as json
+     * @returns {Promise<string>}
+     */
+    jsonSerialize(): Promise<string>;
 }

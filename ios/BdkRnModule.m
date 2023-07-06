@@ -234,8 +234,41 @@ RCT_EXTERN_METHOD(
     reject:(RCTPromiseRejectBlock)reject
 )
 
+
+RCT_EXTERN_METHOD(
+    addressFromScript:(nonnull NSString*)script
+    network: (nonnull NSString*)network
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
 RCT_EXTERN_METHOD(
     addressToScriptPubkeyHex:(nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    addressPayload:(nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+
+RCT_EXTERN_METHOD(
+    addressNetwork:(nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    addressToQrUri:(nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    addressAsString:(nonnull NSString*)id
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
@@ -468,6 +501,12 @@ RCT_EXTERN_METHOD(
     reject: (RCTPromiseRejectBlock)reject
 )
 
+RCT_EXTERN_METHOD(
+    jsonSerialize: (nonnull NSString*)base64
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
 /** BumpFeeTxBuilder methods */
 RCT_EXTERN_METHOD(
     bumpFeeTxBuilderInit: (nonnull NSString*)txid
@@ -516,4 +555,79 @@ RCT_EXTERN_METHOD(
     resolve: (RCTPromiseResolveBlock)resolve
     reject: (RCTPromiseRejectBlock)reject
 )
+
+RCT_EXTERN_METHOD(
+    serializeTransaction: (nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    transactionTxid: (nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    txWeight: (nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    txSize: (nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+
+RCT_EXTERN_METHOD(
+    txVsize: (nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    txIsCoinBase: (nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    txIsExplicitlyRbf: (nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    txIsLockTimeEnabled: (nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    txVersion: (nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    txLockTime: (nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    txInput: (nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    txOutput: (nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+
 @end

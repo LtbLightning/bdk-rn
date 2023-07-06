@@ -546,9 +546,10 @@ class BdkRnModule: NSObject {
             let unspent = try getWalletById(id: id).listUnspent()
             var responseObject: [Any] = []
             for item in unspent {
+                let scriptId = randomId()
                 let unspentObject = [
                     "outpoint": ["txid": item.outpoint.txid, "vout": item.outpoint.vout] as [String : Any],
-                    "txout": ["value": item.txout.value, "address": item.txout.address] as [String : Any],
+                    "txout": createTxOut(txOut: item.txout, _scripts: &_scripts),
                     "isSpent": item.isSpent
                 ] as [String: Any]
                 responseObject.append(unspentObject)
@@ -566,7 +567,7 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let list = try getWalletById(id: id).listTransactions()
+            let list = try getWalletById(id: id).listTransactions(includeRaw: true)
             var responseObject: [Any] = []
             for item in list {
                 let txObject = getTransactionObject(transaction: item)
@@ -587,7 +588,7 @@ class BdkRnModule: NSObject {
     ) {
         do {
             let psbt = try PartiallySignedTransaction(psbtBase64: psbtBase64)
-            _ = try getWalletById(id: id).sign(psbt: psbt)
+            _ = try getWalletById(id: id).sign(psbt: psbt, signOptions: nil)
             resolve(psbt.serialize())
         } catch let error {
             reject("Sign PSBT error", "\(error)", error)
@@ -613,6 +614,22 @@ class BdkRnModule: NSObject {
             reject("Address error", "\(error)", error)
         }
     }
+    
+    @objc
+    func addressFromScript(_
+        scriptId: String,
+        network: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let id = randomId()
+            _addresses[id] = try Address.fromScript(script: _scripts[scriptId]!, network: setNetwork(networkStr: network))
+            resolve(id)
+        } catch let error {
+            reject("Address from script error", "\(error)", error)
+        }
+    }
 
     @objc
     func addressToScriptPubkeyHex(_
@@ -623,6 +640,45 @@ class BdkRnModule: NSObject {
         let scriptId = randomId()
         _scripts[scriptId] = _addresses[id]?.scriptPubkey()
         resolve(scriptId)
+    }
+    
+    @objc
+    func addressPayload(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        let pay = _addresses[id]?.payload()
+        resolve(getPayload(payload: pay!))
+    }
+    
+    @objc
+    func addressNetwork(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(getNetworkString(network: _addresses[id]!.network()))
+    }
+    
+    
+    @objc
+    func addressToQrUri(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(_addresses[id]!.toQrUri())
+    }
+    
+    
+    @objc
+    func addressAsString(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(_addresses[id]!.asString())
     }
 
     /** Address methods ends*/
@@ -1097,6 +1153,19 @@ class BdkRnModule: NSObject {
             reject("PSBT feeRate error", "\(error)", error)
         }
     }
+    
+    @objc
+    func jsonSerialize(_
+        base64: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            resolve(try PartiallySignedTransaction(psbtBase64: base64).jsonSerialize())
+        } catch let error {
+            reject("PSBT jsonSerialize error", "\(error)", error)
+        }
+    }
     /** PartiallySignedTransaction method ends */
 
 
@@ -1186,6 +1255,115 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         resolve(_transactions[id]!.serialize())
+    }
+    
+    @objc
+    func transactionTxid(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(_transactions[id]!.txid())
+    }
+    
+    @objc
+    func txWeight(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(_transactions[id]!.weight())
+    }
+    
+    @objc
+    func txSize(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(_transactions[id]!.size())
+    }
+    
+    @objc
+    func txVsize(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(_transactions[id]!.vsize())
+    }
+    
+    @objc
+    func txIsCoinBase(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(_transactions[id]!.isCoinBase())
+    }
+    
+    @objc
+    func txIsExplicitlyRbf(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(_transactions[id]!.isExplicitlyRbf())
+    }
+    
+    @objc
+    func txIsLockTimeEnabled(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(_transactions[id]!.isLockTimeEnabled())
+    }
+    
+    @objc
+    func txVersion(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(_transactions[id]!.version())
+    }
+    
+    @objc
+    func txLockTime(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(_transactions[id]!.lockTime())
+    }
+    
+    
+    @objc
+    func txInput(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(_transactions[id]!.input())
+    }
+    
+    
+    @objc
+    func txOutput(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        var list = _transactions[id]!.output()
+        var mapped: [Any] = [];
+        print("====>Before<====", _scripts)
+        for item in list {
+            let scriptId = randomId()
+            mapped.append(createTxOut(txOut: item, _scripts: &_scripts))
+        }
+        print("====>After<====", _scripts)
+        resolve(mapped)
     }
     /** Transaction methods ends*/
 }

@@ -1,5 +1,5 @@
-import { AddressIndex, BlockchainRpcConfig, KeychainKind, Network, WordCount } from '../lib/enums';
-import { AddressInfo, Balance, LocalUtxo, OutPoint, ScriptAmount, TransactionDetails } from './Bindings';
+import { AddressIndex, BlockchainRpcConfig, KeychainKind, Network, WordCount, payload } from '../lib/enums';
+import { AddressInfo, Balance, OutPoint, ScriptAmount, TransactionDetails } from './Bindings';
 export interface NativeBdkRn {
     generateSeedFromWordCount(wordCount: WordCount): string;
     generateSeedFromString(mnemonic: string): string;
@@ -31,10 +31,15 @@ export interface NativeBdkRn {
     getNetwork(id: string): string;
     sync(blockchain: string, id: string): boolean;
     sign(id: string, psbtBase64: string): string;
-    listUnspent(id: string): Array<LocalUtxo>;
+    listUnspent(id: string): Array<any>;
     listTransactions(id: string): Array<TransactionDetails>;
     initAddress(address: string): string;
+    addressFromScript(script: string, network: Network): string;
     addressToScriptPubkeyHex(id: string): string;
+    addressPayload(id: string): payload;
+    addressNetwork(id: string): string;
+    addressToQrUri(id: string): string;
+    addressAsString(id: string): string;
     createTxBuilder(): string;
     addRecipient(id: string, scriptId: string, amount: number): string;
     finish(id: string, walletId: string): {
@@ -71,6 +76,7 @@ export interface NativeBdkRn {
     txid(psbt64: string): string;
     feeAmount(psbt64: string): number;
     psbtFeeRate(psbt64: string): number;
+    jsonSerialize(psbt64: string): string;
     bumpFeeTxBuilderInit(txid: string, newFeeRate: number): string;
     bumpFeeTxBuilderAllowShrinking(id: string, address: string): string;
     bumpFeeTxBuilderEnableRbf(id: string): any;
@@ -78,6 +84,17 @@ export interface NativeBdkRn {
     bumpFeeTxBuilderFinish(id: string, walletId: string): any;
     createTransaction(bytes: Array<number>): string;
     serializeTransaction(id: string): Array<number>;
+    transactionTxid(id: string): string;
+    txWeight(id: string): number;
+    txSize(id: string): number;
+    txVsize(id: string): number;
+    txIsCoinBase(id: string): boolean;
+    txIsExplicitlyRbf(id: string): boolean;
+    txIsLockTimeEnabled(id: string): boolean;
+    txVersion(id: string): number;
+    txLockTime(id: string): number;
+    txInput(id: string): Array<any>;
+    txOutput(id: string): Array<any>;
 }
 export declare class NativeLoader {
     protected _bdk: NativeBdkRn;

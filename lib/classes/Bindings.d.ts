@@ -36,10 +36,10 @@ export declare class TxOut {
      */
     value: number;
     /**
-     * The address of the output.
+     * The address script of the output.
      */
-    address: string;
-    constructor(value: number, address: string);
+    script: Script;
+    constructor(value: number, script: Script);
 }
 /**
  * Unspent outputs of this wallet
@@ -157,4 +157,17 @@ export declare class TxBuilderResult {
     psbt: PartiallySignedTransaction;
     txDetails: TransactionDetails;
     constructor(psbt: PartiallySignedTransaction, txDetails: TransactionDetails);
+}
+export declare class PubkeyHash {
+    pubkeyHash: Array<number>;
+    constructor(hash: Array<number>);
+}
+export declare class ScriptHash {
+    scriptHash: Array<number>;
+    constructor(hash: Array<number>);
+}
+export declare class WitnessProgram {
+    program: Array<number>;
+    version: string;
+    constructor(program: Array<number>, version: string);
 }

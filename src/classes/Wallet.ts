@@ -1,6 +1,6 @@
 import { AddressIndex, Network } from '../lib/enums';
-import { createTxDetailsObject } from '../lib/utils';
-import { AddressInfo, Balance, LocalUtxo, OutPoint, TransactionDetails, TxOut } from './Bindings';
+import { createTxDetailsObject, createTxOut, getNetwork } from '../lib/utils';
+import { AddressInfo, Balance, LocalUtxo, OutPoint, Script, TransactionDetails, TxOut } from './Bindings';
 import { Blockchain } from './Blockchain';
 import { DatabaseConfig } from './DatabaseConfig';
 import { Descriptor } from './Descriptor';
@@ -67,22 +67,7 @@ export class Wallet extends NativeLoader {
    */
   async network(): Promise<Network> {
     let networkName = await this._bdk.getNetwork(this.id);
-    let networkEnum = Network.Testnet;
-    switch (networkName) {
-      case 'testnet':
-        networkEnum = Network.Testnet;
-        break;
-      case 'regtest':
-        networkEnum = Network.Regtest;
-        break;
-      case 'bitcoin':
-        networkEnum = Network.Bitcoin;
-        break;
-      case 'signet':
-        networkEnum = Network.Signet;
-        break;
-    }
-    return networkEnum;
+    return getNetwork(networkName);
   }
 
   /**
@@ -103,7 +88,7 @@ export class Wallet extends NativeLoader {
     output.map((item) => {
       let localObj = new LocalUtxo(
         new OutPoint(item.outpoint.txid, item.outpoint.vout),
-        new TxOut(item.txout.value, item.txout.address),
+        createTxOut(item.txout),
         item.isSpent
       );
       localUtxo.push(localObj);

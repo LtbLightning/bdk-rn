@@ -50,13 +50,13 @@ export class TxOut {
   value: number;
 
   /**
-   * The address of the output.
+   * The address script of the output.
    */
-  address: string;
+  script: Script;
 
-  constructor(value: number, address: string) {
+  constructor(value: number, script: Script) {
     this.value = value;
-    this.address = address;
+    this.script = script;
   }
 }
 
@@ -233,3 +233,27 @@ export class TxBuilderResult {
     this.txDetails = txDetails;
   }
 }
+
+export class PubkeyHash {
+  pubkeyHash: Array<number>;
+  constructor(hash: Array<number>) {
+    this.pubkeyHash = hash;
+  }
+}
+
+export class ScriptHash {
+  scriptHash: Array<number>;
+  constructor(hash: Array<number>) {
+    this.scriptHash = hash;
+  }
+}
+
+export class WitnessProgram {
+  program: Array<number>;
+  version: string;
+  constructor(program: Array<number>, version: string) {
+    this.program = program;
+    this.version = version;
+  }
+}
+

@@ -63,4 +63,12 @@ export class PartiallySignedTransaction extends NativeLoader {
   async feeRate(): Promise<number> {
     return await this._bdk.psbtFeeRate(this.base64);
   }
+
+  /**
+   * Return transaction as json
+   * @returns {Promise<string>}
+   */
+  async jsonSerialize(): Promise<string> {
+    return await this._bdk.jsonSerialize(this.base64);
+  }
 }

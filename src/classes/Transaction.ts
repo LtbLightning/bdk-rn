@@ -1,4 +1,6 @@
+import { TxOut } from '../classes/Bindings';
 import { NativeLoader } from './NativeLoader';
+import { createTxOut } from '../lib/utils';
 
 /**
  * Transaction methods
@@ -26,9 +28,56 @@ export class Transaction extends NativeLoader {
 
   /**
    * Return the transaction bytes, bitcoin consensus encoded.
-   * @returns {Promise<Array<number>}
+   * @returns {Promise<Array<number>>}
    */
   async serialize(): Promise<Array<number>> {
     return await this._bdk.serializeTransaction(this.id);
+  }
+
+  async txid(): Promise<string> {
+    return await this._bdk.transactionTxid(this.id);
+  }
+
+  async weight(): Promise<number> {
+    return await this._bdk.txWeight(this.id);
+  }
+
+  async size(): Promise<number> {
+    return await this._bdk.txSize(this.id);
+  }
+
+  async vsize(): Promise<number> {
+    return await this._bdk.txVsize(this.id);
+  }
+
+  async isCoinBase(): Promise<boolean> {
+    return await this._bdk.txIsCoinBase(this.id);
+  }
+
+  async isExplicitlyRbf(): Promise<boolean> {
+    return await this._bdk.txIsExplicitlyRbf(this.id);
+  }
+
+  async isLockTimeEnabled(): Promise<boolean> {
+    return await this._bdk.txIsLockTimeEnabled(this.id);
+  }
+
+  async version(): Promise<number> {
+    return await this._bdk.txVersion(this.id);
+  }
+
+  async lockTime(): Promise<number> {
+    return await this._bdk.txLockTime(this.id);
+  }
+
+  async input(): Promise<Array<any>> {
+    return await this._bdk.txInput(this.id);
+  }
+
+  async output(): Promise<Array<TxOut>> {
+    let output = await this._bdk.txOutput(this.id);
+    let localTxout: Array<TxOut> = [];
+    output.map((item) => localTxout.push(createTxOut(item)));
+    return localTxout;
   }
 }
