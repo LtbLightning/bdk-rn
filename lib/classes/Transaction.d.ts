@@ -7,9 +7,9 @@ export declare class Transaction extends NativeLoader {
     id: string;
     /**
      * Set Transaction from extractTx
-     * @returns {Promise<Transaction>}
+     * @returns {Transaction}
      */
-    _setTransaction(id: string): Promise<Transaction>;
+    _setTransaction(id: string): Transaction;
     /**
      * Create Transaction at native side
      * @returns {Promise<Transaction>}

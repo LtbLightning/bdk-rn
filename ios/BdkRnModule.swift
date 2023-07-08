@@ -546,11 +546,11 @@ class BdkRnModule: NSObject {
             let unspent = try getWalletById(id: id).listUnspent()
             var responseObject: [Any] = []
             for item in unspent {
-                let scriptId = randomId()
                 let unspentObject = [
-                    "outpoint": ["txid": item.outpoint.txid, "vout": item.outpoint.vout] as [String : Any],
+                    "outpoint": getOutPoint(outPoint: item.outpoint),
                     "txout": createTxOut(txOut: item.txout, _scripts: &_scripts),
-                    "isSpent": item.isSpent
+                    "isSpent": item.isSpent,
+                    "keychain": "\(item.keychain)"
                 ] as [String: Any]
                 responseObject.append(unspentObject)
             }
@@ -563,14 +563,22 @@ class BdkRnModule: NSObject {
     @objc
     func listTransactions(_
         id: String,
+        includeRaw: Bool,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
-            let list = try getWalletById(id: id).listTransactions(includeRaw: true)
+            let list = try getWalletById(id: id).listTransactions(includeRaw: includeRaw)
             var responseObject: [Any] = []
             for item in list {
-                let txObject = getTransactionObject(transaction: item)
+                var txObject = getTransactionObject(transaction: item)
+                if(item.transaction != nil) {
+                    let randomId = randomId()
+                    _transactions[randomId] = item.transaction
+                    txObject["transaction"] = randomId
+                } else {
+                    txObject["transaction"] = false
+                }
                 responseObject.append(txObject)
             }
             resolve(responseObject)
@@ -583,12 +591,19 @@ class BdkRnModule: NSObject {
     func sign(_
         id: String,
         psbtBase64: String,
+        signOptions: Any? = nil,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
+
+            var options: SignOptions? = nil
+            if signOptions != nil {
+                options = createSignOptions(options: signOptions as! NSDictionary)
+            }
+
             let psbt = try PartiallySignedTransaction(psbtBase64: psbtBase64)
-            _ = try getWalletById(id: id).sign(psbt: psbt, signOptions: nil)
+            _ = try getWalletById(id: id).sign(psbt: psbt, signOptions: options)
             resolve(psbt.serialize())
         } catch let error {
             reject("Sign PSBT error", "\(error)", error)
@@ -614,7 +629,7 @@ class BdkRnModule: NSObject {
             reject("Address error", "\(error)", error)
         }
     }
-    
+
     @objc
     func addressFromScript(_
         scriptId: String,
@@ -641,7 +656,7 @@ class BdkRnModule: NSObject {
         _scripts[scriptId] = _addresses[id]?.scriptPubkey()
         resolve(scriptId)
     }
-    
+
     @objc
     func addressPayload(_
         id: String,
@@ -651,7 +666,7 @@ class BdkRnModule: NSObject {
         let pay = _addresses[id]?.payload()
         resolve(getPayload(payload: pay!))
     }
-    
+
     @objc
     func addressNetwork(_
         id: String,
@@ -660,8 +675,8 @@ class BdkRnModule: NSObject {
     ) {
         resolve(getNetworkString(network: _addresses[id]!.network()))
     }
-    
-    
+
+
     @objc
     func addressToQrUri(_
         id: String,
@@ -670,8 +685,8 @@ class BdkRnModule: NSObject {
     ) {
         resolve(_addresses[id]!.toQrUri())
     }
-    
-    
+
+
     @objc
     func addressAsString(_
         id: String,
@@ -1153,7 +1168,7 @@ class BdkRnModule: NSObject {
             reject("PSBT feeRate error", "\(error)", error)
         }
     }
-    
+
     @objc
     func jsonSerialize(_
         base64: String,
@@ -1256,7 +1271,7 @@ class BdkRnModule: NSObject {
     ) {
         resolve(_transactions[id]!.serialize())
     }
-    
+
     @objc
     func transactionTxid(_
         id: String,
@@ -1265,7 +1280,7 @@ class BdkRnModule: NSObject {
     ) {
         resolve(_transactions[id]!.txid())
     }
-    
+
     @objc
     func txWeight(_
         id: String,
@@ -1274,7 +1289,7 @@ class BdkRnModule: NSObject {
     ) {
         resolve(_transactions[id]!.weight())
     }
-    
+
     @objc
     func txSize(_
         id: String,
@@ -1283,7 +1298,7 @@ class BdkRnModule: NSObject {
     ) {
         resolve(_transactions[id]!.size())
     }
-    
+
     @objc
     func txVsize(_
         id: String,
@@ -1292,7 +1307,7 @@ class BdkRnModule: NSObject {
     ) {
         resolve(_transactions[id]!.vsize())
     }
-    
+
     @objc
     func txIsCoinBase(_
         id: String,
@@ -1301,7 +1316,7 @@ class BdkRnModule: NSObject {
     ) {
         resolve(_transactions[id]!.isCoinBase())
     }
-    
+
     @objc
     func txIsExplicitlyRbf(_
         id: String,
@@ -1310,7 +1325,7 @@ class BdkRnModule: NSObject {
     ) {
         resolve(_transactions[id]!.isExplicitlyRbf())
     }
-    
+
     @objc
     func txIsLockTimeEnabled(_
         id: String,
@@ -1319,7 +1334,7 @@ class BdkRnModule: NSObject {
     ) {
         resolve(_transactions[id]!.isLockTimeEnabled())
     }
-    
+
     @objc
     func txVersion(_
         id: String,
@@ -1328,7 +1343,7 @@ class BdkRnModule: NSObject {
     ) {
         resolve(_transactions[id]!.version())
     }
-    
+
     @objc
     func txLockTime(_
         id: String,
@@ -1337,32 +1352,34 @@ class BdkRnModule: NSObject {
     ) {
         resolve(_transactions[id]!.lockTime())
     }
-    
-    
+
+
     @objc
     func txInput(_
         id: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        resolve(_transactions[id]!.input())
+        let list = _transactions[id]!.input()
+        var mapped: [Any] = [];
+        for item in list {
+            mapped.append(createTxIn(txIn: item, _scripts: &_scripts))
+        }
+        resolve(mapped)
     }
-    
-    
+
+
     @objc
     func txOutput(_
         id: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        var list = _transactions[id]!.output()
+        let list = _transactions[id]!.output()
         var mapped: [Any] = [];
-        print("====>Before<====", _scripts)
         for item in list {
-            let scriptId = randomId()
             mapped.append(createTxOut(txOut: item, _scripts: &_scripts))
         }
-        print("====>After<====", _scripts)
         resolve(mapped)
     }
     /** Transaction methods ends*/

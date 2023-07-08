@@ -1,6 +1,6 @@
 import { AddressIndex, Network } from '../lib/enums';
-import { createTxDetailsObject, createTxOut, getNetwork } from '../lib/utils';
-import { AddressInfo, Balance, LocalUtxo, OutPoint, Script, TransactionDetails, TxOut } from './Bindings';
+import { createOutpoint, createTxDetailsObject, createTxOut, getNetwork } from '../lib/utils';
+import { AddressInfo, Balance, LocalUtxo, SignOptions, TransactionDetails } from './Bindings';
 import { Blockchain } from './Blockchain';
 import { DatabaseConfig } from './DatabaseConfig';
 import { Descriptor } from './Descriptor';
@@ -86,11 +86,7 @@ export class Wallet extends NativeLoader {
     let output = await this._bdk.listUnspent(this.id);
     let localUtxo: Array<LocalUtxo> = [];
     output.map((item) => {
-      let localObj = new LocalUtxo(
-        new OutPoint(item.outpoint.txid, item.outpoint.vout),
-        createTxOut(item.txout),
-        item.isSpent
-      );
+      let localObj = new LocalUtxo(createOutpoint(item.outpoint), createTxOut(item.txout), item.isSpent, item.keychain);
       localUtxo.push(localObj);
     });
     return localUtxo;
@@ -100,8 +96,8 @@ export class Wallet extends NativeLoader {
    * Return an unsorted list of transactions made and received by the wallet
    * @returns {Promise<Array<TransactionDetails>>}
    */
-  async listTransactions(): Promise<Array<TransactionDetails>> {
-    let list = await this._bdk.listTransactions(this.id);
+  async listTransactions(includeRaw: boolean): Promise<Array<TransactionDetails>> {
+    let list = await this._bdk.listTransactions(this.id, includeRaw);
     let transactions: Array<TransactionDetails> = [];
     list.map((item) => {
       let localObj = createTxDetailsObject(item);
@@ -114,8 +110,8 @@ export class Wallet extends NativeLoader {
    * Sign PSBT with wallet
    * @returns
    */
-  async sign(psbt: PartiallySignedTransaction): Promise<PartiallySignedTransaction> {
-    let signed = await this._bdk.sign(this.id, psbt.base64);
+  async sign(psbt: PartiallySignedTransaction, signOptions?: SignOptions): Promise<PartiallySignedTransaction> {
+    let signed = await this._bdk.sign(this.id, psbt.base64, signOptions);
     return new PartiallySignedTransaction(signed);
   }
 }

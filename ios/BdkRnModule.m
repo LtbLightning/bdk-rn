@@ -215,12 +215,14 @@ RCT_EXTERN_METHOD(
 )
 RCT_EXTERN_METHOD(
     listTransactions:(nonnull NSString*)id
+    includeRaw: (nonnull BOOL*)includeRaw
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
 RCT_EXTERN_METHOD(
     sign:(nonnull NSString*)id
     psbtBase64: (nonnull NSString*)psbtBase64
+    signOptions: (nullable NSDictionary*)signOptions
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )

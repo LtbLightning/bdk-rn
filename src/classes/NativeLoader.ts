@@ -1,7 +1,16 @@
 import { NativeModules } from 'react-native';
 
 import { AddressIndex, BlockchainRpcConfig, KeychainKind, Network, WordCount, payload } from '../lib/enums';
-import { AddressInfo, Balance, LocalUtxo, OutPoint, Script, ScriptAmount, TransactionDetails } from './Bindings';
+import {
+  AddressInfo,
+  Balance,
+  LocalUtxo,
+  OutPoint,
+  Script,
+  ScriptAmount,
+  SignOptions,
+  TransactionDetails,
+} from './Bindings';
 
 export interface NativeBdkRn {
   generateSeedFromWordCount(wordCount: WordCount): string;
@@ -54,10 +63,10 @@ export interface NativeBdkRn {
   getBalance(id: string): Balance;
   getNetwork(id: string): string;
   sync(blockchain: string, id: string): boolean;
-  sign(id: string, psbtBase64: string): string;
+  sign(id: string, psbtBase64: string, signOptions?: SignOptions): string;
 
   listUnspent(id: string): Array<any>;
-  listTransactions(id: string): Array<TransactionDetails>;
+  listTransactions(id: string, includeRaw: boolean): Array<TransactionDetails>;
 
   initAddress(address: string): string;
   addressFromScript(script: string, network: Network): string;

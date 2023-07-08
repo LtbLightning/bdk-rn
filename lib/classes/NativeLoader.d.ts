@@ -1,5 +1,5 @@
 import { AddressIndex, BlockchainRpcConfig, KeychainKind, Network, WordCount, payload } from '../lib/enums';
-import { AddressInfo, Balance, OutPoint, ScriptAmount, TransactionDetails } from './Bindings';
+import { AddressInfo, Balance, OutPoint, ScriptAmount, SignOptions, TransactionDetails } from './Bindings';
 export interface NativeBdkRn {
     generateSeedFromWordCount(wordCount: WordCount): string;
     generateSeedFromString(mnemonic: string): string;
@@ -30,9 +30,9 @@ export interface NativeBdkRn {
     getBalance(id: string): Balance;
     getNetwork(id: string): string;
     sync(blockchain: string, id: string): boolean;
-    sign(id: string, psbtBase64: string): string;
+    sign(id: string, psbtBase64: string, signOptions?: SignOptions): string;
     listUnspent(id: string): Array<any>;
-    listTransactions(id: string): Array<TransactionDetails>;
+    listTransactions(id: string, includeRaw: boolean): Array<TransactionDetails>;
     initAddress(address: string): string;
     addressFromScript(script: string, network: Network): string;
     addressToScriptPubkeyHex(id: string): string;

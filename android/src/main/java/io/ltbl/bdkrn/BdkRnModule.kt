@@ -425,12 +425,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             val unpents: MutableList<Map<String, Any?>> = mutableListOf()
             for (item in unspentList) {
                 val unspentObject = mutableMapOf<String, Any?>()
-                unspentObject["outpoint"] =
-                    mutableMapOf("txid" to item.outpoint.txid, "vout" to item.outpoint.vout.toInt())
-                unspentObject["txout"] = mutableMapOf(
-                    "value" to item.txout.value.toInt(),
-                    "address" to item.txout.address
-                )
+                unspentObject["outpoint"] = getOutPoint(item.outpoint)
+                unspentObject["txout"] = createTxOut(item.txout, _scripts)
                 unspentObject["isSpent"] = item.isSpent
                 unpents.add(unspentObject)
             }
@@ -441,9 +437,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun listTransactions(id: String, result: Promise) {
+    fun listTransactions(id: String, includeRaw: Boolean, result: Promise) {
         try {
-            val list = getWalletById(id).listTransactions()
+            val list = getWalletById(id).listTransactions(includeRaw)
             val transactions: MutableList<Map<String, Any?>> = mutableListOf()
             for (item in list) transactions.add(getTransactionObject(item))
             result.resolve(Arguments.makeNativeArray(transactions))
@@ -456,7 +452,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun sign(id: String, psbtBase64: String, result: Promise) {
         try {
             val psbt = PartiallySignedTransaction(psbtBase64)
-            getWalletById(id).sign(psbt)
+            getWalletById(id).sign(psbt, null)
             result.resolve(psbt.serialize())
         } catch (error: Throwable) {
             result.reject("Sign PSBT error", error.localizedMessage, error)

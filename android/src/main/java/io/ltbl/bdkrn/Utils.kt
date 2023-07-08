@@ -111,3 +111,14 @@ fun makeNativeArray(bytes: List<UByte>): WritableNativeArray{
     for (i in bytes) arr.pushInt(i.toInt())
     return  arr
 }
+
+fun createTxOut(txOut: TxOut, _scripts: MutableMap<String, Script>):  MutableMap<String, Any> {
+    val randomId = randomId()
+    _scripts[randomId] = txOut.scriptPubkey
+    return mutableMapOf("script" to randomId, "value" to txOut.value.toInt())
+}
+
+
+fun getOutPoint(outPoint: OutPoint): MutableMap<String, Any> {
+    return mutableMapOf("txid" to outPoint.txid, "vout" to outPoint.vout.toInt())
+}

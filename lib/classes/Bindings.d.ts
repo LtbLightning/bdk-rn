@@ -1,4 +1,6 @@
+import { KeychainKind } from 'bdk-rn/src/lib/enums';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
+import { Transaction } from 'bdk-rn/src/classes/Transaction';
 /**
  * A derived address and the index it was found at For convenience this automatically derefs to Address
  */
@@ -57,7 +59,8 @@ export declare class LocalUtxo {
      * Whether this UTXO is spent or not
      */
     isSpent: boolean;
-    constructor(outpoint: OutPoint, txout: TxOut, isSpent: boolean);
+    keychain: KeychainKind;
+    constructor(outpoint: OutPoint, txout: TxOut, isSpent: boolean, keychain: KeychainKind);
 }
 export declare class Balance {
     /**
@@ -125,7 +128,11 @@ export declare class TransactionDetails {
      * transaction, unconfirmed transaction contains `None`.
      */
     confirmationTime?: BlockTime;
-    constructor(txid: string, received: number, sent: number, fee: number | undefined, confirmationTime: BlockTime);
+    /**
+     * Transaction object or Null
+     */
+    transaction?: Transaction | null;
+    constructor(txid: string, received: number, sent: number, fee: number | undefined, confirmationTime: BlockTime, transaction: Transaction | null);
 }
 /**
  * Address script class
@@ -170,4 +177,26 @@ export declare class WitnessProgram {
     program: Array<number>;
     version: string;
     constructor(program: Array<number>, version: string);
+}
+export declare class TxIn {
+    previousOutput: OutPoint;
+    scriptSig: Script;
+    sequence: number;
+    witness: Array<number>;
+    constructor(previousOutput: OutPoint, scriptSig: Script, sequence: number, witness: Array<number>);
+}
+/**
+ * Options for a software signer
+ * Adjust the behavior of our software signers and the way a transaction is finalized
+ */
+export declare class SignOptions {
+    isMultiSig: boolean;
+    trustWitnessUtxo: boolean;
+    assumeHeight: number;
+    allowAllSighashes: boolean;
+    removePartialSigs: boolean;
+    tryFinalize: boolean;
+    signWithTapInternalKey: boolean;
+    allowGrinding: boolean;
+    constructor(isMultiSig: boolean, trustWitnessUtxo: boolean, assumeHeight: number, allowAllSighashes: boolean, removePartialSigs: boolean, tryFinalize: boolean, signWithTapInternalKey: boolean, allowGrinding: boolean);
 }

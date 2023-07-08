@@ -133,3 +133,30 @@ func createTxOut(txOut: TxOut, _scripts: inout [String: Script]) -> [String: Any
         "value": txOut.value
     ] as [String: Any]
 }
+
+func createTxIn(txIn: TxIn, _scripts: inout [String: Script]) -> [String: Any] {
+    let randomId = randomId()
+    _scripts[randomId] = txIn.scriptSig
+    return [
+        "scriptSig": randomId,
+        "previousOutput": getOutPoint(outPoint: txIn.previousOutput),
+        "sequence": txIn.sequence,
+        "witness": txIn.witness
+    ] as [String: Any]
+}
+
+func getOutPoint(outPoint: OutPoint) -> [String: Any] {
+    return ["txid": outPoint.txid, "vout": outPoint.vout] as [String: Any]
+}
+
+func createSignOptions(options: NSDictionary) -> SignOptions? {
+    return SignOptions(
+        trustWitnessUtxo: (options["trustWitnessUtxo"] != nil),
+        assumeHeight: options["assumeHeight"] as? UInt32,
+        allowAllSighashes: (options["allowAllSighashes"] != nil),
+        removePartialSigs: (options["removePartialSigs"] != nil),
+        tryFinalize: (options["tryFinalize"] != nil),
+        signWithTapInternalKey: (options["signWithTapInternalKey"] != nil),
+        allowGrinding: (options["allowGrinding"] != nil)
+    )
+}

@@ -1,6 +1,6 @@
-import { TxOut } from '../classes/Bindings';
+import { TxIn, TxOut } from '../classes/Bindings';
 import { NativeLoader } from './NativeLoader';
-import { createTxOut } from '../lib/utils';
+import { createTxIn, createTxOut } from '../lib/utils';
 
 /**
  * Transaction methods
@@ -10,9 +10,9 @@ export class Transaction extends NativeLoader {
 
   /**
    * Set Transaction from extractTx
-   * @returns {Promise<Transaction>}
+   * @returns {Transaction}
    */
-  async _setTransaction(id: string): Promise<Transaction> {
+  _setTransaction(id: string): Transaction {
     this.id = id;
     return this;
   }
@@ -71,7 +71,10 @@ export class Transaction extends NativeLoader {
   }
 
   async input(): Promise<Array<any>> {
-    return await this._bdk.txInput(this.id);
+    let input = await this._bdk.txInput(this.id);
+    let localTxIn: Array<TxIn> = [];
+    input.map((item) => localTxIn.push(createTxIn(item)));
+    return localTxIn;
   }
 
   async output(): Promise<Array<TxOut>> {
