@@ -1,7 +1,7 @@
-import { TransactionDetails } from '../../../src/classes/Bindings'
-import { createTxDetailsObject } from '../../../src/lib/utils'
+import { TransactionDetails } from '../../../src/classes/Bindings';
+import { createTxDetailsObject } from '../../../src/lib/utils';
 
-describe('createTxDetailsObject', ()=> {
+describe('createTxDetailsObject', () => {
   const item = {
     txid: 'txid',
     received: 1,
@@ -9,12 +9,13 @@ describe('createTxDetailsObject', ()=> {
     fee: 500,
     confirmationTime: {
       height: 615,
-      timestamp: 1684262862999
-    }
-  }
-  it('should create a tx details obejct', ()=> {
-    const result = createTxDetailsObject(item)
-    expect(result).toBeInstanceOf(TransactionDetails)
-    expect(result).toEqual(item)
-  })
-})
+      timestamp: 1684262862999,
+    },
+    transaction: null,
+  };
+  it('should create a tx details obejct', () => {
+    const result = createTxDetailsObject(item);
+    expect(result).toBeInstanceOf(TransactionDetails);
+    expect(result).toEqual(item);
+  });
+});

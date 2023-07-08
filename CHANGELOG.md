@@ -1,3 +1,13 @@
+## [0.29.0]
+
+#### APIs added
+- Expose `Address` class's `fromScript`, `payload`, `network`, `toQrUri` and `asString` functions 
+- Added `keychain` to LocalUtxo
+- Added `includeRaw` to Wallet.listTransactions() and `signOptions` to Wallet.sign() params.
+- Added `jsonSerialize` function to `PartiallySignedTransaction`, to get the JSON serialized value of all PSBT fields.
+- Expose `Transaction` class's  `txid`, `weight`, `size`, `vsize`, `isCoinBase`, `isExplicitlyRbf`, `version`, `isLockTimeEnabled`, `lockTime`, `input` and `output` functions.
+
+
 ## [0.1.0]
 
 #### APIs exposed

@@ -1,6 +1,6 @@
-import { KeychainKind } from 'bdk-rn/src/lib/enums';
+import { KeychainKind } from '../lib/enums';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
-import { Transaction } from 'bdk-rn/src/classes/Transaction';
+import { Transaction } from './Transaction';
 /**
  * A derived address and the index it was found at For convenience this automatically derefs to Address
  */

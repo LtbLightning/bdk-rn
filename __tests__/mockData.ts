@@ -15,5 +15,6 @@ export const mockTransactionDetails = new TransactionDetails(
   7625,
   8564,
   141,
-  new BlockTime(2410324, 1670479190)
+  new BlockTime(2410324, 1670479190),
+  null
 );

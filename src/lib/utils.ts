@@ -1,4 +1,4 @@
-import { Transaction } from 'bdk-rn/src/classes/Transaction';
+import { Transaction } from '../classes/Transaction';
 import {
   BlockTime,
   OutPoint,
@@ -29,7 +29,7 @@ export const createTxDetailsObject = (item: Props): TransactionDetails => {
     item.sent,
     item?.fee,
     new BlockTime(item.confirmationTime?.height, item.confirmationTime?.timestamp),
-    item.transaction == false ? null : new Transaction()._setTransaction(item.transaction)
+    !item.transaction ? null : new Transaction()._setTransaction(item.transaction)
   );
 };
 

@@ -1,4 +1,4 @@
-import { createTxDetailsObject } from 'bdk-rn/src/lib/utils';
+import { createTxDetailsObject } from '../lib/utils';
 import { OutPoint, Script, ScriptAmount, TxBuilderResult } from './Bindings';
 import { NativeLoader } from './NativeLoader';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';

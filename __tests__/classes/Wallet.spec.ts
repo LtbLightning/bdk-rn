@@ -1,6 +1,7 @@
 import { Blockchain, DatabaseConfig, Descriptor, PartiallySignedTransaction, Wallet } from '../../src';
-import { AddressInfo, Balance, LocalUtxo, OutPoint, TxOut } from '../../src/classes/Bindings';
-import { AddressIndex, Network } from '../../src/lib/enums';
+import { AddressInfo, Balance, LocalUtxo, OutPoint, Script, SignOptions, TxOut } from '../../src/classes/Bindings';
+import { AddressIndex, KeychainKind, Network } from '../../src/lib/enums';
+import { createOutpoint, createTxOut } from '../../src/lib/utils';
 import { changeDescriptorString, descriptorString, mockTransactionDetails } from '../mockData';
 import { mockBdkRnModule } from '../setup';
 
@@ -13,6 +14,8 @@ describe('Wallet', () => {
   let wallet: Wallet;
   let addressIndex = 82;
   let address = 'tb1qzn0qsh9wdp0m7sx877p9u8kptnvmykm9ld5lyd';
+  let scriptId = '12';
+  let script = new Script(scriptId);
   mockBdkRnModule.getAddress.mockResolvedValue({
     index: addressIndex,
     address,
@@ -96,10 +99,11 @@ describe('Wallet', () => {
     const isSpent = false;
     const rawUTXOObject = {
       outpoint: { txid, vout },
-      txout: { value, address },
+      txout: { value, script },
       isSpent,
+      keychain: KeychainKind.External,
     };
-    const expected = [new LocalUtxo(new OutPoint(txid, vout), new TxOut(value, address), false)];
+    const expected = [new LocalUtxo(createOutpoint(rawUTXOObject.outpoint), createTxOut(rawUTXOObject.txout), isSpent, KeychainKind.External)];
 
     mockBdkRnModule.listUnspent.mockResolvedValueOnce([rawUTXOObject]);
     expect(await wallet.listUnspent()).toEqual(expected);
@@ -113,22 +117,24 @@ describe('Wallet', () => {
       sent: mockTransactionDetails.sent,
       fee: mockTransactionDetails.fee,
       confirmationTime: mockTransactionDetails.confirmationTime,
+      transaction: mockTransactionDetails.transaction,
     };
     const expected = [mockTransactionDetails];
     mockBdkRnModule.listTransactions.mockResolvedValueOnce([rawTxDetails]);
 
-    expect(await wallet.listTransactions()).toEqual(expected);
+    expect(await wallet.listTransactions(false)).toEqual(expected);
   });
 
   it('should sign a transaction', async () => {
     const base64PSBT = 'base64PSBTA';
     const base64PSBTSigned = 'base64PSBTSigned';
     const partiallySignedTransaction = new PartiallySignedTransaction(base64PSBT);
+    const signOptions = new SignOptions(false, false, 100, false, false, false, false, false);
 
     mockBdkRnModule.sign.mockResolvedValueOnce(base64PSBTSigned);
-    let res = await wallet.sign(partiallySignedTransaction);
+    let res = await wallet.sign(partiallySignedTransaction, signOptions);
     expect(res).toBeInstanceOf(PartiallySignedTransaction);
     expect(res.base64).toBe(base64PSBTSigned);
-    expect(mockBdkRnModule.sign).toHaveBeenCalledWith(wallet.id, base64PSBT);
+    expect(mockBdkRnModule.sign).toHaveBeenCalledWith(wallet.id, base64PSBT, signOptions);
   });
 });
