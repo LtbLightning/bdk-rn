@@ -1,6 +1,7 @@
 import { TxIn, TxOut } from '../classes/Bindings';
-import { NativeLoader } from './NativeLoader';
 import { createTxIn, createTxOut } from '../lib/utils';
+
+import { NativeLoader } from './NativeLoader';
 
 /**
  * Transaction methods

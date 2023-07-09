@@ -1,5 +1,5 @@
 import { Blockchain, DatabaseConfig, Descriptor, PartiallySignedTransaction, Wallet } from '../../src';
-import { AddressInfo, Balance, LocalUtxo, OutPoint, Script, SignOptions, TxOut } from '../../src/classes/Bindings';
+import { AddressInfo, Balance, LocalUtxo, Script, SignOptions } from '../../src/classes/Bindings';
 import { AddressIndex, KeychainKind, Network } from '../../src/lib/enums';
 import { createOutpoint, createTxOut } from '../../src/lib/utils';
 import { changeDescriptorString, descriptorString, mockTransactionDetails } from '../mockData';
@@ -103,7 +103,14 @@ describe('Wallet', () => {
       isSpent,
       keychain: KeychainKind.External,
     };
-    const expected = [new LocalUtxo(createOutpoint(rawUTXOObject.outpoint), createTxOut(rawUTXOObject.txout), isSpent, KeychainKind.External)];
+    const expected = [
+      new LocalUtxo(
+        createOutpoint(rawUTXOObject.outpoint),
+        createTxOut(rawUTXOObject.txout),
+        isSpent,
+        KeychainKind.External
+      ),
+    ];
 
     mockBdkRnModule.listUnspent.mockResolvedValueOnce([rawUTXOObject]);
     expect(await wallet.listUnspent()).toEqual(expected);
