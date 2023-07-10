@@ -1,6 +1,5 @@
 import { TxIn, TxOut } from '../classes/Bindings';
 import { createTxIn, createTxOut } from '../lib/utils';
-
 import { NativeLoader } from './NativeLoader';
 
 /**

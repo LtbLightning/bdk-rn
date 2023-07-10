@@ -29,7 +29,7 @@
   ],
   "scripts": {
     "compile": "rm -rf lib && tsc -p .",
-    "lint": "eslint . --ext .js,.ts",
+    "lint": "eslint . --ext .js,.ts --fix",
     "prepare": "yarn compile",
     "test": "jest",
     "test:ci": "jest --ci",
@@ -44,7 +44,7 @@
     "@types/react-test-renderer": "^17.0.1",
     "babel-jest": "^27.4.6",
     "eslint": "^7.32.0",
-    "eslint-plugin-simple-import-sort": "^7.0.0",
+    "eslint-plugin-simple-import-sort": "^10.0.0",
     "jest": "^27.5.1",
     "metro-react-native-babel-preset": "^0.67.0",
     "prettier": "^2.8.1",
