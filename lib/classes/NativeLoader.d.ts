@@ -1,5 +1,5 @@
-import { AddressIndex, BlockchainRpcConfig, KeychainKind, Network, payload, WordCount } from '../lib/enums';
-import { AddressInfo, Balance, OutPoint, ScriptAmount, SignOptions, TransactionDetails } from './Bindings';
+import { AddressIndex, BlockchainRpcConfig, KeychainKind, Network, WordCount, payload } from '../lib/enums';
+import { Balance, OutPoint, ScriptAmount, SignOptions, TransactionDetails } from './Bindings';
 export interface NativeBdkRn {
     generateSeedFromWordCount(wordCount: WordCount): string;
     generateSeedFromString(mnemonic: string): string;
@@ -26,7 +26,7 @@ export interface NativeBdkRn {
     sledDBInit(path: string, treeName: string): string;
     sqliteDBInit(path: string): string;
     walletInit(descriptor: string, changeDescriptor: string | null, network: Network, dbConfig: string): any;
-    getAddress(id: string, addressIndex: AddressIndex): AddressInfo;
+    getAddress(id: string, addressIndex: AddressIndex): any;
     getBalance(id: string): Balance;
     getNetwork(id: string): string;
     sync(blockchain: string, id: string): boolean;

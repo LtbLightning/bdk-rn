@@ -1,3 +1,4 @@
+import { Address } from './Address';
 import { KeychainKind } from '../lib/enums';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 import { Transaction } from './Transaction';
@@ -14,11 +15,17 @@ export class AddressInfo {
   /**
    * Address
    */
-  address: string;
+  address: Address;
 
-  constructor(index: number, address: string) {
+  /**
+   * KeychainKind
+   */
+  keychain: KeychainKind;
+
+  constructor(index: number, address: Address, keychain: KeychainKind) {
     this.index = index;
     this.address = address;
+    this.keychain = keychain;
   }
 }
 

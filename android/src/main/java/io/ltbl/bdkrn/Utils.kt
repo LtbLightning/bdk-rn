@@ -1,7 +1,7 @@
 package io.ltbl.bdkrn
 
 import android.util.Log
-import com.facebook.react.bridge.NativeMap
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableNativeArray
@@ -118,7 +118,39 @@ fun createTxOut(txOut: TxOut, _scripts: MutableMap<String, Script>):  MutableMap
     return mutableMapOf("script" to randomId, "value" to txOut.value.toInt())
 }
 
-
 fun getOutPoint(outPoint: OutPoint): MutableMap<String, Any> {
     return mutableMapOf("txid" to outPoint.txid, "vout" to outPoint.vout.toInt())
+}
+
+fun getPayload(payload: Payload): MutableMap<String, Any> {
+    var response = mutableMapOf<String, Any>();
+    when(payload){
+        is Payload.PubkeyHash -> {
+            response["type"] = "pubkeyHash"
+            response["value"] = payload.pubkeyHash
+        }
+        is Payload.ScriptHash -> {
+            response["type"] = "scriptHash"
+            response["value"] = payload.scriptHash
+        }
+        is Payload.WitnessProgram -> {
+            response["type"] = "witnessProgram"
+            response["value"] = makeNativeArray(payload.program)
+            response["version"] = payload.version.toString()
+        }
+    }
+    return response
+}
+
+
+fun createSignOptions(options: ReadableMap): SignOptions? {
+    return SignOptions(
+        options.getBoolean("trustWitnessUtxo"),
+        options.getInt("assumeHeight").toUInt(),
+        options.getBoolean("allowAllSighashes"),
+        options.getBoolean("removePartialSigs"),
+        options.getBoolean("tryFinalize"),
+        options.getBoolean("signWithTapInternalKey"),
+        options.getBoolean("allowGrinding"),
+    )
 }

@@ -1,8 +1,9 @@
-import { Blockchain, DatabaseConfig, Descriptor, PartiallySignedTransaction, Wallet } from '../../src';
-import { AddressInfo, Balance, LocalUtxo, Script, SignOptions } from '../../src/classes/Bindings';
 import { AddressIndex, KeychainKind, Network } from '../../src/lib/enums';
-import { createOutpoint, createTxOut } from '../../src/lib/utils';
+import { AddressInfo, Balance, LocalUtxo, Script, SignOptions } from '../../src/classes/Bindings';
+import { Blockchain, DatabaseConfig, Descriptor, PartiallySignedTransaction, Wallet } from '../../src';
 import { changeDescriptorString, descriptorString, mockTransactionDetails } from '../mockData';
+import { createOutpoint, createTxOut } from '../../src/lib/utils';
+
 import { mockBdkRnModule } from '../setup';
 
 describe('Wallet', () => {
@@ -14,7 +15,7 @@ describe('Wallet', () => {
   let wallet: Wallet;
   let addressIndex = 82;
   let address = 'tb1qzn0qsh9wdp0m7sx877p9u8kptnvmykm9ld5lyd';
-  let scriptId = '12';
+  let scriptId = '29D8A421-29F8-4113-ADA3-69D0A97C3305';
   let script = new Script(scriptId);
   mockBdkRnModule.getAddress.mockResolvedValue({
     index: addressIndex,

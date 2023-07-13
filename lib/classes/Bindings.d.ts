@@ -1,3 +1,4 @@
+import { Address } from './Address';
 import { KeychainKind } from '../lib/enums';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 import { Transaction } from './Transaction';
@@ -12,8 +13,12 @@ export declare class AddressInfo {
     /**
      * Address
      */
-    address: string;
-    constructor(index: number, address: string);
+    address: Address;
+    /**
+     * KeychainKind
+     */
+    keychain: KeychainKind;
+    constructor(index: number, address: Address, keychain: KeychainKind);
 }
 /**
  * A reference to a transaction output.

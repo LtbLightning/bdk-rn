@@ -498,7 +498,9 @@ class BdkRnModule: NSObject {
             let addressInfo = try getWalletById(id: id).getAddress(
                 addressIndex: setAddressIndex(addressIndex: addressIndex)
             )
-            resolve(["index": addressInfo.index, "address": addressInfo.address] as [String: Any])
+            let randomId = randomId()
+            _addresses[randomId] = addressInfo.address
+            resolve(["index": addressInfo.index, "address": randomId, "keychain": "\(addressInfo.keychain)"] as [String: Any])
         } catch let error {
             reject("Get wallet address error", "\(error)", error)
         }

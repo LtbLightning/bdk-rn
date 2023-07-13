@@ -383,10 +383,13 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun getAddress(id: String, addressIndex: String, result: Promise) {
         try {
             Thread {
+                val randomId = randomId()
                 val addressInfo = getWalletById(id).getAddress(setAddressIndex(addressIndex))
+                _addresses[randomId] = addressInfo.address
                 val responseObject = mutableMapOf<String, Any?>()
                 responseObject["index"] = addressInfo.index.toInt()
-                responseObject["address"] = addressInfo.address
+                responseObject["address"] = randomId
+                responseObject["keychain"] = addressInfo.keychain.toString()
                 result.resolve(Arguments.makeNativeMap(responseObject))
             }.start()
         } catch (error: Throwable) {
@@ -428,6 +431,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 unspentObject["outpoint"] = getOutPoint(item.outpoint)
                 unspentObject["txout"] = createTxOut(item.txout, _scripts)
                 unspentObject["isSpent"] = item.isSpent
+                unspentObject["keychain"] = item.keychain.toString()
                 unpents.add(unspentObject)
             }
             result.resolve(Arguments.makeNativeArray(unpents))
@@ -441,7 +445,17 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         try {
             val list = getWalletById(id).listTransactions(includeRaw)
             val transactions: MutableList<Map<String, Any?>> = mutableListOf()
-            for (item in list) transactions.add(getTransactionObject(item))
+            for (item in list) {
+                var txObject = getTransactionObject(item)
+                if (item.transaction != null) {
+                    val randomId = randomId()
+                    _transactions[randomId] = item.transaction!!
+                    txObject["transaction"] = randomId
+                } else {
+                    txObject["transaction"] = false
+                }
+                transactions.add(txObject)
+            }
             result.resolve(Arguments.makeNativeArray(transactions))
         } catch (error: Throwable) {
             result.reject("List transactions error", error.localizedMessage, error)
@@ -449,10 +463,13 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun sign(id: String, psbtBase64: String, result: Promise) {
+    fun sign(id: String, psbtBase64: String, signOptions: ReadableMap? = null, result: Promise) {
         try {
+            var options: SignOptions? = null
+            if (signOptions != null) options = createSignOptions(signOptions)
+
             val psbt = PartiallySignedTransaction(psbtBase64)
-            getWalletById(id).sign(psbt, null)
+            getWalletById(id).sign(psbt, options)
             result.resolve(psbt.serialize())
         } catch (error: Throwable) {
             result.reject("Sign PSBT error", error.localizedMessage, error)
@@ -474,11 +491,44 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun addressFromScript(scriptId: String, network: String, result: Promise) {
+        try {
+            val id = randomId()
+            _addresses[id] = Address.fromScript(_scripts[scriptId]!!, setNetwork(network))
+            result.resolve(id)
+        } catch (error: Throwable) {
+            result.reject("Address from script error", error.localizedMessage, error)
+        }
+    }
+
+    @ReactMethod
     fun addressToScriptPubkeyHex(id: String, result: Promise) {
         val scriptId = randomId()
         _scripts[scriptId] = _addresses[id]!!.scriptPubkey()
         result.resolve(scriptId)
     }
+
+    @ReactMethod
+    fun addressPayload(id: String, result: Promise) {
+        val pay = _addresses[id]!!.payload()
+        result.resolve(Arguments.makeNativeMap(getPayload(pay)))
+    }
+
+    @ReactMethod
+    fun addressNetwork(id: String, result: Promise) {
+        result.resolve(getNetworkString(_addresses[id]!!.network()))
+    }
+
+    @ReactMethod
+    fun addressToQrUri(id: String, result: Promise) {
+        result.resolve(_addresses[id]!!.toQrUri())
+    }
+
+    @ReactMethod
+    fun addressAsString(id: String, result: Promise) {
+        result.resolve(_addresses[id]!!.asString())
+    }
+
     /** Address methods ends*/
 
 
@@ -821,6 +871,15 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             result.resolve(PartiallySignedTransaction(base64).feeRate()!!.asSatPerVb())
         } catch (error: Throwable) {
             result.reject("PSBT feeRate error", error.localizedMessage, error)
+        }
+    }
+
+    @ReactMethod
+    fun jsonSerialize(base64: String, result: Promise) {
+        try {
+            result.resolve(PartiallySignedTransaction(base64).jsonSerialize())
+        } catch (error: Throwable) {
+            result.reject("PSBT jsonSerialize error", error.localizedMessage, error)
         }
     }
     /** PartiallySignedTransaction method ends */

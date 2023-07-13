@@ -1,11 +1,16 @@
-import { Network } from '../lib/enums';
 import { PubkeyHash, Script, ScriptHash, WitnessProgram } from './Bindings';
 import { NativeLoader } from './NativeLoader';
+import { Network } from '../lib/enums';
 /**
  * Address methods
  */
 export declare class Address extends NativeLoader {
     id: string;
+    /**
+     * Set Address
+     * @returns {Address}
+     */
+    _setAddress(id: string): Address;
     /**
      * Create Address instance from address string
      * @param address
