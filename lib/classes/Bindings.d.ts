@@ -1,5 +1,5 @@
-import { Address } from './Address';
 import { KeychainKind } from '../lib/enums';
+import { Address } from './Address';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 import { Transaction } from './Transaction';
 /**
