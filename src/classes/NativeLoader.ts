@@ -113,7 +113,7 @@ export interface NativeBdkRn {
 }
 
 export class NativeLoader {
-  protected _bdk: NativeBdkRn = NativeModules.BdkRnModule;
+  protected _bdk: NativeBdkRn;
 
   constructor() {
     this._bdk = NativeModules.BdkRnModule;
