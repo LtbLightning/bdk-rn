@@ -938,6 +938,71 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         val uBytes = _transactions[id]!!.serialize()
         result.resolve(makeNativeArray(uBytes))
     }
+
+    @ReactMethod
+    fun transactionTxid(id: String, result: Promise) {
+        result.resolve(_transactions[id]!!.txid())
+    }
+
+    @ReactMethod
+    fun txWeight(id: String, result: Promise) {
+        result.resolve(_transactions[id]!!.weight().toInt())
+    }
+
+    @ReactMethod
+    fun txSize(id: String, result: Promise) {
+        result.resolve(_transactions[id]!!.size().toInt())
+    }
+
+    @ReactMethod
+    fun txVsize(id: String, result: Promise) {
+        result.resolve(_transactions[id]!!.vsize().toInt())
+    }
+
+    @ReactMethod
+    fun txIsCoinBase(id: String, result: Promise) {
+        result.resolve(_transactions[id]!!.isCoinBase())
+    }
+
+    @ReactMethod
+    fun txIsExplicitlyRbf(id: String, result: Promise) {
+        result.resolve(_transactions[id]!!.isExplicitlyRbf())
+    }
+
+    @ReactMethod
+    fun txIsLockTimeEnabled(id: String, result: Promise) {
+        result.resolve(_transactions[id]!!.isLockTimeEnabled())
+    }
+
+    @ReactMethod
+    fun txVersion(id: String, result: Promise) {
+        result.resolve(_transactions[id]!!.version())
+    }
+
+    @ReactMethod
+    fun txLockTime(id: String, result: Promise) {
+        result.resolve(_transactions[id]!!.lockTime().toInt())
+    }
+
+    @ReactMethod
+    fun txInput(id: String, result: Promise) {
+        val items = _transactions[id]!!.input()
+        val list: MutableList<Map<String, Any?>> = mutableListOf()
+        for (item in items) {
+            list.add(createTxIn(item, _scripts))
+        }
+        result.resolve(Arguments.makeNativeArray(list))
+    }
+
+    @ReactMethod
+    fun txOutput(id: String, result: Promise) {
+        val items = _transactions[id]!!.output()
+        val list: MutableList<Map<String, Any?>> = mutableListOf()
+        for (item in items) {
+            list.add(createTxOut(item, _scripts))
+        }
+        result.resolve(Arguments.makeNativeArray(list))
+    }
     /** Transaction methods ends*/
 }
 

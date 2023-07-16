@@ -106,33 +106,25 @@ fun getTxBytes(bytes: ReadableArray): List<UByte> {
     return bytesArray
 }
 
-fun makeNativeArray(bytes: List<UByte>): WritableNativeArray{
+fun makeNativeArray(bytes: List<UByte>): WritableNativeArray {
     val arr = WritableNativeArray()
     for (i in bytes) arr.pushInt(i.toInt())
-    return  arr
-}
-
-fun createTxOut(txOut: TxOut, _scripts: MutableMap<String, Script>):  MutableMap<String, Any> {
-    val randomId = randomId()
-    _scripts[randomId] = txOut.scriptPubkey
-    return mutableMapOf("script" to randomId, "value" to txOut.value.toInt())
-}
-
-fun getOutPoint(outPoint: OutPoint): MutableMap<String, Any> {
-    return mutableMapOf("txid" to outPoint.txid, "vout" to outPoint.vout.toInt())
+    return arr
 }
 
 fun getPayload(payload: Payload): MutableMap<String, Any> {
     var response = mutableMapOf<String, Any>();
-    when(payload){
+    when (payload) {
         is Payload.PubkeyHash -> {
             response["type"] = "pubkeyHash"
             response["value"] = payload.pubkeyHash
         }
+
         is Payload.ScriptHash -> {
             response["type"] = "scriptHash"
             response["value"] = payload.scriptHash
         }
+
         is Payload.WitnessProgram -> {
             response["type"] = "witnessProgram"
             response["value"] = makeNativeArray(payload.program)
@@ -140,6 +132,32 @@ fun getPayload(payload: Payload): MutableMap<String, Any> {
         }
     }
     return response
+}
+
+
+fun createTxOut(txOut: TxOut, _scripts: MutableMap<String, Script>): MutableMap<String, Any> {
+    val randomId = randomId()
+    _scripts[randomId] = txOut.scriptPubkey
+    return mutableMapOf("script" to randomId, "value" to txOut.value.toInt())
+}
+
+fun createTxIn(txIn: TxIn, _scripts: MutableMap<String, Script>): MutableMap<String, Any> {
+    val randomId = randomId()
+    _scripts[randomId] = txIn.scriptSig
+    var witnessList = mutableListOf<Any>();
+    for(item in txIn.witness) {
+        witnessList.add(makeNativeArray(item))
+    }
+    return mutableMapOf(
+        "scriptSig" to randomId,
+        "previousOutput" to getOutPoint(txIn.previousOutput),
+        "sequence" to txIn.sequence.toInt(),
+        "witness" to witnessList
+    )
+}
+
+fun getOutPoint(outPoint: OutPoint): MutableMap<String, Any> {
+    return mutableMapOf("txid" to outPoint.txid, "vout" to outPoint.vout.toInt())
 }
 
 
