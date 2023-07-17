@@ -42,9 +42,11 @@ const internalDescriptor = await new Descriptor().newBip44(descriptorSecretKey, 
 
 const config: BlockchainElectrumConfig = {
   url: 'ssl://electrum.blockstream.info:60002',
-  retry: '5',
-  timeout: '5',
-  stopGap: '5',
+  retry: 5,
+  timeout: 5,
+  stopGap: 5,
+  sock5: null,
+  validateDomain: false,
 };
 
 const blockchain = await new Blockchain().create(config);
@@ -64,10 +66,14 @@ import { WordCount, Network, KeyChainKind } from 'bdk-rn/lib/lib/enums';
 
 const mnemonic = await new Mnemonic().create(WordCount.WORDS12);
 const descriptorSecretKey = await new DescriptorSecretKey().create(Network.Testnet, mnemonic);
-const externalDescriptor = await new Descriptor().newBip44(descriptorSecretKey, KeyChainKind.External, Network.Testnet);
-const externalPublicDescriptorStr = await externalDescriptor.asString();
+const descriptorPublicKey = await descriptorSecretKey.asPublic();
 const fingerprint = 'd1d04177';
-const externalPublicDescriptor = await new Descriptor().newBip44Public(externalPublicDescriptorStr, fingerprint, KeychainKind.External, Network.Testnet);
+const externalPublicDescriptor = await new Descriptor().newBip44Public(
+  descriptorPublicKey,
+  fingerprint,
+  KeychainKind.External,
+  Network.Testnet
+);
 ```
 
 ### References:
