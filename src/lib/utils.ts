@@ -1,4 +1,3 @@
-import { Transaction } from '../classes/Transaction';
 import {
   BlockTime,
   OutPoint,
@@ -10,7 +9,9 @@ import {
   TxOut,
   WitnessProgram,
 } from '../classes/Bindings';
-import { KeychainKind, Network, payload } from './enums';
+import { KeychainKind, Network, Payload } from './enums';
+
+import { Transaction } from '../classes/Transaction';
 
 type Props = {
   txid: string;
@@ -54,7 +55,7 @@ export const getNetwork = (networkName: string): Network => {
 };
 
 /** Get Payload Enum */
-export const getPayload = (payload: payload): PubkeyHash | ScriptHash | WitnessProgram => {
+export const getPayload = (payload: Payload): PubkeyHash | ScriptHash | WitnessProgram => {
   let returnObj;
   switch (payload.type) {
     case 'scriptHash':

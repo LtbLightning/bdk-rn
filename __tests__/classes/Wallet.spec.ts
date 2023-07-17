@@ -1,9 +1,8 @@
 import { Address, Blockchain, DatabaseConfig, Descriptor, PartiallySignedTransaction, Wallet } from '../../src';
-import { AddressIndex, KeychainKind, Network } from '../../src/lib/enums';
 import { AddressInfo, Balance, LocalUtxo, Script, SignOptions } from '../../src/classes/Bindings';
-import { changeDescriptorString, descriptorString, mockTransactionDetails } from '../mockData';
+import { AddressIndex, KeychainKind, Network } from '../../src/lib/enums';
 import { createOutpoint, createTxOut } from '../../src/lib/utils';
-
+import { changeDescriptorString, descriptorString, mockTransactionDetails } from '../mockData';
 import { mockBdkRnModule } from '../setup';
 
 describe('Wallet', () => {

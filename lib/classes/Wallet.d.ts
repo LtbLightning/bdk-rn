@@ -1,5 +1,5 @@
 import { AddressIndex, Network } from '../lib/enums';
-import { AddressInfo, Balance, LocalUtxo, SignOptions, TransactionDetails } from './Bindings';
+import { AddressInfo, Balance, LocalUtxo, Script, SignOptions, TransactionDetails } from './Bindings';
 import { Blockchain } from './Blockchain';
 import { DatabaseConfig } from './DatabaseConfig';
 import { Descriptor } from './Descriptor';
@@ -24,6 +24,18 @@ export declare class Wallet extends NativeLoader {
      * @returns {Promise<AddressInfo>}
      */
     getAddress(addressIndex: AddressIndex): Promise<AddressInfo>;
+    /**
+     * Return a derived address using the internal descriptor.
+     * @param addressIndex
+     * @returns {Promise<AddressInfo>}
+     */
+    getInternalAddress(addressIndex: AddressIndex): Promise<AddressInfo>;
+    /**
+     * check if the wallet is yours or not
+     * @param script
+     * @returns {Promise<boolean>}
+     */
+    isMine(script: Script): Promise<boolean>;
     /**
      * Return balance of current wallet
      * @returns {Promise<Balance>}

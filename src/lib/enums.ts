@@ -71,7 +71,7 @@ export interface BlockchainRpcConfig {
   syncParams?: RpcSyncParams;
 }
 
-export interface payload {
+export interface Payload {
   type: string;
   value: Array<number>;
   version?: string;

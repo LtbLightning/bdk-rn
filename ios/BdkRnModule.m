@@ -192,6 +192,21 @@ RCT_EXTERN_METHOD(
 )
 
 RCT_EXTERN_METHOD(
+    getInternalAddress:(nonnull NSString*)id
+    addressIndex: (nonnull NSString*)addressIndex
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    isMine:(nonnull NSString*)id
+    scriptId: (nonnull NSString*)scriptId
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject: (RCTPromiseRejectBlock)reject
+)
+
+
+RCT_EXTERN_METHOD(
     sync:(nonnull NSString*)id
     blockChainId: (nonnull NSString*)blockChainId
     resolve: (RCTPromiseResolveBlock)resolve

@@ -1,5 +1,5 @@
 import { BlockTime, OutPoint, PubkeyHash, ScriptHash, TransactionDetails, TxIn, TxOut, WitnessProgram } from '../classes/Bindings';
-import { KeychainKind, Network, payload } from './enums';
+import { KeychainKind, Network, Payload } from './enums';
 declare type Props = {
     txid: string;
     received: number;
@@ -13,7 +13,7 @@ export declare const createTxDetailsObject: (item: Props) => TransactionDetails;
 /** Get Network Enum */
 export declare const getNetwork: (networkName: string) => Network;
 /** Get Payload Enum */
-export declare const getPayload: (payload: payload) => PubkeyHash | ScriptHash | WitnessProgram;
+export declare const getPayload: (payload: Payload) => PubkeyHash | ScriptHash | WitnessProgram;
 /** Create TxIn object */
 export declare const createTxIn: (txin: any) => TxIn;
 /** Create TxOut object */

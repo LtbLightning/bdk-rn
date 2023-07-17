@@ -398,6 +398,34 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun getInternalAddress(id: String, addressIndex: String, result: Promise) {
+        try {
+            Thread {
+                val randomId = randomId()
+                val addressInfo =
+                    getWalletById(id).getInternalAddress(setAddressIndex(addressIndex))
+                _addresses[randomId] = addressInfo.address
+                val responseObject = mutableMapOf<String, Any?>()
+                responseObject["index"] = addressInfo.index.toInt()
+                responseObject["address"] = randomId
+                responseObject["keychain"] = addressInfo.keychain.toString()
+                result.resolve(Arguments.makeNativeMap(responseObject))
+            }.start()
+        } catch (error: Throwable) {
+            result.reject("Get internal address error", error.localizedMessage, error)
+        }
+    }
+
+    @ReactMethod
+    fun isMine(id: String, scriptId: String, result: Promise) {
+        try {
+            result.resolve(getWalletById(id).isMine(_scripts[scriptId]!!))
+        } catch (error: Throwable) {
+            result.reject("Get isMine error", error.localizedMessage, error)
+        }
+    }
+
+    @ReactMethod
     fun getBalance(id: String, result: Promise) {
         try {
             Thread {

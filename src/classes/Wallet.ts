@@ -1,7 +1,7 @@
 import { AddressIndex, Network } from '../lib/enums';
 import { createOutpoint, createTxDetailsObject, createTxOut, getKeychainKind, getNetwork } from '../lib/utils';
 import { Address } from './Address';
-import { AddressInfo, Balance, LocalUtxo, SignOptions, TransactionDetails } from './Bindings';
+import { AddressInfo, Balance, LocalUtxo, Script, SignOptions, TransactionDetails } from './Bindings';
 import { Blockchain } from './Blockchain';
 import { DatabaseConfig } from './DatabaseConfig';
 import { Descriptor } from './Descriptor';
@@ -49,6 +49,29 @@ export class Wallet extends NativeLoader {
       new Address()._setAddress(addressInfo.address),
       getKeychainKind(addressInfo.keychain)
     );
+  }
+
+  /**
+   * Return a derived address using the internal descriptor.
+   * @param addressIndex
+   * @returns {Promise<AddressInfo>}
+   */
+  async getInternalAddress(addressIndex: AddressIndex): Promise<AddressInfo> {
+    let addressInfo = await this._bdk.getInternalAddress(this.id, addressIndex);
+    return new AddressInfo(
+      addressInfo.index,
+      new Address()._setAddress(addressInfo.address),
+      getKeychainKind(addressInfo.keychain)
+    );
+  }
+
+  /**
+   * check if the wallet is yours or not
+   * @param script
+   * @returns {Promise<boolean>}
+   */
+  async isMine(script: Script): Promise<boolean> {
+    return await this._bdk.isMine(this.id, script.id);
   }
 
   /**

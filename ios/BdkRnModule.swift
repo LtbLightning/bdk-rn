@@ -505,6 +505,40 @@ class BdkRnModule: NSObject {
             reject("Get wallet address error", "\(error)", error)
         }
     }
+    
+    @objc
+    func getInternalAddress(_
+        id: String,
+        addressIndex: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            let addressInfo = try getWalletById(id: id).getInternalAddress(
+                addressIndex: setAddressIndex(addressIndex: addressIndex)
+            )
+            let randomId = randomId()
+            _addresses[randomId] = addressInfo.address
+            resolve(["index": addressInfo.index, "address": randomId, "keychain": "\(addressInfo.keychain)"] as [String: Any])
+        } catch let error {
+            reject("Get internal address error", "\(error)", error)
+        }
+    }
+    
+    
+    @objc
+    func isMine(_
+        id: String,
+        scriptId: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        do {
+            resolve(try getWalletById(id: id).isMine(script: _scripts[scriptId]!))
+        } catch let error {
+            reject("Check wallet isMine error", "\(error)", error)
+        }
+    }
 
     @objc
     func getBalance(_

@@ -1,6 +1,6 @@
 import { NativeModules } from 'react-native';
 
-import { AddressIndex, BlockchainRpcConfig, KeychainKind, Network, payload, WordCount } from '../lib/enums';
+import { AddressIndex, BlockchainRpcConfig, KeychainKind, Network, Payload, WordCount } from '../lib/enums';
 import { Balance, OutPoint, ScriptAmount, SignOptions, TransactionDetails } from './Bindings';
 
 export interface NativeBdkRn {
@@ -51,6 +51,8 @@ export interface NativeBdkRn {
 
   walletInit(descriptor: string, changeDescriptor: string | null, network: Network, dbConfig: string): any;
   getAddress(id: string, addressIndex: AddressIndex): any;
+  getInternalAddress(id: string, addressIndex: AddressIndex): any;
+  isMine(id: string, scriptId: string): boolean;
   getBalance(id: string): Balance;
   getNetwork(id: string): string;
   sync(blockchain: string, id: string): boolean;
@@ -62,7 +64,7 @@ export interface NativeBdkRn {
   initAddress(address: string): string;
   addressFromScript(script: string, network: Network): string;
   addressToScriptPubkeyHex(id: string): string;
-  addressPayload(id: string): payload;
+  addressPayload(id: string): Payload;
   addressNetwork(id: string): string;
   addressToQrUri(id: string): string;
   addressAsString(id: string): string;
