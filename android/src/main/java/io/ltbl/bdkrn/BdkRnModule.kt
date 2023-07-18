@@ -1032,5 +1032,13 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         result.resolve(Arguments.makeNativeArray(list))
     }
     /** Transaction methods ends*/
+
+
+    /** Script methods starts*/
+    @ReactMethod
+    fun toBytes(id: String, result: Promise) {
+        result.resolve(makeNativeArray(_scripts[id]!!.toBytes()))
+    }
+    /** Script methods ends*/
 }
 

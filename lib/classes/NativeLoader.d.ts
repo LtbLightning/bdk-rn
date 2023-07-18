@@ -97,6 +97,7 @@ export interface NativeBdkRn {
     txLockTime(id: string): number;
     txInput(id: string): Array<any>;
     txOutput(id: string): Array<any>;
+    toBytes(id: string): Array<number>;
 }
 export declare class NativeLoader {
     protected _bdk: NativeBdkRn;

@@ -1,5 +1,6 @@
-import { OutPoint, Script, ScriptAmount, TxBuilderResult } from './Bindings';
+import { OutPoint, ScriptAmount, TxBuilderResult } from './Bindings';
 import { NativeLoader } from './NativeLoader';
+import { Script } from './Script';
 import { Wallet } from './Wallet';
 /**
  * TxBuilder methods

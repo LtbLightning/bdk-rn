@@ -647,4 +647,11 @@ RCT_EXTERN_METHOD(
 )
 
 
+/** Script Methods */
+
+RCT_EXTERN_METHOD(
+    toBytes:(nonnull NSString*)id
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
 @end

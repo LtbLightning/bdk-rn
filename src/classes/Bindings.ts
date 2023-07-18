@@ -1,6 +1,7 @@
-import { KeychainKind } from '../lib/enums';
 import { Address } from './Address';
+import { KeychainKind } from '../lib/enums';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
+import { Script } from './Script';
 import { Transaction } from './Transaction';
 
 /**
@@ -206,16 +207,6 @@ export class TransactionDetails {
     this.fee = fee;
     this.confirmationTime = confirmationTime;
     this.transaction = transaction;
-  }
-}
-
-/**
- * Address script class
- */
-export class Script {
-  id: string;
-  constructor(id: string) {
-    this.id = id;
   }
 }
 

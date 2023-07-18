@@ -1,7 +1,9 @@
-import { Network } from '../lib/enums';
+import { PubkeyHash, ScriptHash, WitnessProgram } from './Bindings';
 import { getNetwork, getPayload } from '../lib/utils';
-import { PubkeyHash, Script, ScriptHash, WitnessProgram } from './Bindings';
+
 import { NativeLoader } from './NativeLoader';
+import { Network } from '../lib/enums';
+import { Script } from './Script';
 
 /**
  * Address methods

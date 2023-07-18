@@ -1,7 +1,7 @@
-import { NativeModules } from 'react-native';
-
 import { AddressIndex, BlockchainRpcConfig, KeychainKind, Network, Payload, WordCount } from '../lib/enums';
 import { Balance, OutPoint, ScriptAmount, SignOptions, TransactionDetails } from './Bindings';
+
+import { NativeModules } from 'react-native';
 
 export interface NativeBdkRn {
   generateSeedFromWordCount(wordCount: WordCount): string;
@@ -129,6 +129,8 @@ export interface NativeBdkRn {
   txLockTime(id: string): number;
   txInput(id: string): Array<any>;
   txOutput(id: string): Array<any>;
+
+  toBytes(id: string): Array<number>;
 }
 
 export class NativeLoader {

@@ -2,7 +2,6 @@ import {
   BlockTime,
   OutPoint,
   PubkeyHash,
-  Script,
   ScriptHash,
   TransactionDetails,
   TxIn,
@@ -11,6 +10,7 @@ import {
 } from '../classes/Bindings';
 import { KeychainKind, Network, Payload } from './enums';
 
+import { Script } from '../classes/Script';
 import { Transaction } from '../classes/Transaction';
 
 type Props = {

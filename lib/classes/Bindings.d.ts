@@ -1,6 +1,7 @@
-import { KeychainKind } from '../lib/enums';
 import { Address } from './Address';
+import { KeychainKind } from '../lib/enums';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
+import { Script } from './Script';
 import { Transaction } from './Transaction';
 /**
  * A derived address and the index it was found at For convenience this automatically derefs to Address
@@ -138,13 +139,6 @@ export declare class TransactionDetails {
      */
     transaction?: Transaction | null;
     constructor(txid: string, received: number, sent: number, fee: number | undefined, confirmationTime: BlockTime, transaction: Transaction | null);
-}
-/**
- * Address script class
- */
-export declare class Script {
-    id: string;
-    constructor(id: string);
 }
 /**
  * A output script and an amount of satoshis.

@@ -1,10 +1,11 @@
 import { AddressIndex, Network } from '../lib/enums';
-import { AddressInfo, Balance, LocalUtxo, Script, SignOptions, TransactionDetails } from './Bindings';
+import { AddressInfo, Balance, LocalUtxo, SignOptions, TransactionDetails } from './Bindings';
 import { Blockchain } from './Blockchain';
 import { DatabaseConfig } from './DatabaseConfig';
 import { Descriptor } from './Descriptor';
 import { NativeLoader } from './NativeLoader';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
+import { Script } from './Script';
 /**
  * Wallet methods
  */

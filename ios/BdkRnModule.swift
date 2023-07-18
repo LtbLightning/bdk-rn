@@ -1419,5 +1419,19 @@ class BdkRnModule: NSObject {
         resolve(mapped)
     }
     /** Transaction methods ends*/
+    
+    /** Script methods starts*/
+    
+    @objc
+    func toBytes(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        resolve(_scripts[id]!.toBytes())
+    }
+    
+    
+    /** Script methods ends*/
 }
 
