@@ -31,6 +31,8 @@ export const mockBdkRnModule = {
 
   walletInit: jest.fn(),
   getAddress: jest.fn(),
+  getInternalAddress: jest.fn(),
+  isMine: jest.fn(),
   getBalance: jest.fn(),
   getNetwork: jest.fn(),
   sync: jest.fn(),
@@ -40,7 +42,12 @@ export const mockBdkRnModule = {
   listTransactions: jest.fn(),
 
   initAddress: jest.fn(),
+  addressFromScript: jest.fn(),
   addressToScriptPubkeyHex: jest.fn(),
+  addressPayload: jest.fn(),
+  addressNetwork: jest.fn(),
+  addressToQrUri: jest.fn(),
+  addressAsString: jest.fn(),
 
   addRecipient: jest.fn(),
   finish: jest.fn(),
@@ -80,6 +87,7 @@ export const mockBdkRnModule = {
   txid: jest.fn(),
   feeAmount: jest.fn(),
   psbtFeeRate: jest.fn(),
+  jsonSerialize: jest.fn(),
 
   bumpFeeTxBuilderInit: jest.fn(),
   bumpFeeTxBuilderAllowShrinking: jest.fn(),
@@ -87,14 +95,25 @@ export const mockBdkRnModule = {
   bumpFeeTxBuilderEnableRbfWithSequence: jest.fn(),
   bumpFeeTxBuilderFinish: jest.fn(),
 
+  createTxBuilder: jest.fn(),
+
+  toBytes: jest.fn(),
+
   createTransaction: jest.fn(),
   serializeTransaction: jest.fn(),
-
-  createTxBuilder: jest.fn(),
+  transactionTxid: jest.fn(),
+  txWeight: jest.fn(),
+  txSize: jest.fn(),
+  txVsize: jest.fn(),
+  txIsCoinBase: jest.fn(),
+  txIsExplicitlyRbf: jest.fn(),
+  txIsLockTimeEnabled: jest.fn(),
+  txVersion: jest.fn(),
+  txLockTime: jest.fn(),
+  txInput: jest.fn(),
+  txOutput: jest.fn(),
 };
 
 jest.mock('react-native', () => ({
-  NativeModules: {
-    BdkRnModule: mockBdkRnModule,
-  },
+  NativeModules: { BdkRnModule: mockBdkRnModule },
 }));

@@ -1,8 +1,10 @@
 import { Address, Blockchain, DatabaseConfig, Descriptor, PartiallySignedTransaction, Wallet } from '../../src';
-import { AddressInfo, Balance, LocalUtxo, Script, SignOptions } from '../../src/classes/Bindings';
 import { AddressIndex, KeychainKind, Network } from '../../src/lib/enums';
-import { createOutpoint, createTxOut } from '../../src/lib/utils';
+import { AddressInfo, Balance, LocalUtxo, SignOptions } from '../../src/classes/Bindings';
 import { changeDescriptorString, descriptorString, mockTransactionDetails } from '../mockData';
+import { createOutpoint, createTxOut } from '../../src/lib/utils';
+
+import { Script } from '../../src/classes/Script';
 import { mockBdkRnModule } from '../setup';
 
 describe('Wallet', () => {
@@ -22,6 +24,12 @@ describe('Wallet', () => {
     keychain: KeychainKind.External,
   });
   mockBdkRnModule.walletInit.mockResolvedValue(walletId);
+
+  mockBdkRnModule.getInternalAddress.mockResolvedValue({
+    index: addressIndex,
+    address,
+    keychain: KeychainKind.Internal,
+  });
 
   beforeAll(async () => {
     descriptor = await new Descriptor().create(descriptorString, Network.Regtest);
@@ -44,7 +52,7 @@ describe('Wallet', () => {
     expect(wallet.id).toBe(walletId);
   });
 
-  it('Should return a new AddressInfo', async () => {
+  it('Should return a new AddressInfo using the external descriptor', async () => {
     let res = await wallet.getAddress(AddressIndex.New);
     expect(res).toBeInstanceOf(AddressInfo);
     expect(res.index).toBe(addressIndex);
@@ -52,11 +60,26 @@ describe('Wallet', () => {
     expect(mockBdkRnModule.getAddress).toHaveBeenCalledWith(wallet.id, AddressIndex.New);
   });
 
-  it('Should return a last unused AddressInfo', async () => {
+  it('Should return a last unused AddressInfo using the external descriptor', async () => {
     let res = await wallet.getAddress(AddressIndex.LastUnused);
     expect(res.index).toBe(addressIndex);
     expect(res.address).toStrictEqual(new Address()._setAddress(address));
     expect(mockBdkRnModule.getAddress).toHaveBeenCalledWith(wallet.id, AddressIndex.LastUnused);
+  });
+
+  it('Should return a new AddressInfo using the internal descriptor', async () => {
+    let res = await wallet.getInternalAddress(AddressIndex.New);
+    expect(res).toBeInstanceOf(AddressInfo);
+    expect(res.index).toBe(addressIndex);
+    expect(res.address).toStrictEqual(new Address()._setAddress(address));
+    expect(mockBdkRnModule.getInternalAddress).toHaveBeenCalledWith(wallet.id, AddressIndex.New);
+  });
+
+  it('Should return a last unused AddressInfo using the internal descriptor', async () => {
+    let res = await wallet.getInternalAddress(AddressIndex.LastUnused);
+    expect(res.index).toBe(addressIndex);
+    expect(res.address).toStrictEqual(new Address()._setAddress(address));
+    expect(mockBdkRnModule.getInternalAddress).toHaveBeenCalledWith(wallet.id, AddressIndex.LastUnused);
   });
 
   it('Should return valid Balance object', async () => {
@@ -144,5 +167,25 @@ describe('Wallet', () => {
     expect(res).toBeInstanceOf(PartiallySignedTransaction);
     expect(res.base64).toBe(base64PSBTSigned);
     expect(mockBdkRnModule.sign).toHaveBeenCalledWith(wallet.id, base64PSBT, signOptions);
+  });
+
+  it('should sign a transaction', async () => {
+    const base64PSBT = 'base64PSBTA';
+    const base64PSBTSigned = 'base64PSBTSigned';
+    const partiallySignedTransaction = new PartiallySignedTransaction(base64PSBT);
+    const signOptions = new SignOptions(false, false, 100, false, false, false, false, false);
+
+    mockBdkRnModule.sign.mockResolvedValueOnce(base64PSBTSigned);
+    let res = await wallet.sign(partiallySignedTransaction, signOptions);
+    expect(res).toBeInstanceOf(PartiallySignedTransaction);
+    expect(res.base64).toBe(base64PSBTSigned);
+    expect(mockBdkRnModule.sign).toHaveBeenCalledWith(wallet.id, base64PSBT, signOptions);
+  });
+
+  it('should check if Wallet is mine or not', async () => {
+    mockBdkRnModule.isMine.mockResolvedValueOnce(true);
+    let res = await wallet.isMine(script);
+    expect(res).toBe(true);
+    expect(mockBdkRnModule.isMine).toHaveBeenCalledWith(wallet.id, script.id);
   });
 });

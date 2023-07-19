@@ -1,5 +1,7 @@
 import { PartiallySignedTransaction, Transaction } from '../../src';
+
 import { mockBdkRnModule } from '../setup';
+import { mockPsbtJson } from '../mockData';
 
 describe('PartiallySignedTransaction', () => {
   const base64PSBTA = 'base64PSBTA';
@@ -54,5 +56,12 @@ describe('PartiallySignedTransaction', () => {
     const res = await partiallySignedTransactionA.feeRate();
     expect(mockBdkRnModule.psbtFeeRate).toHaveBeenCalledWith(partiallySignedTransactionA.base64);
     expect(res).toBe(feeRate);
+  });
+
+  it('returns json serialize', async () => {
+    mockBdkRnModule.jsonSerialize.mockResolvedValueOnce(mockPsbtJson);
+    const res = await partiallySignedTransactionA.jsonSerialize();
+    expect(mockBdkRnModule.jsonSerialize).toHaveBeenCalledWith(partiallySignedTransactionA.base64);
+    expect(res).toBe(mockPsbtJson);
   });
 });
