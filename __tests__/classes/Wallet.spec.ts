@@ -169,19 +169,6 @@ describe('Wallet', () => {
     expect(mockBdkRnModule.sign).toHaveBeenCalledWith(wallet.id, base64PSBT, signOptions);
   });
 
-  it('should sign a transaction', async () => {
-    const base64PSBT = 'base64PSBTA';
-    const base64PSBTSigned = 'base64PSBTSigned';
-    const partiallySignedTransaction = new PartiallySignedTransaction(base64PSBT);
-    const signOptions = new SignOptions(false, false, 100, false, false, false, false, false);
-
-    mockBdkRnModule.sign.mockResolvedValueOnce(base64PSBTSigned);
-    let res = await wallet.sign(partiallySignedTransaction, signOptions);
-    expect(res).toBeInstanceOf(PartiallySignedTransaction);
-    expect(res.base64).toBe(base64PSBTSigned);
-    expect(mockBdkRnModule.sign).toHaveBeenCalledWith(wallet.id, base64PSBT, signOptions);
-  });
-
   it('should check if Wallet is mine or not', async () => {
     mockBdkRnModule.isMine.mockResolvedValueOnce(true);
     let res = await wallet.isMine(script);

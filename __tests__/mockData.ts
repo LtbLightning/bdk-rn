@@ -1,6 +1,5 @@
 import { BlockTime, TransactionDetails } from '../src/classes/Bindings';
 import { DescriptorSecretKey, Wallet } from '../src/index';
-import { createTxIn, createTxOut } from '../src/lib/utils';
 
 import { Script } from '../src/classes/Script';
 
