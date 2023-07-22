@@ -1,6 +1,6 @@
 import { BlockTime, OutPoint, PubkeyHash, ScriptHash, TransactionDetails, TxIn, TxOut, WitnessProgram } from '../classes/Bindings';
 import { KeychainKind, Network, Payload } from './enums';
-declare type Props = {
+type Props = {
     txid: string;
     received: number;
     sent: number;
