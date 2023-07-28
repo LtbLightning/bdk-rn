@@ -1,6 +1,30 @@
 ## bdk-rn
 
-A React Native version of the Bitcon Development Kit (https://bitcoindevkit.org/)
+<p>
+  <a href="https://github.com/LtbLightning/bdk-rn/blob/HEAD/LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="BDK RN is released under the MIT license." />
+  </a>
+  <a href="https://github.com/LtbLightning/bdk-rn/blob/main/README.md">
+    <img src="https://img.shields.io/badge/docs-red.svg" alt="Docs" />
+  </a>
+  <a href="https://www.npmjs.com/package/bdk-rn">
+    <img src="https://img.shields.io/npm/v/bdk-rn" alt="Current npm package version." />
+  </a>
+    <a href="https://github.com/LtbLightning/bdk-rn/issues">
+    <img src="https://img.shields.io/github/issues/LtbLightning/bdk-rn.svg" alt="Issues" />
+  </a>
+  <a href="https://github.com/LtbLightning/bdk-rn/stargazers">
+    <img src="https://img.shields.io/github/stars/LtbLightning/bdk-rn.svg" alt="Stars" />
+  </a>
+  <a href="https://github.com/LtbLightning/bdk-rn/forks">
+    <img src="https://img.shields.io/github/forks/LtbLightning/bdk-rn.svg?color=brightgreen" alt="Forks" />
+  </a>
+  <a href="https://github.com/LtbLightning/bdk-rn-app">
+    <img src="https://img.shields.io/badge/Demo App-orange" alt="Demo App" />
+  </a>
+</p>
+
+A React Native version of the Bitcoin Development Kit (https://bitcoindevkit.org/)
 `bdk` aims to be the core building block for Bitcoin Applications of any kind.
 
 ## Installation
