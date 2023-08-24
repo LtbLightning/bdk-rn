@@ -452,17 +452,19 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun listUnspent(id: String, result: Promise) {
         try {
-            val unspentList = getWalletById(id).listUnspent()
-            val unpents: MutableList<Map<String, Any?>> = mutableListOf()
-            for (item in unspentList) {
-                val unspentObject = mutableMapOf<String, Any?>()
-                unspentObject["outpoint"] = getOutPoint(item.outpoint)
-                unspentObject["txout"] = createTxOut(item.txout, _scripts)
-                unspentObject["isSpent"] = item.isSpent
-                unspentObject["keychain"] = item.keychain.toString()
-                unpents.add(unspentObject)
-            }
-            result.resolve(Arguments.makeNativeArray(unpents))
+            Thread {
+                val unspentList = getWalletById(id).listUnspent()
+                val unpents: MutableList<Map<String, Any?>> = mutableListOf()
+                for (item in unspentList) {
+                    val unspentObject = mutableMapOf<String, Any?>()
+                    unspentObject["outpoint"] = getOutPoint(item.outpoint)
+                    unspentObject["txout"] = createTxOut(item.txout, _scripts)
+                    unspentObject["isSpent"] = item.isSpent
+                    unspentObject["keychain"] = item.keychain.toString()
+                    unpents.add(unspentObject)
+                }
+                result.resolve(Arguments.makeNativeArray(unpents))
+            }.start()
         } catch (error: Throwable) {
             result.reject("List unspent outputs error", error.localizedMessage, error)
         }
