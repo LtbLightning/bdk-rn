@@ -186,14 +186,14 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
     getAddress:(nonnull NSString*)id
-    addressIndex: (nonnull NSString*)addressIndex
+    addressIndex: (nonnull id)addressIndex
     resolve: (RCTPromiseResolveBlock)resolve
     reject: (RCTPromiseRejectBlock)reject
 )
 
 RCT_EXTERN_METHOD(
     getInternalAddress:(nonnull NSString*)id
-    addressIndex: (nonnull NSString*)addressIndex
+    addressIndex: (nonnull id)addressIndex
     resolve: (RCTPromiseResolveBlock)resolve
     reject: (RCTPromiseRejectBlock)reject
 )

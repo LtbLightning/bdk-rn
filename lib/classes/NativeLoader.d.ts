@@ -27,7 +27,7 @@ export interface NativeBdkRn {
     sqliteDBInit(path: string): string;
     walletInit(descriptor: string, changeDescriptor: string | null, network: Network, dbConfig: string): any;
     getAddress(id: string, addressIndex: AddressIndex): any;
-    getInternalAddress(id: string, addressIndex: AddressIndex): any;
+    getInternalAddress(id: string, addressIndex: AddressIndex | number): any;
     isMine(id: string, scriptId: string): boolean;
     getBalance(id: string): Balance;
     getNetwork(id: string): string;

@@ -1,8 +1,7 @@
 import { AddressIndex, Network } from '../lib/enums';
-import { AddressInfo, Balance, LocalUtxo, SignOptions, TransactionDetails } from './Bindings';
 import { createOutpoint, createTxDetailsObject, createTxOut, getKeychainKind, getNetwork } from '../lib/utils';
-
 import { Address } from './Address';
+import { AddressInfo, Balance, LocalUtxo, SignOptions, TransactionDetails } from './Bindings';
 import { Blockchain } from './Blockchain';
 import { DatabaseConfig } from './DatabaseConfig';
 import { Descriptor } from './Descriptor';
@@ -58,7 +57,7 @@ export class Wallet extends NativeLoader {
    * @param addressIndex
    * @returns {Promise<AddressInfo>}
    */
-  async getInternalAddress(addressIndex: AddressIndex): Promise<AddressInfo> {
+  async getInternalAddress(addressIndex: AddressIndex | number): Promise<AddressInfo> {
     let addressInfo = await this._bdk.getInternalAddress(this.id, addressIndex);
     return new AddressInfo(
       addressInfo.index,
