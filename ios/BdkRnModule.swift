@@ -501,8 +501,7 @@ class BdkRnModule: NSObject {
             } else if let indexInt = addressIndex as? Int {
                 resolvedIndex = setAddressIndex(addressIndex: indexInt)
             } else {
-                reject("Invalid address index type", "Address index must be a String or an Int", nil)
-                return
+                resolvedIndex = setAddressIndex(addressIndex: "new")
             }
 
             let addressInfo = try getWalletById(id: id).getAddress(
@@ -530,8 +529,7 @@ class BdkRnModule: NSObject {
             } else if let indexInt = addressIndex as? Int {
                 resolvedIndex = setAddressIndex(addressIndex: indexInt)
             } else {
-                reject("Invalid address index type", "Address index must be a String or an Int", nil)
-                return
+                resolvedIndex = setAddressIndex(addressIndex: "new")
             }
             let addressInfo = try getWalletById(id: id).getInternalAddress(
                 addressIndex: resolvedIndex

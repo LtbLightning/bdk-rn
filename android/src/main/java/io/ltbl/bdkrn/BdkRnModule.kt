@@ -395,7 +395,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                         resolvedIndex = (addressIndex as Dynamic).asDouble() ?: "new"
                     }
                     else -> {
-                        result.reject("Invalid address index type", "Address index must be a String or an Int")
+                        resolvedIndex = setAddressIndex("new")
                     }
                 }
                 val addressInfo = getWalletById(id).getAddress(setAddressIndex(resolvedIndex))
@@ -425,7 +425,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                         resolvedIndex = (addressIndex as Dynamic).asDouble() ?: "new"
                     }
                     else -> {
-                        result.reject("Invalid address index type", "Address index must be a String or an Int")
+                        resolvedIndex = setAddressIndex("new")
                     }
                 }
                 val addressInfo = getWalletById(id).getInternalAddress(setAddressIndex(resolvedIndex))
