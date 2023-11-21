@@ -556,7 +556,11 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun addressAsString(id: String, result: Promise) {
-        result.resolve(_addresses[id]!!.asString())
+        try {
+            result.resolve(_addresses[id]!!.asString())
+        } catch (error: Throwable) {
+            result.reject("Couldn't parse address string", error.localizedMessage, error)
+        }
     }
 
     /** Address methods ends*/
