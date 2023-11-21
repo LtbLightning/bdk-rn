@@ -369,20 +369,20 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun sync(id: String, blockChainId: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 getWalletById(id).sync(getBlockchainById(blockChainId), BdkProgress)
                 result.resolve(true)
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Sync wallet error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Sync wallet error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun getAddress(id: String, addressIndex: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val randomId = randomId()
                 val addressInfo = getWalletById(id).getAddress(setAddressIndex(addressIndex))
                 _addresses[randomId] = addressInfo.address
@@ -391,16 +391,16 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 responseObject["address"] = randomId
                 responseObject["keychain"] = addressInfo.keychain.toString()
                 result.resolve(Arguments.makeNativeMap(responseObject))
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Get wallet address error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Get wallet address error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun getInternalAddress(id: String, addressIndex: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val randomId = randomId()
                 val addressInfo =
                     getWalletById(id).getInternalAddress(setAddressIndex(addressIndex))
@@ -410,10 +410,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 responseObject["address"] = randomId
                 responseObject["keychain"] = addressInfo.keychain.toString()
                 result.resolve(Arguments.makeNativeMap(responseObject))
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Get internal address error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Get internal address error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
@@ -427,8 +427,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun getBalance(id: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val balance = getWalletById(id).getBalance()
                 val responseObject = mutableMapOf<String, Any?>()
                 responseObject["trustedPending"] = balance.trustedPending.toInt()
@@ -437,10 +437,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 responseObject["spendable"] = balance.spendable.toInt()
                 responseObject["total"] = balance.total.toInt()
                 result.resolve(Arguments.makeNativeMap(responseObject))
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Get wallet balance error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Get wallet balance error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
@@ -451,8 +451,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun listUnspent(id: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val unspentList = getWalletById(id).listUnspent()
                 val unpents: MutableList<Map<String, Any?>> = mutableListOf()
                 for (item in unspentList) {
@@ -464,10 +464,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     unpents.add(unspentObject)
                 }
                 result.resolve(Arguments.makeNativeArray(unpents))
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("List unspent outputs error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("List unspent outputs error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
