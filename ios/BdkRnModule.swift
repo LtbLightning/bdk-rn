@@ -490,13 +490,22 @@ class BdkRnModule: NSObject {
     @objc
     func getAddress(_
         id: String,
-        addressIndex: String,
+        addressIndex: Any,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
+            let resolvedIndex: AddressIndex
+            if let indexString = addressIndex as? String {
+                resolvedIndex = setAddressIndex(addressIndex: indexString)
+            } else if let indexInt = addressIndex as? Int {
+                resolvedIndex = setAddressIndex(addressIndex: indexInt)
+            } else {
+                resolvedIndex = setAddressIndex(addressIndex: "new")
+            }
+
             let addressInfo = try getWalletById(id: id).getAddress(
-                addressIndex: setAddressIndex(addressIndex: addressIndex)
+                addressIndex: resolvedIndex
             )
             let randomId = randomId()
             _addresses[randomId] = addressInfo.address
@@ -509,13 +518,21 @@ class BdkRnModule: NSObject {
     @objc
     func getInternalAddress(_
         id: String,
-        addressIndex: String,
+        addressIndex: Any,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         do {
+            let resolvedIndex: AddressIndex
+            if let indexString = addressIndex as? String {
+                resolvedIndex = setAddressIndex(addressIndex: indexString)
+            } else if let indexInt = addressIndex as? Int {
+                resolvedIndex = setAddressIndex(addressIndex: indexInt)
+            } else {
+                resolvedIndex = setAddressIndex(addressIndex: "new")
+            }
             let addressInfo = try getWalletById(id: id).getInternalAddress(
-                addressIndex: setAddressIndex(addressIndex: addressIndex)
+                addressIndex: resolvedIndex
             )
             let randomId = randomId()
             _addresses[randomId] = addressInfo.address

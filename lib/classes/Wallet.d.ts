@@ -30,7 +30,7 @@ export declare class Wallet extends NativeLoader {
      * @param addressIndex
      * @returns {Promise<AddressInfo>}
      */
-    getInternalAddress(addressIndex: AddressIndex): Promise<AddressInfo>;
+    getInternalAddress(addressIndex: AddressIndex | number): Promise<AddressInfo>;
     /**
      * check if the wallet is yours or not
      * @param script

@@ -53,10 +53,16 @@ fun getEntropy(entropy: ReadableArray): List<UByte> {
     return entropyArray
 }
 
-fun setAddressIndex(addressIndex: String?): AddressIndex {
+fun setAddressIndex(addressIndex: Any?): AddressIndex {
     return when (addressIndex) {
-        "new" -> return AddressIndex.New
-        "lastUnused" -> return AddressIndex.LastUnused
+        is String -> when (addressIndex) {
+            "new" -> AddressIndex.New
+            "lastUnused" -> AddressIndex.LastUnused
+            else -> AddressIndex.New
+        }
+        is Double -> {
+            AddressIndex.Peek(addressIndex.toUInt())
+        }
         else -> AddressIndex.New
     }
 }

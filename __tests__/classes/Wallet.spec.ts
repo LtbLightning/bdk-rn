@@ -1,10 +1,9 @@
 import { Address, Blockchain, DatabaseConfig, Descriptor, PartiallySignedTransaction, Wallet } from '../../src';
-import { AddressIndex, KeychainKind, Network } from '../../src/lib/enums';
 import { AddressInfo, Balance, LocalUtxo, SignOptions } from '../../src/classes/Bindings';
-import { changeDescriptorString, descriptorString, mockTransactionDetails } from '../mockData';
-import { createOutpoint, createTxOut } from '../../src/lib/utils';
-
 import { Script } from '../../src/classes/Script';
+import { AddressIndex, KeychainKind, Network } from '../../src/lib/enums';
+import { createOutpoint, createTxOut } from '../../src/lib/utils';
+import { changeDescriptorString, descriptorString, mockTransactionDetails } from '../mockData';
 import { mockBdkRnModule } from '../setup';
 
 describe('Wallet', () => {
@@ -67,6 +66,14 @@ describe('Wallet', () => {
     expect(mockBdkRnModule.getAddress).toHaveBeenCalledWith(wallet.id, AddressIndex.LastUnused);
   });
 
+  it('Should return AddressInfo at index using the external descriptor', async () => {
+    const index = 21;
+    let res = await wallet.getAddress(index);
+    expect(res.index).toBe(addressIndex);
+    expect(res.address).toStrictEqual(new Address()._setAddress(address));
+    expect(mockBdkRnModule.getAddress).toHaveBeenCalledWith(wallet.id, index);
+  });
+
   it('Should return a new AddressInfo using the internal descriptor', async () => {
     let res = await wallet.getInternalAddress(AddressIndex.New);
     expect(res).toBeInstanceOf(AddressInfo);
@@ -80,6 +87,14 @@ describe('Wallet', () => {
     expect(res.index).toBe(addressIndex);
     expect(res.address).toStrictEqual(new Address()._setAddress(address));
     expect(mockBdkRnModule.getInternalAddress).toHaveBeenCalledWith(wallet.id, AddressIndex.LastUnused);
+  });
+
+  it('Should return AddressInfo at index using the internal descriptor', async () => {
+    const index = 21;
+    let res = await wallet.getInternalAddress(index);
+    expect(res.index).toBe(addressIndex);
+    expect(res.address).toStrictEqual(new Address()._setAddress(address));
+    expect(mockBdkRnModule.getInternalAddress).toHaveBeenCalledWith(wallet.id, index);
   });
 
   it('Should return valid Balance object', async () => {

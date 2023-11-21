@@ -1,6 +1,8 @@
 package io.ltbl.bdkrn
 
 import com.facebook.react.bridge.*
+import com.facebook.react.bridge.ReadableType
+import com.facebook.react.bridge.Dynamic
 import com.facebook.react.bridge.UiThreadUtil.runOnUiThread
 import org.bitcoindevkit.*
 import org.bitcoindevkit.Descriptor.Companion.newBip44
@@ -380,11 +382,23 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun getAddress(id: String, addressIndex: String, result: Promise) {
+    fun getAddress(id: String, addressIndex: Dynamic, result: Promise) {
         Thread {
             try {
                 val randomId = randomId()
-                val addressInfo = getWalletById(id).getAddress(setAddressIndex(addressIndex))
+                var resolvedIndex: Any = "new"
+                when (val type = addressIndex.getType()) {
+                    ReadableType.String -> {
+                        resolvedIndex = (addressIndex as Dynamic).asString() ?: "new"
+                    }
+                    ReadableType.Number -> {
+                        resolvedIndex = (addressIndex as Dynamic).asDouble() ?: "new"
+                    }
+                    else -> {
+                        resolvedIndex = setAddressIndex("new")
+                    }
+                }
+                val addressInfo = getWalletById(id).getAddress(setAddressIndex(resolvedIndex))
                 _addresses[randomId] = addressInfo.address
                 val responseObject = mutableMapOf<String, Any?>()
                 responseObject["index"] = addressInfo.index.toInt()
@@ -398,12 +412,23 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun getInternalAddress(id: String, addressIndex: String, result: Promise) {
+    fun getInternalAddress(id: String, addressIndex: Dynamic, result: Promise) {
         Thread {
             try {
                 val randomId = randomId()
-                val addressInfo =
-                    getWalletById(id).getInternalAddress(setAddressIndex(addressIndex))
+                var resolvedIndex: Any = "new"
+                when (val type = addressIndex.getType()) {
+                    ReadableType.String -> {
+                        resolvedIndex = (addressIndex as Dynamic).asString() ?: "new"
+                    }
+                    ReadableType.Number -> {
+                        resolvedIndex = (addressIndex as Dynamic).asDouble() ?: "new"
+                    }
+                    else -> {
+                        resolvedIndex = setAddressIndex("new")
+                    }
+                }
+                val addressInfo = getWalletById(id).getInternalAddress(setAddressIndex(resolvedIndex))
                 _addresses[randomId] = addressInfo.address
                 val responseObject = mutableMapOf<String, Any?>()
                 responseObject["index"] = addressInfo.index.toInt()
