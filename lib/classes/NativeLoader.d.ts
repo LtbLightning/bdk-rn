@@ -69,9 +69,11 @@ export interface NativeBdkRn {
     newBip44(id: string, keychain: KeychainKind, network: Network): string;
     newBip49(id: string, keychain: KeychainKind, network: Network): string;
     newBip84(id: string, keychain: KeychainKind, network: Network): string;
+    newBip86(id: string, keychain: KeychainKind, network: Network): string;
     newBip44Public(id: string, fingerprint: string, keychain: KeychainKind, network: Network): string;
     newBip49Public(id: string, fingerprint: string, keychain: KeychainKind, network: Network): string;
     newBip84Public(id: string, fingerprint: string, keychain: KeychainKind, network: Network): string;
+    newBip86Public(id: string, fingerprint: string, keychain: KeychainKind, network: Network): string;
     combine(psbt64: string, otherPsbt: string): string;
     extractTx(psbt64: string): string;
     serialize(psbt64: string): string;

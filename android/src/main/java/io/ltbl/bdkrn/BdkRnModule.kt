@@ -9,6 +9,8 @@ import org.bitcoindevkit.Descriptor.Companion.newBip49
 import org.bitcoindevkit.Descriptor.Companion.newBip49Public
 import org.bitcoindevkit.Descriptor.Companion.newBip84
 import org.bitcoindevkit.Descriptor.Companion.newBip84Public
+import org.bitcoindevkit.Descriptor.Companion.newBip86
+import org.bitcoindevkit.Descriptor.Companion.newBip86Public
 
 class BdkRnModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -970,6 +972,47 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             }.start()
         } catch (error: Throwable) {
             result.reject("Create bip84Public error", error.localizedMessage, error)
+        }
+    }
+
+    @ReactMethod
+    fun newBip86(secretKeyId: String, keychain: String, network: String, result: Promise) {
+        try {
+            Thread {
+                val id = randomId()
+                _descriptors[id] = newBip86(
+                    _descriptorSecretKeys[secretKeyId]!!,
+                    setKeychainKind(keychain),
+                    setNetwork(network)
+                )
+                result.resolve(id)
+            }.start()
+        } catch (error: Throwable) {
+            result.reject("Create bip86 error", error.localizedMessage, error)
+        }
+    }
+
+    @ReactMethod
+    fun newBip86Public(
+        publicKeyId: String,
+        fingerprint: String,
+        keychain: String,
+        network: String,
+        result: Promise
+    ) {
+        try {
+            Thread {
+                val id = randomId()
+                _descriptors[id] = newBip86Public(
+                    _descriptorPublicKeys[publicKeyId]!!,
+                    fingerprint,
+                    setKeychainKind(keychain),
+                    setNetwork(network)
+                )
+                result.resolve(id)
+            }.start()
+        } catch (error: Throwable) {
+            result.reject("Create bip86Public error", error.localizedMessage, error)
         }
     }
     /** Descriptor Templates method ends */

@@ -480,6 +480,23 @@ RCT_EXTERN_METHOD(
     reject:(RCTPromiseRejectBlock)reject
 )
 
+RCT_EXTERN_METHOD(
+    newBip86: (nonnull NSString*)secretKeyId
+    keychain:(nonnull NSString*)keychain
+    network:(nonnull NSString*)network
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    newBip86Public: (nonnull NSString*)publicKeyId
+    fingerprint:(nonnull NSString*)fingerprint
+    keychain:(nonnull NSString*)keychain
+    network:(nonnull NSString*)network
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
 /** PartiallySignedTransaction methods */
 RCT_EXTERN_METHOD(
     combine: (nonnull NSString*)base64

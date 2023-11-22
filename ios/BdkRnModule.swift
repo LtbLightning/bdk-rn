@@ -36,7 +36,7 @@ class BdkRnModule: NSObject {
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        DispatchQueue.main.async { [self] in
+        DispatchQueue.main.async {
             let response = Mnemonic(wordCount: setWordCount(wordCount: wordCount))
             resolve(response.asString())
         }
@@ -48,7 +48,7 @@ class BdkRnModule: NSObject {
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        DispatchQueue.main.async { [self] in
+        DispatchQueue.main.async {
             do {
                 let response = try Mnemonic.fromString(mnemonic: mnemonic)
                 resolve(response.asString())
@@ -64,7 +64,7 @@ class BdkRnModule: NSObject {
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        DispatchQueue.main.async { [self] in
+        DispatchQueue.main.async {
             do {
                 let response = try Mnemonic.fromEntropy(entropy: getEntropy(entropy: entropy))
                 resolve(response.asString())
@@ -1248,6 +1248,46 @@ class BdkRnModule: NSObject {
             resolve(id)
         }
     }
+    
+    @objc
+    func newBip86(_
+        secretKeyId: String,
+        keychain: String,
+        network: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.main.async { [self] in
+            let id = randomId()
+            _descriptors[id] = Descriptor.newBip86(
+                secretKey: _descriptorSecretKeys[secretKeyId]!,
+                keychain: setKeychainKind(keychainKind: keychain),
+                network: setNetwork(networkStr: network)
+            )
+            resolve(id)
+        }
+    }
+
+    @objc
+    func newBip86Public(_
+        publicKeyId: String,
+        fingerprint: String,
+        keychain: String,
+        network: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.main.async { [self] in
+            let id = randomId()
+            _descriptors[id] = Descriptor.newBip86Public(
+                publicKey: _descriptorPublicKeys[publicKeyId]!,
+                fingerprint: fingerprint,
+                keychain: setKeychainKind(keychainKind: keychain),
+                network: setNetwork(networkStr: network)
+            )
+            resolve(id)
+        }
+    }
     /** Descriptor Templates method ends */
 
     /** PartiallySignedTransaction method starts */
@@ -1258,7 +1298,7 @@ class BdkRnModule: NSObject {
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        DispatchQueue.main.async { [self] in
+        DispatchQueue.main.async {
             do {
                 let newPsbt = try PartiallySignedTransaction(psbtBase64: base64)
                     .combine(other: PartiallySignedTransaction(psbtBase64: other))
@@ -1292,7 +1332,7 @@ class BdkRnModule: NSObject {
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        DispatchQueue.main.async { [self] in
+        DispatchQueue.main.async {
             do {
                 resolve(try PartiallySignedTransaction(psbtBase64: base64).serialize())
             } catch let error {
@@ -1307,7 +1347,7 @@ class BdkRnModule: NSObject {
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        DispatchQueue.main.async { [self] in
+        DispatchQueue.main.async {
             do {
                 resolve(try PartiallySignedTransaction(psbtBase64: base64).txid())
             } catch let error {
@@ -1322,7 +1362,7 @@ class BdkRnModule: NSObject {
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        DispatchQueue.main.async { [self] in
+        DispatchQueue.main.async {
             do {
                 resolve(try PartiallySignedTransaction(psbtBase64: base64).feeAmount())
             } catch let error {
@@ -1337,7 +1377,7 @@ class BdkRnModule: NSObject {
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        DispatchQueue.main.async { [self] in
+        DispatchQueue.main.async {
             do {
                 resolve(try PartiallySignedTransaction(psbtBase64: base64).feeRate()?.asSatPerVb())
             } catch let error {
@@ -1352,7 +1392,7 @@ class BdkRnModule: NSObject {
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        DispatchQueue.main.async { [self] in
+        DispatchQueue.main.async {
             do {
                 resolve(try PartiallySignedTransaction(psbtBase64: base64).jsonSerialize())
             } catch let error {

@@ -1,3 +1,10 @@
+## [0.30.0]
+
+#### APIs added
+
+- Added `BIP-86` descriptor templates
+
+
 ## [0.29.0]
 
 #### APIs added
