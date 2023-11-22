@@ -53,16 +53,10 @@ fun getEntropy(entropy: ReadableArray): List<UByte> {
     return entropyArray
 }
 
-fun setAddressIndex(addressIndex: Any?): AddressIndex {
+fun setAddressIndex(addressIndex: String?): AddressIndex {
     return when (addressIndex) {
-        is String -> when (addressIndex) {
-            "new" -> AddressIndex.New
-            "lastUnused" -> AddressIndex.LastUnused
-            else -> AddressIndex.New
-        }
-        is Double -> {
-            AddressIndex.Peek(addressIndex.toUInt())
-        }
+        "new" -> return AddressIndex.New
+        "lastUnused" -> return AddressIndex.LastUnused
         else -> AddressIndex.New
     }
 }
@@ -71,13 +65,13 @@ fun randomId() = UUID.randomUUID().toString()
 
 fun getTransactionObject(transaction: TransactionDetails): MutableMap<String, Any> {
     return mutableMapOf<String, Any>(
-        "received" to transaction.received.toInt(),
-        "sent" to transaction.sent.toInt(),
-        "fee" to transaction.fee!!.toInt(),
+        "received" to transaction.received.toDouble(),
+        "sent" to transaction.sent.toDouble(),
+        "fee" to transaction.fee!!.toDouble(),
         "txid" to transaction.txid,
         "confirmationTime" to mutableMapOf<String, Any>(
             "height" to (transaction.confirmationTime?.height?.toInt() ?: 0),
-            "timestamp" to (transaction.confirmationTime?.timestamp?.toInt() ?: 0),
+            "timestamp" to (transaction.confirmationTime?.timestamp?.toDouble() ?: 0),
         )
     )
 }
@@ -144,7 +138,7 @@ fun getPayload(payload: Payload): MutableMap<String, Any> {
 fun createTxOut(txOut: TxOut, _scripts: MutableMap<String, Script>): MutableMap<String, Any> {
     val randomId = randomId()
     _scripts[randomId] = txOut.scriptPubkey
-    return mutableMapOf("script" to randomId, "value" to txOut.value.toInt())
+    return mutableMapOf("script" to randomId, "value" to txOut.value.toDouble())
 }
 
 fun createTxIn(txIn: TxIn, _scripts: MutableMap<String, Script>): MutableMap<String, Any> {

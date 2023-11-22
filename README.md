@@ -53,7 +53,7 @@ cd ios && pod install
 
 ### Create a Wallet & sync the balance of a descriptor
 
-```ts
+```js
 import { DescriptorSecretKey, Mnemonic, Blockchain, Wallet, DatabaseConfig, Descriptor } from 'bdk-rn';
 import { WordCount, Network } from 'bdk-rn/lib/lib/enums';
 
@@ -61,15 +61,15 @@ import { WordCount, Network } from 'bdk-rn/lib/lib/enums';
 
 const mnemonic = await new Mnemonic().create(WordCount.WORDS12);
 const descriptorSecretKey = await new DescriptorSecretKey().create(Network.Testnet, mnemonic);
-const externalDescriptor = await new Descriptor().newBip84(descriptorSecretKey, KeychainKind.External, Network.Testnet);
-const internalDescriptor = await new Descriptor().newBip84(descriptorSecretKey, KeychainKind.Internal, Network.Testnet);
+const externalDescriptor = await new Descriptor().newBip44(descriptorSecretKey, KeyChainKind.External, Network.Testnet);
+const internalDescriptor = await new Descriptor().newBip44(descriptorSecretKey, KeyChainKind.Internal, Network.Testnet);
 
 const config: BlockchainElectrumConfig = {
   url: 'ssl://electrum.blockstream.info:60002',
   sock5: null,
   retry: 5,
   timeout: 5,
-  stopGap: 100,
+  stopGap: 500,
   validateDomain: false,
 };
 
@@ -82,9 +82,9 @@ await wallet.sync(blockchain);
 
 ### Create a `public` wallet descriptor
 
-```ts
+```js
 import { DescriptorSecretKey, Mnemonic, Descriptor } from 'bdk-rn';
-import { WordCount, Network, KeychainKind } from 'bdk-rn/lib/lib/enums';
+import { WordCount, Network, KeyChainKind } from 'bdk-rn/lib/lib/enums';
 
 // ....
 
@@ -92,7 +92,7 @@ const mnemonic = await new Mnemonic().create(WordCount.WORDS12);
 const descriptorSecretKey = await new DescriptorSecretKey().create(Network.Testnet, mnemonic);
 const descriptorPublicKey = await descriptorSecretKey.asPublic();
 const fingerprint = 'd1d04177';
-const externalPublicDescriptor = await new Descriptor().newBip84Public(
+const externalPublicDescriptor = await new Descriptor().newBip44Public(
   descriptorPublicKey,
   fingerprint,
   KeychainKind.External,
@@ -100,19 +100,11 @@ const externalPublicDescriptor = await new Descriptor().newBip84Public(
 );
 ```
 
-### Store wallet data persistently
-```ts
-import RNFS from 'react-native-fs'
-import { DatabaseConfig, ... } from 'bdk-rn';
-
-// create sqlite database config with rn document directory path
-const dbConfig = await new DatabaseConfig().sqlite(`${RNFS.DocumentDirectoryPath}/bdk-wallet`)
-
-```
-
 ### References:
+
 - Setting up a local Esplora instance for testing:
-https://bitcoin.stackexchange.com/questions/116937/how-do-i-setup-an-esplora-instance-for-local-testing/116938#116938
+  https://bitcoin.stackexchange.com/questions/116937/how-do-i-setup-an-esplora-instance-for-local-testing/116938#116938
+
 ---
 
 _Note: Caution this is an Alpha at this stage
