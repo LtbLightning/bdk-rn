@@ -44,7 +44,7 @@ export class Wallet extends NativeLoader {
    * @param addressIndex
    * @returns {Promise<AddressInfo>}
    */
-  async getAddress(addressIndex: AddressIndex): Promise<AddressInfo> {
+  async getAddress(addressIndex: AddressIndex | number): Promise<AddressInfo> {
     let addressInfo = await this._bdk.getAddress(this.id, addressIndex);
     return new AddressInfo(
       addressInfo.index,
@@ -58,7 +58,7 @@ export class Wallet extends NativeLoader {
    * @param addressIndex
    * @returns {Promise<AddressInfo>}
    */
-  async getInternalAddress(addressIndex: AddressIndex): Promise<AddressInfo> {
+  async getInternalAddress(addressIndex: AddressIndex | number): Promise<AddressInfo> {
     let addressInfo = await this._bdk.getInternalAddress(this.id, addressIndex);
     return new AddressInfo(
       addressInfo.index,

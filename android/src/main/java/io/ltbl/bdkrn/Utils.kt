@@ -53,10 +53,18 @@ fun getEntropy(entropy: ReadableArray): List<UByte> {
     return entropyArray
 }
 
-fun setAddressIndex(addressIndex: String?): AddressIndex {
+fun setAddressIndex(addressIndex: Any?): AddressIndex {
     return when (addressIndex) {
-        "new" -> return AddressIndex.New
-        "lastUnused" -> return AddressIndex.LastUnused
+        is String -> when (addressIndex) {
+            "new" -> AddressIndex.New
+            "lastUnused" -> AddressIndex.LastUnused
+            else -> AddressIndex.New
+        }
+
+        is Double -> {
+            AddressIndex.Peek(addressIndex.toUInt())
+        }
+
         else -> AddressIndex.New
     }
 }
@@ -145,7 +153,7 @@ fun createTxIn(txIn: TxIn, _scripts: MutableMap<String, Script>): MutableMap<Str
     val randomId = randomId()
     _scripts[randomId] = txIn.scriptSig
     var witnessList = mutableListOf<Any>();
-    for(item in txIn.witness) {
+    for (item in txIn.witness) {
         witnessList.add(makeNativeArray(item))
     }
     return mutableMapOf(

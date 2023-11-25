@@ -50,11 +50,20 @@ func getEntropy(entropy: NSArray) -> Array<UInt8> {
 }
 
 
-func setAddressIndex(addressIndex: String?) -> AddressIndex {
-    switch (addressIndex) {
-    case "new": return AddressIndex.new
-    case "lastUnused": return AddressIndex.lastUnused
-    default: return AddressIndex.new
+func setAddressIndex(addressIndex: Any?) -> AddressIndex {
+    if let addressIndexString = addressIndex as? String {
+        switch addressIndexString {
+        case "new":
+            return AddressIndex.new
+        case "lastUnused":
+            return AddressIndex.lastUnused
+        default:
+            return AddressIndex.new
+        }
+    } else if let addressIndexNumber = addressIndex as? Int {
+        return AddressIndex.peek(index: UInt32(addressIndexNumber))
+    } else {
+        return AddressIndex.new
     }
 }
 

@@ -46,41 +46,41 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun generateSeedFromString(mnemonic: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val response = Mnemonic.fromString(mnemonic)
                 result.resolve(response.asString())
-            }.start()
-        } catch (error: Throwable) {
-            return result.reject("Generate seed error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Generate seed error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun generateSeedFromEntropy(entropy: ReadableArray, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val response = Mnemonic.fromEntropy(getEntropy(entropy))
                 result.resolve(response.asString())
-            }.start()
-        } catch (error: Throwable) {
-            return result.reject("Generate seed error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Generate seed error", error.localizedMessage, error)
+            }
+        }.start()
     }
     /** Mnemonic methods ends */
 
     /** Derviation path methods starts */
     @ReactMethod
     fun createDerivationPath(path: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val id = randomId()
                 _derivationPaths[id] = DerivationPath(path)
                 result.resolve(id)
-            }.start()
-        } catch (error: Throwable) {
-            return result.reject("Create Derivation path error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Create Derivation path error", error.localizedMessage, error)
+            }
+        }.start()
     }
     /** Derviation path methods ends */
 
@@ -89,8 +89,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun createDescriptorSecret(
         network: String, mnemonic: String, password: String? = null, result: Promise
     ) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val id = randomId()
                 _descriptorSecretKeys[id] =
                     DescriptorSecretKey(
@@ -99,36 +99,36 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                         password
                     )
                 result.resolve(id)
-            }.start()
-        } catch (error: Throwable) {
-            return result.reject("DescriptorSecret create error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("DescriptorSecret create error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun descriptorSecretDerive(secretKeyId: String, derivationPathId: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val keyInfo =
                     _descriptorSecretKeys[secretKeyId]!!.derive(_derivationPaths[derivationPathId]!!)
                 result.resolve(keyInfo.asString())
-            }.start()
-        } catch (error: Throwable) {
-            return result.reject("DescriptorSecret derive error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("DescriptorSecret derive error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun descriptorSecretExtend(secretKeyId: String, derivationPathId: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val keyInfo =
                     _descriptorSecretKeys[secretKeyId]!!.extend(_derivationPaths[derivationPathId]!!)
                 result.resolve(keyInfo.asString())
-            }.start()
-        } catch (error: Throwable) {
-            return result.reject("DescriptorSecret extend error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("DescriptorSecret extend error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
@@ -150,8 +150,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun descriptorSecretAsSecretBytes(secretKeyId: String, result: Promise) {
         Thread {
-            val scretBytes = _descriptorSecretKeys[secretKeyId]!!.secretBytes()
-            result.resolve(makeNativeArray(scretBytes))
+            val secretBytes = _descriptorSecretKeys[secretKeyId]!!.secretBytes()
+            result.resolve(makeNativeArray(secretBytes))
         }.start()
     }
     /** Descriptor secret key methods ends */
@@ -159,41 +159,41 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     /** Descriptor public key methods starts */
     @ReactMethod
     fun createDescriptorPublic(publicKey: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val id = randomId()
                 _descriptorPublicKeys[id] = DescriptorPublicKey.fromString(publicKey)
                 result.resolve(id)
-            }.start()
-        } catch (error: Throwable) {
-            return result.reject("DescriptorPublic create error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("DescriptorPublic create error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun descriptorPublicDerive(publicKeyId: String, derivationPathId: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val keyInfo =
                     _descriptorPublicKeys[publicKeyId]!!.derive(_derivationPaths[derivationPathId]!!)
                 result.resolve(keyInfo.asString())
-            }.start()
-        } catch (error: Throwable) {
-            return result.reject("DescriptorPublic derive error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("DescriptorPublic derive error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun descriptorPublicExtend(publicKeyId: String, derivationPathId: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val keyInfo =
                     _descriptorPublicKeys[publicKeyId]!!.extend(_derivationPaths[derivationPathId]!!)
                 result.resolve(keyInfo.asString())
-            }.start()
-        } catch (error: Throwable) {
-            return result.reject("DescriptorPublic extend error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("DescriptorPublic extend error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
@@ -220,8 +220,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         validateDomain: Boolean,
         result: Promise
     ) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val _blockchainConfig = BlockchainConfig.Electrum(
                     ElectrumConfig(
                         url,
@@ -235,10 +235,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val blockChainId = randomId()
                 _blockChains[blockChainId] = Blockchain(_blockchainConfig)
                 result.resolve(blockChainId)
-            }.start()
-        } catch (error: Throwable) {
-            return result.reject("BlockchainElectrum init error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("BlockchainElectrum init error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
 
@@ -251,8 +251,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         timeout: Int,
         result: Promise
     ) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val _blockchainConfig = BlockchainConfig.Esplora(
                     EsploraConfig(
                         baseUrl,
@@ -265,16 +265,16 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val blockChainId = randomId()
                 _blockChains[blockChainId] = Blockchain(_blockchainConfig)
                 result.resolve(blockChainId)
-            }.start()
-        } catch (error: Throwable) {
-            return result.reject("BlockchainEsplora init error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("BlockchainEsplora init error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun initRpcBlockchain(config: ReadableMap, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 var authType: Auth = Auth.None
                 if (config.getString("authCookie") != null) {
                     authType = Auth.Cookie(config.getString("authCookie")!!)
@@ -310,56 +310,60 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val blockChainId = randomId()
                 _blockChains[blockChainId] = Blockchain(_blockchainConfig)
                 result.resolve(blockChainId)
-            }.start()
-        } catch (error: Throwable) {
-            return result.reject("BlockchainRpc init error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("BlockchainRpc init error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun getBlockchainHeight(id: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 result.resolve(getBlockchainById(id).getHeight().toInt())
-            }.start()
-        } catch (error: Throwable) {
-            return result.reject("Blockchain get height error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Blockchain get height error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun getBlockchainHash(id: String, height: Int, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 result.resolve(getBlockchainById(id).getBlockHash(height.toUInt()))
-            }.start()
-        } catch (error: Throwable) {
-            return result.reject("Blockchain get block hash error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject(
+                    "Blockchain get block hash error",
+                    error.localizedMessage,
+                    error
+                )
+            }
+        }.start()
     }
 
     @ReactMethod
     fun broadcast(id: String, txId: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 getBlockchainById(id).broadcast(_transactions[txId]!!)
                 result.resolve(true)
-            }.start()
-        } catch (error: Throwable) {
-            return result.reject("Broadcast transaction error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Broadcast transaction error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun estimateFee(id: String, target: Int, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val fee = getBlockchainById(id).estimateFee(target.toULong())
                 result.resolve(fee.asSatPerVb())
-            }.start()
-        } catch (error: Throwable) {
-            return result.reject("Estimate Fee error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Estimate Fee error", error.localizedMessage, error)
+            }
+        }.start()
     }
     /** Blockchain methods ends */
 
@@ -407,8 +411,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         dbConfigID: String,
         result: Promise
     ) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val id = randomId()
                 _wallets[id] = Wallet(
                     _descriptors[descriptor]!!,
@@ -417,76 +421,106 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     _databaseConfigs[dbConfigID]!!
                 )
                 result.resolve(id)
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Init wallet error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Init wallet error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun sync(id: String, blockChainId: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 getWalletById(id).sync(getBlockchainById(blockChainId), BdkProgress)
                 result.resolve(true)
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Sync wallet error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Sync wallet error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
-    fun getAddress(id: String, addressIndex: String, result: Promise) {
-        try {
-            Thread {
+    fun getAddress(id: String, addressIndex: Dynamic, result: Promise) {
+        Thread {
+            try {
                 val randomId = randomId()
-                val addressInfo = getWalletById(id).getAddress(setAddressIndex(addressIndex))
+
+                var resolvedIndex: Any = "new"
+                when (val type = addressIndex.getType()) {
+                    ReadableType.String -> {
+                        resolvedIndex = (addressIndex as Dynamic).asString() ?: "new"
+                    }
+
+                    ReadableType.Number -> {
+                        resolvedIndex = (addressIndex as Dynamic).asDouble() ?: "new"
+                    }
+
+                    else -> {
+                        resolvedIndex = setAddressIndex("new")
+                    }
+                }
+
+                val addressInfo = getWalletById(id).getAddress(setAddressIndex(resolvedIndex))
                 _addresses[randomId] = addressInfo.address
                 val responseObject = mutableMapOf<String, Any?>()
                 responseObject["index"] = addressInfo.index.toInt()
                 responseObject["address"] = randomId
                 responseObject["keychain"] = addressInfo.keychain.toString()
                 result.resolve(Arguments.makeNativeMap(responseObject))
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Get wallet address error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Get wallet address error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
-    fun getInternalAddress(id: String, addressIndex: String, result: Promise) {
-        try {
-            Thread {
+    fun getInternalAddress(id: String, addressIndex: Dynamic, result: Promise) {
+        Thread {
+            try {
                 val randomId = randomId()
-                val addressInfo =
-                    getWalletById(id).getInternalAddress(setAddressIndex(addressIndex))
+                var resolvedIndex: Any = "new"
+                when (val type = addressIndex.getType()) {
+                    ReadableType.String -> {
+                        resolvedIndex = (addressIndex as Dynamic).asString() ?: "new"
+                    }
+
+                    ReadableType.Number -> {
+                        resolvedIndex = (addressIndex as Dynamic).asDouble() ?: "new"
+                    }
+
+                    else -> {
+                        resolvedIndex = setAddressIndex("new")
+                    }
+                }
+
+                val addressInfo = getWalletById(id).getAddress(setAddressIndex(resolvedIndex))
                 _addresses[randomId] = addressInfo.address
                 val responseObject = mutableMapOf<String, Any?>()
                 responseObject["index"] = addressInfo.index.toInt()
                 responseObject["address"] = randomId
                 responseObject["keychain"] = addressInfo.keychain.toString()
                 result.resolve(Arguments.makeNativeMap(responseObject))
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Get internal address error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Get internal address error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun isMine(id: String, scriptId: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 result.resolve(getWalletById(id).isMine(_scripts[scriptId]!!))
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Get isMine error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Get isMine error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun getBalance(id: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val balance = getWalletById(id).getBalance()
                 val responseObject = mutableMapOf<String, Any?>()
                 responseObject["trustedPending"] = balance.trustedPending.toDouble()
@@ -495,10 +529,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 responseObject["spendable"] = balance.spendable.toDouble()
                 responseObject["total"] = balance.total.toDouble()
                 result.resolve(Arguments.makeNativeMap(responseObject))
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Get wallet balance error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Get wallet balance error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
@@ -511,8 +545,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun listUnspent(id: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val unspentList = getWalletById(id).listUnspent()
                 val unpents: MutableList<Map<String, Any?>> = mutableListOf()
                 for (item in unspentList) {
@@ -524,16 +558,16 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     unpents.add(unspentObject)
                 }
                 result.resolve(Arguments.makeNativeArray(unpents))
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("List unspent outputs error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("List unspent outputs error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun listTransactions(id: String, includeRaw: Boolean, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val list = getWalletById(id).listTransactions(includeRaw)
                 val transactions: MutableList<Map<String, Any?>> = mutableListOf()
                 for (item in list) {
@@ -548,26 +582,26 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     transactions.add(txObject)
                 }
                 result.resolve(Arguments.makeNativeArray(transactions))
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("List transactions error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("List transactions error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun sign(id: String, psbtBase64: String, signOptions: ReadableMap? = null, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 var options: SignOptions? = null
                 if (signOptions != null) options = createSignOptions(signOptions)
 
                 val psbt = PartiallySignedTransaction(psbtBase64)
                 getWalletById(id).sign(psbt, options)
                 result.resolve(psbt.serialize())
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Sign PSBT error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Sign PSBT error", error.localizedMessage, error)
+            }
+        }.start()
     }
     /** Wallet methods ends*/
 
@@ -575,28 +609,28 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     /** Address methods starts*/
     @ReactMethod
     fun initAddress(address: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val id = randomId()
                 _addresses[id] = Address(address)
                 result.resolve(id)
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Address error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Address error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun addressFromScript(scriptId: String, network: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val id = randomId()
                 _addresses[id] = Address.fromScript(_scripts[scriptId]!!, setNetwork(network))
                 result.resolve(id)
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Address from script error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Address from script error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
@@ -633,7 +667,11 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun addressAsString(id: String, result: Promise) {
         Thread {
-            result.resolve(_addresses[id]!!.asString())
+            try {
+                result.resolve(_addresses[id]!!.asString())
+            } catch (error: Throwable) {
+                result.reject("Couldn't parse address string", error.localizedMessage, error)
+            }
         }.start()
     }
 
@@ -812,30 +850,30 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun finish(id: String, walletId: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val details = _txBuilders[id]?.finish(getWalletById(walletId))
                 val responseObject = getPSBTObject(details)
                 result.resolve(Arguments.makeNativeMap(responseObject))
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Finish tx error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Finish tx error", error.localizedMessage, error)
+            }
+        }.start()
     }
     /** TxBuilder methods ends */
 
     /** Descriptor Templates method starts */
     @ReactMethod
     fun createDescriptor(descriptor: String, network: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val id = randomId()
                 _descriptors[id] = Descriptor(descriptor, setNetwork(network))
                 result.resolve(id)
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Create Descriptor error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Create Descriptor error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
@@ -854,8 +892,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun newBip44(secretKeyId: String, keychain: String, network: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val id = randomId()
                 _descriptors[id] = newBip44(
                     _descriptorSecretKeys[secretKeyId]!!,
@@ -863,10 +901,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     setNetwork(network)
                 )
                 result.resolve(id)
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Create bip44 error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Create bip44 error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
@@ -877,8 +915,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         network: String,
         result: Promise
     ) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val id = randomId()
                 _descriptors[id] = newBip44Public(
                     _descriptorPublicKeys[publicKeyId]!!,
@@ -887,16 +925,16 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     setNetwork(network)
                 )
                 result.resolve(id)
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Create bip44Public error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Create bip44Public error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun newBip49(secretKeyId: String, keychain: String, network: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val id = randomId()
                 _descriptors[id] = newBip49(
                     _descriptorSecretKeys[secretKeyId]!!,
@@ -904,10 +942,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     setNetwork(network)
                 )
                 result.resolve(id)
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Create bip49 error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Create bip49 error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
@@ -918,8 +956,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         network: String,
         result: Promise
     ) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val id = randomId()
                 _descriptors[id] = newBip49Public(
                     _descriptorPublicKeys[publicKeyId]!!,
@@ -928,16 +966,16 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     setNetwork(network)
                 )
                 result.resolve(id)
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Create bip49Public error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Create bip49Public error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun newBip84(secretKeyId: String, keychain: String, network: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val id = randomId()
                 _descriptors[id] = newBip84(
                     _descriptorSecretKeys[secretKeyId]!!,
@@ -945,10 +983,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     setNetwork(network)
                 )
                 result.resolve(id)
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Create bip84 error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Create bip84 error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
@@ -959,8 +997,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         network: String,
         result: Promise
     ) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val id = randomId()
                 _descriptors[id] = newBip84Public(
                     _descriptorPublicKeys[publicKeyId]!!,
@@ -969,16 +1007,16 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     setNetwork(network)
                 )
                 result.resolve(id)
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Create bip84Public error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Create bip84Public error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun newBip86(secretKeyId: String, keychain: String, network: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val id = randomId()
                 _descriptors[id] = newBip86(
                     _descriptorSecretKeys[secretKeyId]!!,
@@ -986,10 +1024,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     setNetwork(network)
                 )
                 result.resolve(id)
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Create bip86 error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Create bip86 error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
@@ -1000,8 +1038,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         network: String,
         result: Promise
     ) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val id = randomId()
                 _descriptors[id] = newBip86Public(
                     _descriptorPublicKeys[publicKeyId]!!,
@@ -1010,94 +1048,94 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     setNetwork(network)
                 )
                 result.resolve(id)
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Create bip86Public error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Create bip86Public error", error.localizedMessage, error)
+            }
+        }.start()
     }
     /** Descriptor Templates method ends */
 
     /** PartiallySignedTransaction method starts */
     @ReactMethod
     fun combine(base64: String, other: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val newPsbt =
                     PartiallySignedTransaction(base64).combine(PartiallySignedTransaction(other))
                 result.resolve(newPsbt.serialize())
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("PSBT combine error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("PSBT combine error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun extractTx(base64: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val id = randomId()
                 _transactions[id] = PartiallySignedTransaction(base64).extractTx()
                 result.resolve(id)
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("PSBT extract error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("PSBT extract error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun serialize(base64: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val bytes = PartiallySignedTransaction(base64).serialize();
                 result.resolve(bytes)
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("PSBT serialize error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("PSBT serialize error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun txid(base64: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 result.resolve(PartiallySignedTransaction(base64).txid())
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("PSBT txid error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("PSBT txid error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun feeAmount(base64: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 result.resolve(PartiallySignedTransaction(base64).feeAmount()!!.toDouble())
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("PSBT feeAmount error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("PSBT feeAmount error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun psbtFeeRate(base64: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 result.resolve(PartiallySignedTransaction(base64).feeRate()!!.asSatPerVb())
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("PSBT feeRate error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("PSBT feeRate error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
     fun jsonSerialize(base64: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 result.resolve(PartiallySignedTransaction(base64).jsonSerialize())
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("PSBT jsonSerialize error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("PSBT jsonSerialize error", error.localizedMessage, error)
+            }
+        }.start()
     }
     /** PartiallySignedTransaction method ends */
 
@@ -1138,29 +1176,29 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun bumpFeeTxBuilderFinish(id: String, walletId: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val res = _bumpFeeTxBuilders[id]!!.finish(getWalletById(walletId))
                 result.resolve(res.serialize())
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("BumpFee Txbuilder finish error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("BumpFee Txbuilder finish error", error.localizedMessage, error)
+            }
+        }.start()
     }
     /** BumpFeeTxBuilder methods ends*/
 
     /** Transaction methods starts*/
     @ReactMethod
     fun createTransaction(bytes: ReadableArray, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val id = randomId()
                 _transactions[id] = Transaction(getTxBytes(bytes))
                 result.resolve(id)
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("BumpFee Txbuilder finish error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("BumpFee Txbuilder finish error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod

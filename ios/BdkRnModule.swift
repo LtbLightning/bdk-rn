@@ -536,7 +536,7 @@ class BdkRnModule: NSObject {
     @objc
     func getAddress(_
         id: String,
-        addressIndex: String,
+        addressIndex: Any,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
@@ -557,7 +557,7 @@ class BdkRnModule: NSObject {
     @objc
     func getInternalAddress(_
         id: String,
-        addressIndex: String,
+        addressIndex: Any,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
