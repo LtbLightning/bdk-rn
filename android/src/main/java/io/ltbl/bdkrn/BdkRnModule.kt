@@ -450,9 +450,11 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     ReadableType.String -> {
                         resolvedIndex = (addressIndex as Dynamic).asString() ?: "new"
                     }
+
                     ReadableType.Number -> {
                         resolvedIndex = (addressIndex as Dynamic).asDouble() ?: "new"
                     }
+
                     else -> {
                         resolvedIndex = setAddressIndex("new")
                     }
@@ -481,9 +483,11 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     ReadableType.String -> {
                         resolvedIndex = (addressIndex as Dynamic).asString() ?: "new"
                     }
+
                     ReadableType.Number -> {
                         resolvedIndex = (addressIndex as Dynamic).asDouble() ?: "new"
                     }
+
                     else -> {
                         resolvedIndex = setAddressIndex("new")
                     }
@@ -1011,8 +1015,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun newBip86(secretKeyId: String, keychain: String, network: String, result: Promise) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val id = randomId()
                 _descriptors[id] = newBip86(
                     _descriptorSecretKeys[secretKeyId]!!,
@@ -1020,10 +1024,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     setNetwork(network)
                 )
                 result.resolve(id)
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Create bip86 error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Create bip86 error", error.localizedMessage, error)
+            }
+        }.start()
     }
 
     @ReactMethod
@@ -1034,8 +1038,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         network: String,
         result: Promise
     ) {
-        try {
-            Thread {
+        Thread {
+            try {
                 val id = randomId()
                 _descriptors[id] = newBip86Public(
                     _descriptorPublicKeys[publicKeyId]!!,
@@ -1044,10 +1048,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     setNetwork(network)
                 )
                 result.resolve(id)
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Create bip86Public error", error.localizedMessage, error)
-        }
+            } catch (error: Throwable) {
+                result.reject("Create bip86Public error", error.localizedMessage, error)
+            }
+        }.start()
     }
     /** Descriptor Templates method ends */
 
