@@ -1,7 +1,7 @@
-import { NativeModules } from 'react-native';
-
 import { AddressIndex, BlockchainRpcConfig, KeychainKind, Network, Payload, WordCount } from '../lib/enums';
 import { Balance, OutPoint, ScriptAmount, SignOptions, TransactionDetails } from './Bindings';
+
+import { NativeModules } from 'react-native';
 
 export interface NativeBdkRn {
   generateSeedFromWordCount(wordCount: WordCount): string;
