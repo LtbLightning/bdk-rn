@@ -522,12 +522,16 @@ class BdkRnModule: NSObject {
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        DispatchQueue.main.async { [self] in
+        DispatchQueue.global().async { [self] in
             do {
                 try getWalletById(id: id).sync(blockchain: self.getBlockchainById(id: blockChainId), progress: BdkProgress())
-                resolve(true)
+                DispatchQueue.main.async {
+                    resolve(true)
+                }
             } catch {
-                reject("Sync wallet error", "\(error)", error)
+                DispatchQueue.main.async {
+                    reject("Sync wallet error", "\(error)", error)
+                }
             }
         }
     }
@@ -540,17 +544,15 @@ class BdkRnModule: NSObject {
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        DispatchQueue.main.async { [self] in
-            do {
-                let addressInfo = try getWalletById(id: id).getAddress(
-                    addressIndex: setAddressIndex(addressIndex: addressIndex)
-                )
-                let randomId = randomId()
-                _addresses[randomId] = addressInfo.address
-                resolve(["index": addressInfo.index, "address": randomId, "keychain": "\(addressInfo.keychain)"] as [String: Any])
-            } catch let error {
-                reject("Get wallet address error", "\(error)", error)
-            }
+        do {
+            let addressInfo = try getWalletById(id: id).getAddress(
+                addressIndex: setAddressIndex(addressIndex: addressIndex)
+            )
+            let randomId = randomId()
+            _addresses[randomId] = addressInfo.address
+            resolve(["index": addressInfo.index, "address": randomId, "keychain": "\(addressInfo.keychain)"] as [String: Any])
+        } catch let error {
+            reject("Get wallet address error", "\(error)", error)
         }
     }
     
