@@ -1,7 +1,7 @@
-import { NativeModules } from 'react-native';
-
 import { AddressIndex, BlockchainRpcConfig, KeychainKind, Network, Payload, WordCount } from '../lib/enums';
 import { Balance, OutPoint, ScriptAmount, SignOptions, TransactionDetails } from './Bindings';
+
+import { NativeModules } from 'react-native';
 
 export interface NativeBdkRn {
   generateSeedFromWordCount(wordCount: WordCount): string;
@@ -97,10 +97,12 @@ export interface NativeBdkRn {
   newBip44(id: string, keychain: KeychainKind, network: Network): string;
   newBip49(id: string, keychain: KeychainKind, network: Network): string;
   newBip84(id: string, keychain: KeychainKind, network: Network): string;
+  newBip86(id: string, keychain: KeychainKind, network: Network): string;
 
   newBip44Public(id: string, fingerprint: string, keychain: KeychainKind, network: Network): string;
   newBip49Public(id: string, fingerprint: string, keychain: KeychainKind, network: Network): string;
   newBip84Public(id: string, fingerprint: string, keychain: KeychainKind, network: Network): string;
+  newBip86Public(id: string, fingerprint: string, keychain: KeychainKind, network: Network): string;
 
   combine(psbt64: string, otherPsbt: string): string;
   extractTx(psbt64: string): string;
