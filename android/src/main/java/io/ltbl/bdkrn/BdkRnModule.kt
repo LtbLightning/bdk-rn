@@ -38,49 +38,41 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     /** Mnemonic methods starts */
     @ReactMethod
     fun generateSeedFromWordCount(wordCount: Int, result: Promise) {
-        Thread {
-            val response = Mnemonic(setWordCount(wordCount))
-            result.resolve(response.asString())
-        }.start()
+        val response = Mnemonic(setWordCount(wordCount))
+        result.resolve(response.asString())
     }
 
     @ReactMethod
     fun generateSeedFromString(mnemonic: String, result: Promise) {
-        Thread {
-            try {
-                val response = Mnemonic.fromString(mnemonic)
-                result.resolve(response.asString())
-            } catch (error: Throwable) {
-                result.reject("Generate seed error", error.localizedMessage, error)
-            }
-        }.start()
+        try {
+            val response = Mnemonic.fromString(mnemonic)
+            result.resolve(response.asString())
+        } catch (error: Throwable) {
+            result.reject("Generate seed error", error.localizedMessage, error)
+        }
     }
 
     @ReactMethod
     fun generateSeedFromEntropy(entropy: ReadableArray, result: Promise) {
-        Thread {
-            try {
-                val response = Mnemonic.fromEntropy(getEntropy(entropy))
-                result.resolve(response.asString())
-            } catch (error: Throwable) {
-                result.reject("Generate seed error", error.localizedMessage, error)
-            }
-        }.start()
+        try {
+            val response = Mnemonic.fromEntropy(getEntropy(entropy))
+            result.resolve(response.asString())
+        } catch (error: Throwable) {
+            result.reject("Generate seed error", error.localizedMessage, error)
+        }
     }
     /** Mnemonic methods ends */
 
     /** Derviation path methods starts */
     @ReactMethod
     fun createDerivationPath(path: String, result: Promise) {
-        Thread {
-            try {
-                val id = randomId()
-                _derivationPaths[id] = DerivationPath(path)
-                result.resolve(id)
-            } catch (error: Throwable) {
-                result.reject("Create Derivation path error", error.localizedMessage, error)
-            }
-        }.start()
+        try {
+            val id = randomId()
+            _derivationPaths[id] = DerivationPath(path)
+            result.resolve(id)
+        } catch (error: Throwable) {
+            result.reject("Create Derivation path error", error.localizedMessage, error)
+        }
     }
     /** Derviation path methods ends */
 
@@ -89,118 +81,98 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun createDescriptorSecret(
         network: String, mnemonic: String, password: String? = null, result: Promise
     ) {
-        Thread {
-            try {
-                val id = randomId()
-                _descriptorSecretKeys[id] =
-                    DescriptorSecretKey(
-                        setNetwork(network),
-                        Mnemonic.fromString(mnemonic),
-                        password
-                    )
-                result.resolve(id)
-            } catch (error: Throwable) {
-                result.reject("DescriptorSecret create error", error.localizedMessage, error)
-            }
-        }.start()
+        try {
+            val id = randomId()
+            _descriptorSecretKeys[id] =
+                DescriptorSecretKey(
+                    setNetwork(network),
+                    Mnemonic.fromString(mnemonic),
+                    password
+                )
+            result.resolve(id)
+        } catch (error: Throwable) {
+            result.reject("DescriptorSecret create error", error.localizedMessage, error)
+        }
     }
 
     @ReactMethod
     fun descriptorSecretDerive(secretKeyId: String, derivationPathId: String, result: Promise) {
-        Thread {
-            try {
-                val keyInfo =
-                    _descriptorSecretKeys[secretKeyId]!!.derive(_derivationPaths[derivationPathId]!!)
-                result.resolve(keyInfo.asString())
-            } catch (error: Throwable) {
-                result.reject("DescriptorSecret derive error", error.localizedMessage, error)
-            }
-        }.start()
+        try {
+            val keyInfo =
+                _descriptorSecretKeys[secretKeyId]!!.derive(_derivationPaths[derivationPathId]!!)
+            result.resolve(keyInfo.asString())
+        } catch (error: Throwable) {
+            result.reject("DescriptorSecret derive error", error.localizedMessage, error)
+        }
     }
 
     @ReactMethod
     fun descriptorSecretExtend(secretKeyId: String, derivationPathId: String, result: Promise) {
-        Thread {
-            try {
-                val keyInfo =
-                    _descriptorSecretKeys[secretKeyId]!!.extend(_derivationPaths[derivationPathId]!!)
-                result.resolve(keyInfo.asString())
-            } catch (error: Throwable) {
-                result.reject("DescriptorSecret extend error", error.localizedMessage, error)
-            }
-        }.start()
+        try {
+            val keyInfo =
+                _descriptorSecretKeys[secretKeyId]!!.extend(_derivationPaths[derivationPathId]!!)
+            result.resolve(keyInfo.asString())
+        } catch (error: Throwable) {
+            result.reject("DescriptorSecret extend error", error.localizedMessage, error)
+        }
     }
 
     @ReactMethod
     fun descriptorSecretAsPublic(secretKeyId: String, result: Promise) {
-        Thread {
-            val id = randomId()
-            _descriptorPublicKeys[id] = _descriptorSecretKeys[secretKeyId]!!.asPublic()
-            result.resolve(id)
-        }.start()
+        val id = randomId()
+        _descriptorPublicKeys[id] = _descriptorSecretKeys[secretKeyId]!!.asPublic()
+        result.resolve(id)
     }
 
     @ReactMethod
     fun descriptorSecretAsString(secretKeyId: String, result: Promise) {
-        Thread {
-            result.resolve(_descriptorSecretKeys[secretKeyId]!!.asString())
-        }.start()
+        result.resolve(_descriptorSecretKeys[secretKeyId]!!.asString())
     }
 
     @ReactMethod
     fun descriptorSecretAsSecretBytes(secretKeyId: String, result: Promise) {
-        Thread {
-            val secretBytes = _descriptorSecretKeys[secretKeyId]!!.secretBytes()
-            result.resolve(makeNativeArray(secretBytes))
-        }.start()
+        val secretBytes = _descriptorSecretKeys[secretKeyId]!!.secretBytes()
+        result.resolve(makeNativeArray(secretBytes))
     }
     /** Descriptor secret key methods ends */
 
     /** Descriptor public key methods starts */
     @ReactMethod
     fun createDescriptorPublic(publicKey: String, result: Promise) {
-        Thread {
-            try {
-                val id = randomId()
-                _descriptorPublicKeys[id] = DescriptorPublicKey.fromString(publicKey)
-                result.resolve(id)
-            } catch (error: Throwable) {
-                result.reject("DescriptorPublic create error", error.localizedMessage, error)
-            }
-        }.start()
+        try {
+            val id = randomId()
+            _descriptorPublicKeys[id] = DescriptorPublicKey.fromString(publicKey)
+            result.resolve(id)
+        } catch (error: Throwable) {
+            result.reject("DescriptorPublic create error", error.localizedMessage, error)
+        }
     }
 
     @ReactMethod
     fun descriptorPublicDerive(publicKeyId: String, derivationPathId: String, result: Promise) {
-        Thread {
-            try {
-                val keyInfo =
-                    _descriptorPublicKeys[publicKeyId]!!.derive(_derivationPaths[derivationPathId]!!)
-                result.resolve(keyInfo.asString())
-            } catch (error: Throwable) {
-                result.reject("DescriptorPublic derive error", error.localizedMessage, error)
-            }
-        }.start()
+        try {
+            val keyInfo =
+                _descriptorPublicKeys[publicKeyId]!!.derive(_derivationPaths[derivationPathId]!!)
+            result.resolve(keyInfo.asString())
+        } catch (error: Throwable) {
+            result.reject("DescriptorPublic derive error", error.localizedMessage, error)
+        }
     }
 
     @ReactMethod
     fun descriptorPublicExtend(publicKeyId: String, derivationPathId: String, result: Promise) {
-        Thread {
-            try {
-                val keyInfo =
-                    _descriptorPublicKeys[publicKeyId]!!.extend(_derivationPaths[derivationPathId]!!)
-                result.resolve(keyInfo.asString())
-            } catch (error: Throwable) {
-                result.reject("DescriptorPublic extend error", error.localizedMessage, error)
-            }
-        }.start()
+        try {
+            val keyInfo =
+                _descriptorPublicKeys[publicKeyId]!!.extend(_derivationPaths[derivationPathId]!!)
+            result.resolve(keyInfo.asString())
+        } catch (error: Throwable) {
+            result.reject("DescriptorPublic extend error", error.localizedMessage, error)
+        }
     }
 
     @ReactMethod
     fun descriptorPublicAsString(publicKeyId: String, result: Promise) {
-        Thread {
-            result.resolve(_descriptorPublicKeys[publicKeyId]!!.asString())
-        }.start()
+        result.resolve(_descriptorPublicKeys[publicKeyId]!!.asString())
     }
 
     /** Descriptor public key methods ends */
@@ -974,19 +946,17 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun newBip84(secretKeyId: String, keychain: String, network: String, result: Promise) {
-        Thread {
-            try {
-                val id = randomId()
-                _descriptors[id] = newBip84(
-                    _descriptorSecretKeys[secretKeyId]!!,
-                    setKeychainKind(keychain),
-                    setNetwork(network)
-                )
-                result.resolve(id)
-            } catch (error: Throwable) {
-                result.reject("Create bip84 error", error.localizedMessage, error)
+        try {
+            val id = randomId()
+            _descriptors[id] = newBip84(
+                _descriptorSecretKeys[secretKeyId]!!,
+                setKeychainKind(keychain),
+                setNetwork(network)
+            )
+            result.resolve(id)
+        } catch (error: Throwable) {
+            result.reject("Create bip84 error", error.localizedMessage, error)
             }
-        }.start()
     }
 
     @ReactMethod
@@ -997,20 +967,18 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         network: String,
         result: Promise
     ) {
-        Thread {
-            try {
-                val id = randomId()
-                _descriptors[id] = newBip84Public(
-                    _descriptorPublicKeys[publicKeyId]!!,
-                    fingerprint,
-                    setKeychainKind(keychain),
-                    setNetwork(network)
-                )
-                result.resolve(id)
-            } catch (error: Throwable) {
-                result.reject("Create bip84Public error", error.localizedMessage, error)
-            }
-        }.start()
+        try {
+            val id = randomId()
+            _descriptors[id] = newBip84Public(
+                _descriptorPublicKeys[publicKeyId]!!,
+                fingerprint,
+                setKeychainKind(keychain),
+                setNetwork(network)
+            )
+            result.resolve(id)
+        } catch (error: Throwable) {
+            result.reject("Create bip84Public error", error.localizedMessage, error)
+        }
     }
 
     @ReactMethod
