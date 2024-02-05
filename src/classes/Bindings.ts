@@ -251,15 +251,15 @@ export class TxBuilderResult {
 }
 
 export class PubkeyHash {
-  pubkeyHash: Array<number>;
-  constructor(hash: Array<number>) {
+  pubkeyHash: string;
+  constructor(hash: string) {
     this.pubkeyHash = hash;
   }
 }
 
 export class ScriptHash {
-  scriptHash: Array<number>;
-  constructor(hash: Array<number>) {
+  scriptHash: string;
+  constructor(hash: string) {
     this.scriptHash = hash;
   }
 }

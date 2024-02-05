@@ -35,13 +35,14 @@ export interface NativeBdkRn {
     sign(id: string, psbtBase64: string, signOptions?: SignOptions): string;
     listUnspent(id: string): Array<any>;
     listTransactions(id: string, includeRaw: boolean): Array<TransactionDetails>;
-    initAddress(address: string): string;
+    initAddress(address: string, network: string): string;
     addressFromScript(script: string, network: Network): string;
     addressToScriptPubkeyHex(id: string): string;
     addressPayload(id: string): Payload;
     addressNetwork(id: string): string;
     addressToQrUri(id: string): string;
     addressAsString(id: string): string;
+    addressIsValidForNetwork(id: string, network: string): boolean;
     createTxBuilder(): string;
     addRecipient(id: string, scriptId: string, amount: number): string;
     finish(id: string, walletId: string): {
@@ -82,7 +83,7 @@ export interface NativeBdkRn {
     psbtFeeRate(psbt64: string): number;
     jsonSerialize(psbt64: string): string;
     bumpFeeTxBuilderInit(txid: string, newFeeRate: number): string;
-    bumpFeeTxBuilderAllowShrinking(id: string, address: string): string;
+    bumpFeeTxBuilderAllowShrinking(id: string, scriptId: string): string;
     bumpFeeTxBuilderEnableRbf(id: string): any;
     bumpFeeTxBuilderEnableRbfWithSequence(id: string, nsequence: number): any;
     bumpFeeTxBuilderFinish(id: string, walletId: string): any;

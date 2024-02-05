@@ -48,6 +48,7 @@ export const mockBdkRnModule = {
   addressNetwork: jest.fn(),
   addressToQrUri: jest.fn(),
   addressAsString: jest.fn(),
+  addressIsValidForNetwork: jest.fn(),
 
   addRecipient: jest.fn(),
   finish: jest.fn(),

@@ -411,20 +411,22 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         dbConfigID: String,
         result: Promise
     ) {
-        Thread {
-            try {
-                val id = randomId()
+        try {
+            val id = randomId()
+            val nativeDescriptor = _descriptors[descriptor]!!
+            val nativeChangeDescriptor = if (changeDescriptor != null) _descriptors[changeDescriptor]!! else null
+            Thread {
                 _wallets[id] = Wallet(
-                    _descriptors[descriptor]!!,
-                    if (changeDescriptor != null) _descriptors[changeDescriptor]!! else null,
+                    nativeDescriptor,
+                    nativeChangeDescriptor,
                     setNetwork(network),
                     _databaseConfigs[dbConfigID]!!
                 )
                 result.resolve(id)
-            } catch (error: Throwable) {
-                result.reject("Init wallet error", error.localizedMessage, error)
-            }
-        }.start()
+            }.start()
+        } catch (error: Throwable) {
+            result.reject("Init wallet error", error.localizedMessage, error)
+        }
     }
 
     @ReactMethod
@@ -608,11 +610,11 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     /** Address methods starts*/
     @ReactMethod
-    fun initAddress(address: String, result: Promise) {
+    fun initAddress(address: String, network: String, result: Promise) {
         Thread {
             try {
                 val id = randomId()
-                _addresses[id] = Address(address)
+                _addresses[id] = Address(address, setNetwork(network))
                 result.resolve(id)
             } catch (error: Throwable) {
                 result.reject("Address error", error.localizedMessage, error)
@@ -672,6 +674,13 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             } catch (error: Throwable) {
                 result.reject("Couldn't parse address string", error.localizedMessage, error)
             }
+        }.start()
+    }
+
+    @ReactMethod
+    fun addressIsValidForNetwork(id: String, network: String, result: Promise) {
+        Thread {
+            result.resolve(_addresses[id]!!.isValidForNetwork(setNetwork(network)))
         }.start()
     }
 
@@ -1150,9 +1159,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun bumpFeeTxBuilderAllowShrinking(id: String, address: String, result: Promise) {
+    fun bumpFeeTxBuilderAllowShrinking(id: String, scriptId: String, result: Promise) {
         Thread {
-            _bumpFeeTxBuilders[id] = _bumpFeeTxBuilders[id]!!.allowShrinking(address)
+            _bumpFeeTxBuilders[id] = _bumpFeeTxBuilders[id]!!.allowShrinking(_scripts[scriptId]!!)
             result.resolve(true)
         }.start()
     }

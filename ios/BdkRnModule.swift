@@ -783,13 +783,14 @@ class BdkRnModule: NSObject {
     @objc
     func initAddress(_
         address: String,
+        network: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             do {
                 let id = randomId()
-                _addresses[id] = try Address(address: address)
+                _addresses[id] = try Address(address: address, network: setNetwork(networkStr: network))
                 DispatchQueue.main.async {
                     resolve(id)
                 }
@@ -888,6 +889,22 @@ class BdkRnModule: NSObject {
             }
         }
     }
+    
+    
+    @objc
+    func addressIsValidForNetwork(_
+        id: String,
+        network: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.global(qos: .userInteractive).async { [self] in
+            DispatchQueue.main.async { [self] in
+                resolve(_addresses[id]!.isValidForNetwork(network: setNetwork(networkStr: network)))
+            }
+        }
+    }
+
 
     /** Address methods ends*/
 
@@ -1583,12 +1600,12 @@ class BdkRnModule: NSObject {
     @objc
     func bumpFeeTxBuilderAllowShrinking(_
         id: String,
-        address: String,
+        scriptId: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
-            _bumpFeeTxBuilders[id] = _bumpFeeTxBuilders[id]!.allowShrinking(address: address)
+            _bumpFeeTxBuilders[id] = _bumpFeeTxBuilders[id]!.allowShrinking(scriptPubkey: _scripts[scriptId]!)
             DispatchQueue.main.async {
                 resolve(true)
             }

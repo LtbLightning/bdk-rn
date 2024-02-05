@@ -247,6 +247,7 @@ RCT_EXTERN_METHOD(
 /** Address methods */
 RCT_EXTERN_METHOD(
     initAddress:(nonnull NSString*)address
+    network: (nonnull NSString*)network
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
@@ -289,6 +290,14 @@ RCT_EXTERN_METHOD(
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
+
+RCT_EXTERN_METHOD(
+    addressIsValidForNetwork:(nonnull NSString*)id
+    network: (nonnull NSString*)network
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
 
 /** TxBuilder methods */
 RCT_EXTERN_METHOD(createTxBuilder:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
@@ -551,7 +560,7 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
     bumpFeeTxBuilderAllowShrinking: (nonnull NSString*)id
-    address: (nonnull NSString*)address
+    scriptId: (nonnull NSString*)scriptId
     resolve: (RCTPromiseResolveBlock)resolve
     reject: (RCTPromiseRejectBlock)reject
 )
