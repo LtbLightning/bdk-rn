@@ -17,7 +17,7 @@ export declare class Address extends NativeLoader {
      * @param address
      * @returns {Promise<Address>}
      */
-    create(address: string): Promise<Address>;
+    create(address: string, network: string): Promise<Address>;
     /**
      * Create Address instance from script
      * @param script
@@ -45,4 +45,8 @@ export declare class Address extends NativeLoader {
      * @returns {Promise<string>}
      */
     asString(): Promise<string>;
+    /**
+     * @returns {Promise<boolean>}
+     */
+    isValidForNetwork(network: string): Promise<boolean>;
 }

@@ -73,6 +73,6 @@ export interface BlockchainRpcConfig {
 
 export interface Payload {
   type: string;
-  value: Array<number>;
+  value: Array<number> | string;
   version?: string;
 }
