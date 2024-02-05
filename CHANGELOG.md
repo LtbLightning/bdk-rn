@@ -1,3 +1,21 @@
+## [0.31.0]
+
+#### APIs Changed:
+
+- `BumpFeeTxBuilder.allowShrinking()` now takes a `Script` as its argument.
+- The `Address` constructor now takes a `Network` argument.
+- The `Payload::PubkeyHash` and `Payload::ScriptHash` now have string arguments instead of byte arrays.
+
+#### APIs Added:
+
+- The `Address` type now has the `isValidForNetwork()` method.
+
+## [0.30.0]
+
+#### APIs added
+
+- Added `BIP-86` descriptor templates
+
 ## [0.29.0]
 
 #### APIs added
