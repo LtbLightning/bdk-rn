@@ -411,20 +411,22 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         dbConfigID: String,
         result: Promise
     ) {
-        Thread {
-            try {
-                val id = randomId()
+        try {
+            val id = randomId()
+            val nativeDescriptor = _descriptors[descriptor]!!
+            val nativeChangeDescriptor = if (changeDescriptor != null) _descriptors[changeDescriptor]!! else null
+            Thread {
                 _wallets[id] = Wallet(
-                    _descriptors[descriptor]!!,
-                    if (changeDescriptor != null) _descriptors[changeDescriptor]!! else null,
+                    nativeDescriptor,
+                    nativeChangeDescriptor,
                     setNetwork(network),
                     _databaseConfigs[dbConfigID]!!
                 )
                 result.resolve(id)
-            } catch (error: Throwable) {
-                result.reject("Init wallet error", error.localizedMessage, error)
-            }
-        }.start()
+            }.start()
+        } catch (error: Throwable) {
+            result.reject("Init wallet error", error.localizedMessage, error)
+        }
     }
 
     @ReactMethod
