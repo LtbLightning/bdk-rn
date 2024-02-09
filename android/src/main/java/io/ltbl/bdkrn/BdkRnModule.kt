@@ -192,25 +192,23 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         validateDomain: Boolean,
         result: Promise
     ) {
-        Thread {
-            try {
-                val _blockchainConfig = BlockchainConfig.Electrum(
-                    ElectrumConfig(
-                        url,
-                        sock5 ?: null,
-                        retry.toUByte(),
-                        timeout.toUByte(),
-                        stopGap.toULong(),
-                        validateDomain
-                    )
+        try {
+            val _blockchainConfig = BlockchainConfig.Electrum(
+                ElectrumConfig(
+                    url,
+                    sock5 ?: null,
+                    retry.toUByte(),
+                    timeout.toUByte(),
+                    stopGap.toULong(),
+                    validateDomain
                 )
-                val blockChainId = randomId()
-                _blockChains[blockChainId] = Blockchain(_blockchainConfig)
-                result.resolve(blockChainId)
-            } catch (error: Throwable) {
-                result.reject("BlockchainElectrum init error", error.localizedMessage, error)
-            }
-        }.start()
+            )
+            val blockChainId = randomId()
+            _blockChains[blockChainId] = Blockchain(_blockchainConfig)
+            result.resolve(blockChainId)
+        } catch (error: Throwable) {
+            result.reject("BlockchainElectrum init error", error.localizedMessage, error)
+        }
     }
 
 
@@ -223,69 +221,65 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         timeout: Int,
         result: Promise
     ) {
-        Thread {
-            try {
-                val _blockchainConfig = BlockchainConfig.Esplora(
-                    EsploraConfig(
-                        baseUrl,
-                        proxy ?: null,
-                        concurrency.toUByte(),
-                        stopGap.toULong(),
-                        timeout.toULong(),
-                    )
+        try {
+            val _blockchainConfig = BlockchainConfig.Esplora(
+                EsploraConfig(
+                    baseUrl,
+                    proxy ?: null,
+                    concurrency.toUByte(),
+                    stopGap.toULong(),
+                    timeout.toULong(),
                 )
-                val blockChainId = randomId()
-                _blockChains[blockChainId] = Blockchain(_blockchainConfig)
-                result.resolve(blockChainId)
-            } catch (error: Throwable) {
-                result.reject("BlockchainEsplora init error", error.localizedMessage, error)
-            }
-        }.start()
+            )
+            val blockChainId = randomId()
+            _blockChains[blockChainId] = Blockchain(_blockchainConfig)
+            result.resolve(blockChainId)
+        } catch (error: Throwable) {
+            result.reject("BlockchainEsplora init error", error.localizedMessage, error)
+        }
     }
 
     @ReactMethod
     fun initRpcBlockchain(config: ReadableMap, result: Promise) {
-        Thread {
-            try {
-                var authType: Auth = Auth.None
-                if (config.getString("authCookie") != null) {
-                    authType = Auth.Cookie(config.getString("authCookie")!!)
-                }
-
-                if (config.getMap("authUserPass") != null) {
-                    val userPass = config.getMap("authUserPass") as ReadableMap
-                    authType = Auth.UserPass(
-                        userPass.getString("username")!!,
-                        userPass.getString("password")!!
-                    )
-                }
-                var syncParams: RpcSyncParams? = null
-                if (config.getMap("syncParams") != null) {
-                    val syncParamsConfig = config.getMap("syncParams") as ReadableMap
-                    syncParams = RpcSyncParams(
-                        syncParamsConfig.getInt("startScriptCount").toULong()!!,
-                        syncParamsConfig.getInt("startTime").toULong()!!,
-                        syncParamsConfig.getBoolean("forceStartTime"),
-                        syncParamsConfig.getInt("pollRateSec").toULong()!!,
-                    )
-                }
-
-                val _blockchainConfig = BlockchainConfig.Rpc(
-                    RpcConfig(
-                        config.getString("url")!!,
-                        authType,
-                        setNetwork(config.getString("network")!!),
-                        config.getString("walletName")!!,
-                        syncParams
-                    )
-                )
-                val blockChainId = randomId()
-                _blockChains[blockChainId] = Blockchain(_blockchainConfig)
-                result.resolve(blockChainId)
-            } catch (error: Throwable) {
-                result.reject("BlockchainRpc init error", error.localizedMessage, error)
+        try {
+            var authType: Auth = Auth.None
+            if (config.getString("authCookie") != null) {
+                authType = Auth.Cookie(config.getString("authCookie")!!)
             }
-        }.start()
+
+            if (config.getMap("authUserPass") != null) {
+                val userPass = config.getMap("authUserPass") as ReadableMap
+                authType = Auth.UserPass(
+                    userPass.getString("username")!!,
+                    userPass.getString("password")!!
+                )
+            }
+            var syncParams: RpcSyncParams? = null
+            if (config.getMap("syncParams") != null) {
+                val syncParamsConfig = config.getMap("syncParams") as ReadableMap
+                syncParams = RpcSyncParams(
+                    syncParamsConfig.getInt("startScriptCount").toULong()!!,
+                    syncParamsConfig.getInt("startTime").toULong()!!,
+                    syncParamsConfig.getBoolean("forceStartTime"),
+                    syncParamsConfig.getInt("pollRateSec").toULong()!!,
+                )
+            }
+
+            val _blockchainConfig = BlockchainConfig.Rpc(
+                RpcConfig(
+                    config.getString("url")!!,
+                    authType,
+                    setNetwork(config.getString("network")!!),
+                    config.getString("walletName")!!,
+                    syncParams
+                )
+            )
+            val blockChainId = randomId()
+            _blockChains[blockChainId] = Blockchain(_blockchainConfig)
+            result.resolve(blockChainId)
+        } catch (error: Throwable) {
+            result.reject("BlockchainRpc init error", error.localizedMessage, error)
+        }
     }
 
     @ReactMethod
