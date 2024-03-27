@@ -165,12 +165,12 @@ export declare class TxBuilderResult {
     constructor(psbt: PartiallySignedTransaction, txDetails: TransactionDetails);
 }
 export declare class PubkeyHash {
-    pubkeyHash: Array<number>;
-    constructor(hash: Array<number>);
+    pubkeyHash: string;
+    constructor(hash: string);
 }
 export declare class ScriptHash {
-    scriptHash: Array<number>;
-    constructor(hash: Array<number>);
+    scriptHash: string;
+    constructor(hash: string);
 }
 export declare class WitnessProgram {
     program: Array<number>;

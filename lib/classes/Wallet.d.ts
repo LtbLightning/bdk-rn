@@ -24,7 +24,7 @@ export declare class Wallet extends NativeLoader {
      * @param addressIndex
      * @returns {Promise<AddressInfo>}
      */
-    getAddress(addressIndex: AddressIndex): Promise<AddressInfo>;
+    getAddress(addressIndex: AddressIndex | number): Promise<AddressInfo>;
     /**
      * Return a derived address using the internal descriptor.
      * @param addressIndex

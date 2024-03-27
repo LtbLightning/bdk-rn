@@ -1,3 +1,4 @@
+import { Script } from './Script';
 import { NativeLoader } from './NativeLoader';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 import { Wallet } from './Wallet';
@@ -18,7 +19,7 @@ export declare class BumpFeeTxBuilder extends NativeLoader {
      * @param address
      * @returns {Promise<BumpFeeTxBuilder>}
      */
-    allowShrinking(address: string): Promise<BumpFeeTxBuilder>;
+    allowShrinking(script: Script): Promise<BumpFeeTxBuilder>;
     /**
      * Enable signaling RBF
      * This will use the default nSequence value of `0xFFFFFFFD`

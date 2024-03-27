@@ -1,3 +1,4 @@
+import { Script } from './Script';
 import { NativeLoader } from './NativeLoader';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 import { Wallet } from './Wallet';
@@ -24,8 +25,8 @@ export class BumpFeeTxBuilder extends NativeLoader {
    * @param address
    * @returns {Promise<BumpFeeTxBuilder>}
    */
-  async allowShrinking(address: string): Promise<BumpFeeTxBuilder> {
-    await this._bdk.bumpFeeTxBuilderAllowShrinking(this.id, address);
+  async allowShrinking(script: Script): Promise<BumpFeeTxBuilder> {
+    await this._bdk.bumpFeeTxBuilderAllowShrinking(this.id, script.id);
     return this;
   }
 

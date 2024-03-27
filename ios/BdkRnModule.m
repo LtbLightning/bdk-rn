@@ -247,6 +247,7 @@ RCT_EXTERN_METHOD(
 /** Address methods */
 RCT_EXTERN_METHOD(
     initAddress:(nonnull NSString*)address
+    network: (nonnull NSString*)network
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
@@ -289,6 +290,14 @@ RCT_EXTERN_METHOD(
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
+
+RCT_EXTERN_METHOD(
+    addressIsValidForNetwork:(nonnull NSString*)id
+    network: (nonnull NSString*)network
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
 
 /** TxBuilder methods */
 RCT_EXTERN_METHOD(createTxBuilder:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
@@ -480,6 +489,23 @@ RCT_EXTERN_METHOD(
     reject:(RCTPromiseRejectBlock)reject
 )
 
+RCT_EXTERN_METHOD(
+    newBip86: (nonnull NSString*)secretKeyId
+    keychain:(nonnull NSString*)keychain
+    network:(nonnull NSString*)network
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    newBip86Public: (nonnull NSString*)publicKeyId
+    fingerprint:(nonnull NSString*)fingerprint
+    keychain:(nonnull NSString*)keychain
+    network:(nonnull NSString*)network
+    resolve: (RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
 /** PartiallySignedTransaction methods */
 RCT_EXTERN_METHOD(
     combine: (nonnull NSString*)base64
@@ -534,7 +560,7 @@ RCT_EXTERN_METHOD(
 
 RCT_EXTERN_METHOD(
     bumpFeeTxBuilderAllowShrinking: (nonnull NSString*)id
-    address: (nonnull NSString*)address
+    scriptId: (nonnull NSString*)scriptId
     resolve: (RCTPromiseResolveBlock)resolve
     reject: (RCTPromiseRejectBlock)reject
 )

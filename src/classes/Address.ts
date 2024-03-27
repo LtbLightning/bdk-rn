@@ -25,8 +25,8 @@ export class Address extends NativeLoader {
    * @param address
    * @returns {Promise<Address>}
    */
-  async create(address: string): Promise<Address> {
-    this.id = await this._bdk.initAddress(address);
+  async create(address: string, network: string): Promise<Address> {
+    this.id = await this._bdk.initAddress(address, network);
     return this;
   }
 
@@ -75,5 +75,12 @@ export class Address extends NativeLoader {
    */
   async asString(): Promise<string> {
     return await this._bdk.addressAsString(this.id);
+  }
+
+  /**
+   * @returns {Promise<boolean>}
+   */
+  async isValidForNetwork(network: string): Promise<boolean> {
+    return await this._bdk.addressIsValidForNetwork(this.id, network);
   }
 }

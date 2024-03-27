@@ -63,4 +63,17 @@ export declare class Descriptor extends NativeLoader {
      * @returns {Promise<Descriptor>}
      */
     newBip84Public(publicKey: DescriptorPublicKey, fingerprint: string, keychain: KeychainKind, network: Network): Promise<Descriptor>;
+    /**
+     * BIP86 template. Expands to `tr(key/86'/{0,1}'/0'/{0,1}/*)`
+     * Since there are hardened derivation steps, this template requires a private derivable key (generally a `xprv`/`tprv`).
+     * @returns {Promise<Descriptor>}
+     */
+    newBip86(secretKey: DescriptorSecretKey, keychain: KeychainKind, network: Network): Promise<Descriptor>;
+    /**
+     * BIP86 public template. Expands to `tr(key/{0,1}/*)`
+     * This assumes that the key used has already been derived with `m/86'/0'/0'` for Mainnet or `m/86'/1'/0'` for Testnet.
+     * This template requires the parent fingerprint to populate correctly the metadata of PSBTs.
+     * @returns {Promise<Descriptor>}
+     */
+    newBip86Public(publicKey: DescriptorPublicKey, fingerprint: string, keychain: KeychainKind, network: Network): Promise<Descriptor>;
 }

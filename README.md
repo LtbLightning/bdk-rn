@@ -55,7 +55,7 @@ cd ios && pod install
 
 ```ts
 import { DescriptorSecretKey, Mnemonic, Blockchain, Wallet, DatabaseConfig, Descriptor } from 'bdk-rn';
-import { WordCount, Network } from 'bdk-rn/lib/lib/enums';
+import { WordCount, Network, KeychainKind } from 'bdk-rn/lib/lib/enums';
 
 // ....
 
@@ -69,7 +69,7 @@ const config: BlockchainElectrumConfig = {
   sock5: null,
   retry: 5,
   timeout: 5,
-  stopGap: 100,
+  stopGap: 500,
   validateDomain: false,
 };
 
@@ -111,8 +111,10 @@ const dbConfig = await new DatabaseConfig().sqlite(`${RNFS.DocumentDirectoryPath
 ```
 
 ### References:
+
 - Setting up a local Esplora instance for testing:
-https://bitcoin.stackexchange.com/questions/116937/how-do-i-setup-an-esplora-instance-for-local-testing/116938#116938
+  https://bitcoin.stackexchange.com/questions/116937/how-do-i-setup-an-esplora-instance-for-local-testing/116938#116938
+
 ---
 
 _Note: Caution this is an Alpha at this stage

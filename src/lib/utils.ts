@@ -59,13 +59,13 @@ export const getPayload = (payload: Payload): PubkeyHash | ScriptHash | WitnessP
   let returnObj;
   switch (payload.type) {
     case 'scriptHash':
-      returnObj = new ScriptHash(payload.value);
+      returnObj = new ScriptHash(payload.value as string);
       break;
     case 'witnessProgram':
-      returnObj = new WitnessProgram(payload.value, payload.version!);
+      returnObj = new WitnessProgram(payload.value as Array<number>, payload.version!);
       break;
     default:
-      returnObj = new PubkeyHash(payload.value);
+      returnObj = new PubkeyHash(payload.value as string);
   }
   return returnObj;
 };

@@ -15,7 +15,7 @@ describe('Address', () => {
   const addressString = 'tb1qccmtnhczmv3a6k4mtq8twm7ltj3e32qsntmamv';
 
   beforeAll(async () => {
-    address = await new Address().create('address');
+    address = await new Address().create('address', Network.Testnet);
   });
   afterEach(() => {
     jest.clearAllMocks();
@@ -68,5 +68,12 @@ describe('Address', () => {
     let res = await address.asString();
     expect(res).toBe(addressString);
     expect(mockBdkRnModule.addressAsString).toHaveBeenCalledWith(address.id);
+  });
+
+  it('verify addressIsValidForNetwork()', async () => {
+    mockBdkRnModule.addressIsValidForNetwork.mockResolvedValueOnce(true);
+    let res = await address.isValidForNetwork(Network.Testnet);
+    expect(res).toBe(true);
+    expect(mockBdkRnModule.addressIsValidForNetwork).toHaveBeenCalledWith(address.id, Network.Testnet);
   });
 });

@@ -1,7 +1,8 @@
 import { AddressIndex, Network } from '../lib/enums';
-import { createOutpoint, createTxDetailsObject, createTxOut, getKeychainKind, getNetwork } from '../lib/utils';
-import { Address } from './Address';
 import { AddressInfo, Balance, LocalUtxo, SignOptions, TransactionDetails } from './Bindings';
+import { createOutpoint, createTxDetailsObject, createTxOut, getKeychainKind, getNetwork } from '../lib/utils';
+
+import { Address } from './Address';
 import { Blockchain } from './Blockchain';
 import { DatabaseConfig } from './DatabaseConfig';
 import { Descriptor } from './Descriptor';
