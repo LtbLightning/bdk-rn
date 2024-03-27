@@ -495,7 +495,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     }
                 }
 
-                val addressInfo = getWalletById(id).getAddress(setAddressIndex(resolvedIndex))
+                val addressInfo = getWalletById(id).getInternalAddress(setAddressIndex(resolvedIndex))
                 _addresses[randomId] = addressInfo.address
                 val responseObject = mutableMapOf<String, Any?>()
                 responseObject["index"] = addressInfo.index.toInt()
