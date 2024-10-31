@@ -61,6 +61,6 @@
   "dependencies": {
     "@synonymdev/result": "0.0.2",
     "adm-zip": "^0.5.9",
-    "request": "^2.88.2"
+    "axios": "^1.7.7"
   }
 }
