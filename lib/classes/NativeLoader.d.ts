@@ -26,7 +26,7 @@ export interface NativeBdkRn {
     sledDBInit(path: string, treeName: string): string;
     sqliteDBInit(path: string): string;
     walletInit(descriptor: string, changeDescriptor: string | null, network: Network, dbConfig: string): any;
-    getAddress(id: string, addressIndex: AddressIndex): any;
+    getAddress(id: string, addressIndex: AddressIndex | number): any;
     getInternalAddress(id: string, addressIndex: AddressIndex | number): any;
     isMine(id: string, scriptId: string): boolean;
     getBalance(id: string): Balance;
@@ -69,9 +69,11 @@ export interface NativeBdkRn {
     newBip44(id: string, keychain: KeychainKind, network: Network): string;
     newBip49(id: string, keychain: KeychainKind, network: Network): string;
     newBip84(id: string, keychain: KeychainKind, network: Network): string;
+    newBip86(id: string, keychain: KeychainKind, network: Network): string;
     newBip44Public(id: string, fingerprint: string, keychain: KeychainKind, network: Network): string;
     newBip49Public(id: string, fingerprint: string, keychain: KeychainKind, network: Network): string;
     newBip84Public(id: string, fingerprint: string, keychain: KeychainKind, network: Network): string;
+    newBip86Public(id: string, fingerprint: string, keychain: KeychainKind, network: Network): string;
     combine(psbt64: string, otherPsbt: string): string;
     extractTx(psbt64: string): string;
     serialize(psbt64: string): string;
