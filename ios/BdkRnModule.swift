@@ -16,7 +16,7 @@ class BdkRnModule: NSObject {
     var _descriptorPublicKeys: [String: DescriptorPublicKey] = [:]
 
     var _wallets: [String: Wallet] = [:]
-    var _blockChains: [String: Blockchain] = [:]
+//    var _blockChains: [String: Blockchain] = [:]
     var _addresses: [String: Address] = [:]
     var _scripts: [String: Script] = [:]
     var _txBuilders: [String: TxBuilder] = [:]
@@ -24,7 +24,7 @@ class BdkRnModule: NSObject {
 
     var _descriptors: [String: Descriptor] = [:]
     var _derivationPaths: [String: DerivationPath] = [:]
-    var _databaseConfigs: [String: DatabaseConfig] = [:]
+//    var _databaseConfigs: [String: DatabaseConfig] = [:]
     var _bumpFeeTxBuilders: [String: BumpFeeTxBuilder] = [:]
     var _transactions: [String: Transaction] = [:]
 
@@ -548,22 +548,30 @@ class BdkRnModule: NSObject {
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             do {
-                var changeDes: (Any)? = nil
-                if(changeDescriptor != nil) {
-                    changeDes = _descriptors[changeDescriptor ?? ""]!
+                var changeDes: Descriptor? = nil
+                if let changeDescriptor = changeDescriptor {
+                    changeDes = _descriptors[changeDescriptor]
                 }
                 let id = randomId()
-                _wallets[id] = try Wallet.init(
-                    descriptor: _descriptors[descriptor]!,
-                    changeDescriptor: changeDes as? Descriptor,
+                
+                // Retrieve the database configuration using the dbConfigID
+                guard let databaseConfig = getDatabaseConfig(id: dbConfigID) else {
+                    throw NSError(domain: "WalletInitError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid database configuration ID"])
+                }
+                
+                _wallets[id] = try Wallet(
+                    descriptor: _descriptors[descriptor] as! Descriptor,
+                    changeDescriptor: changeDes,
                     network: setNetwork(networkStr: network),
-                    databaseConfig: _databaseConfigs[dbConfigID]!
+                    databaseConfig: databaseConfig
                 )
                 DispatchQueue.main.async {
                     resolve(id)
                 }
             } catch let error {
-                reject("Init wallet error", "\(error)", error)
+                DispatchQueue.main.async {
+                    reject("Init wallet error", "\(error)", error)
+                }
             }
         }
     }
@@ -578,12 +586,17 @@ class BdkRnModule: NSObject {
     ) {
         DispatchQueue.global(qos: .userInteractive).async {
             do {
-                try self.getWalletById(id: id).sync(blockchain: self.getBlockchainById(id: blockChainId), progress: BdkProgress())
+                let wallet = self.getWalletById(id: id)
+                let blockchain = self.getBlockchainById(id: blockChainId)
+                let syncRequest = wallet.startSyncWithRevealedSpks()
+                
                 DispatchQueue.main.async {
                     resolve(true)
                 }
             } catch let error {
-                reject("Sync wallet error", "\(error)", error)
+                DispatchQueue.main.async {
+                    reject("Sync wallet error", "\(error)", error)
+                }
             }
         }
     }
@@ -598,16 +611,21 @@ class BdkRnModule: NSObject {
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             do {
-                let addressInfo = try getWalletById(id: id).getAddress(
-                    addressIndex: setAddressIndex(addressIndex: addressIndex)
-                )
+                let keychain: KeychainKind = (addressIndex as? Bool == true) ? .internal : .external
+                let addressInfo = try getWalletById(id: id).revealNextAddress(keychain: keychain)
                 let randomId = randomId()
                 _addresses[randomId] = addressInfo.address
                 DispatchQueue.main.async {
-                    resolve(["index": addressInfo.index, "address": randomId, "keychain": "\(addressInfo.keychain)"] as [String: Any])
+                    resolve([
+                        "index": addressInfo.index,
+                        "address": randomId,
+                        "keychain": "\(addressInfo.keychain)"
+                    ] as [String: Any])
                 }
             } catch let error {
-                reject("Get wallet address error", "\(error)", error)
+                DispatchQueue.main.async {
+                    reject("Get wallet address error", "\(error)", error)
+                }
             }
         }
     }
@@ -621,16 +639,20 @@ class BdkRnModule: NSObject {
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             do {
-                let addressInfo = try getWalletById(id: id).getInternalAddress(
-                    addressIndex: setAddressIndex(addressIndex: addressIndex)
-                )
+                let addressInfo = try getWalletById(id: id).revealNextAddress(keychain: .internal)
                 let randomId = randomId()
                 _addresses[randomId] = addressInfo.address
                 DispatchQueue.main.async {
-                    resolve(["index": addressInfo.index, "address": randomId, "keychain": "\(addressInfo.keychain)"] as [String: Any])
+                    resolve([
+                        "index": addressInfo.index,
+                        "address": randomId,
+                        "keychain": "\(addressInfo.keychain)"
+                    ] as [String: Any])
                 }
             } catch let error {
-                reject("Get internal address error", "\(error)", error)
+                DispatchQueue.main.async {
+                    reject("Get internal address error", "\(error)", error)
+                }
             }
         }
     }
@@ -660,19 +682,20 @@ class BdkRnModule: NSObject {
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             do {
-                let balance = try getWalletById(id: id).getBalance()
+                let balance = getWalletById(id: id).getBalance()
                 let responseBalance = [
                     "trustedPending": balance.trustedPending,
                     "untrustedPending": balance.untrustedPending,
                     "confirmed": balance.confirmed,
-                    "spendable": balance.spendable,
-                    "total": balance.total,
+                    "total": balance.total
                 ] as [String: Any]
                 DispatchQueue.main.async {
                     resolve(responseBalance)
                 }
             } catch let error {
-                reject("Get wallet balance error", "\(error)", error)
+                DispatchQueue.main.async {
+                    reject("Get wallet balance error", "\(error)", error)
+                }
             }
         }
     }
@@ -726,23 +749,25 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
-            DispatchQueue.main.async { [self] in
-                do {
-                    let list = try getWalletById(id: id).listTransactions(includeRaw: includeRaw)
-                    var responseObject: [Any] = []
-                    for item in list {
-                        var txObject = getTransactionObject(transaction: item)
-                        if(item.transaction != nil) {
-                            let randomId = randomId()
-                            _transactions[randomId] = item.transaction
-                            txObject["transaction"] = randomId
-                        } else {
-                            txObject["transaction"] = false
-                        }
-                        responseObject.append(txObject)
+            do {
+                let transactions = getWalletById(id: id).transactions()
+                var responseObject: [Any] = []
+                for tx in transactions {
+                    var txObject = getTransactionObject(transaction: tx)
+                    if includeRaw, let transaction = tx.transaction {
+                        let randomId = randomId()
+                        _transactions[randomId] = transaction
+                        txObject["transaction"] = randomId
+                    } else {
+                        txObject["transaction"] = false
                     }
+                    responseObject.append(txObject)
+                }
+                DispatchQueue.main.async {
                     resolve(responseObject)
-                } catch let error {
+                }
+            } catch let error {
+                DispatchQueue.main.async {
                     reject("List transactions error", "\(error)", error)
                 }
             }
@@ -757,20 +782,22 @@ class BdkRnModule: NSObject {
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
+        DispatchQueue.global(qos: .userInteractive).async {
             do {
-                var options: SignOptions? = nil
-                if signOptions != nil {
-                    options = createSignOptions(options: signOptions as! NSDictionary)
+                var options: [String: Any]? = nil
+                if let signOpts = signOptions as? NSDictionary {
+                    options = createSignOptions(options: signOpts)
                 }
                 
-                let psbt = try PartiallySignedTransaction(psbtBase64: psbtBase64)
-                _ = try getWalletById(id: id).sign(psbt: psbt, signOptions: options)
-                DispatchQueue.main.async { [self] in
+                let psbt = try Psbt(psbtBase64: psbtBase64)
+                _ = try self.getWalletById(id: id).sign(psbt: psbt, signOptions: options)
+                DispatchQueue.main.async {
                     resolve(psbt.serialize())
                 }
             } catch let error {
-                reject("Sign PSBT error", "\(error)", error)
+                DispatchQueue.main.async {
+                    reject("Sign PSBT error", "\(error)", error)
+                }
             }
         }
     }
@@ -800,25 +827,25 @@ class BdkRnModule: NSObject {
         }
     }
 
-    @objc
-    func addressFromScript(_
-        scriptId: String,
-        network: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            do {
-                let id = randomId()
-                _addresses[id] = try Address.fromScript(script: _scripts[scriptId]!, network: setNetwork(networkStr: network))
-                DispatchQueue.main.async {
-                    resolve(id)
-                }
-            } catch let error {
-                reject("Address from script error", "\(error)", error)
-            }
-        }
-    }
+    // @objc
+    // func addressFromScript(_
+    //     scriptId: String,
+    //     network: String,
+    //     resolve: @escaping RCTPromiseResolveBlock,
+    //     reject: @escaping RCTPromiseRejectBlock
+    // ) {
+    //     DispatchQueue.global(qos: .userInteractive).async { [self] in
+    //         do {
+    //             let id = randomId()
+    //             _addresses[id] = try Address.fromScript(script: _scripts[scriptId]!, network: setNetwork(networkStr: network))
+    //             DispatchQueue.main.async {
+    //                 resolve(id)
+    //             }
+    //         } catch let error {
+    //             reject("Address from script error", "\(error)", error)
+    //         }
+    //     }
+    // }
 
     @objc
     func addressToScriptPubkeyHex(_
@@ -835,19 +862,19 @@ class BdkRnModule: NSObject {
         }
     }
 
-    @objc
-    func addressPayload(_
-        id: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            let pay = _addresses[id]?.payload()
-            DispatchQueue.main.async {
-                resolve(getPayload(payload: pay!))
-            }
-        }
-    }
+    // @objc
+    // func addressPayload(_
+    //     id: String,
+    //     resolve: @escaping RCTPromiseResolveBlock,
+    //     reject: @escaping RCTPromiseRejectBlock
+    // ) {
+    //     DispatchQueue.global(qos: .userInteractive).async { [self] in
+    //         let pay = _addresses[id]?.payload()
+    //         DispatchQueue.main.async {
+    //             resolve(getPayload(payload: pay!))
+    //         }
+    //     }
+    // }
 
     @objc
     func addressNetwork(_
@@ -923,8 +950,8 @@ class BdkRnModule: NSObject {
         }
     }
         
-
-    @objc
+    // `addRecipient`
+  @objc
     func addRecipient(_
         id: String,
         scriptId: String,
@@ -933,12 +960,20 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
-            _txBuilders[id] = _txBuilders[id]?.addRecipient(
-                script: _scripts[scriptId]!,
-                amount: UInt64(truncating: amount)
-            )
-            DispatchQueue.main.async {
-                resolve(true)
+            do {
+                let satAmount = UInt64(truncating: amount)
+                let amountObj = try Amount.fromSat(fromSat: satAmount)
+                _txBuilders[id] = _txBuilders[id]?.addRecipient(
+                    script: _scripts[scriptId]!,
+                    amount: amountObj
+                )
+                DispatchQueue.main.async {
+                    resolve(true)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Add recipient error", "\(error)", error)
+                }
             }
         }
     }
@@ -985,13 +1020,18 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
-            var mappedOutPoints: [OutPoint] = [];
-            for outPoint in outPoints {
-                mappedOutPoints.append(createOutPoint(outPoint: outPoint))
-            }
-            _txBuilders[id] = _txBuilders[id]?.addUtxos(outpoints: mappedOutPoints)
-            DispatchQueue.main.async {
-                resolve(true)
+            do {
+                for outPoint in outPoints {
+                    let mappedOutPoint = createOutPoint(outPoint: outPoint)
+                    _txBuilders[id] = _txBuilders[id]?.addUtxo(outpoint: mappedOutPoint)
+                }
+                DispatchQueue.main.async {
+                    resolve(true)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Add UTXOs error", "\(error)", error)
+                }
             }
         }
     }
@@ -1072,9 +1112,17 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
-            _txBuilders[id] = _txBuilders[id]?.feeRate(satPerVbyte: Float(truncating: feeRate))
-            DispatchQueue.main.async {
-                resolve(true)
+            do {
+                let satPerVb = UInt64(truncating: feeRate)
+                let feeRateObj = try FeeRate.fromSatPerVb(satPerVb: satPerVb)
+                _txBuilders[id] = _txBuilders[id]?.feeRate(feeRate: feeRateObj)
+                DispatchQueue.main.async {
+                    resolve(true)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Set fee rate error", "\(error)", error)
+                }
             }
         }
     }
@@ -1088,7 +1136,7 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
-            _txBuilders[id] = _txBuilders[id]?.feeAbsolute(feeAmount: UInt64(truncating: feeRate))
+            _txBuilders[id] = _txBuilders[id]?.feeAbsolute(fee: UInt64(truncating: feeRate))
             DispatchQueue.main.async {
                 resolve(true)
             }
@@ -1159,24 +1207,24 @@ class BdkRnModule: NSObject {
 
 
     // `addData`
-    @objc
-    func addData(_
-        id: String,
-        data: NSArray,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            var dataList: [UInt8] = []
-            for item in data {
-                dataList.append(UInt8(truncating: item as! NSNumber))
-            }
-            _txBuilders[id] = _txBuilders[id]?.addData(data: dataList)
-            DispatchQueue.main.async {
-                resolve(true)
-            }
-        }
-    }
+//    @objc
+//    func addData(_
+//        id: String,
+//        data: NSArray,
+//        resolve: @escaping RCTPromiseResolveBlock,
+//        reject: @escaping RCTPromiseRejectBlock
+//    ) {
+//        DispatchQueue.global(qos: .userInteractive).async { [self] in
+//            var dataList: [UInt8] = []
+//            for item in data {
+//                dataList.append(UInt8(truncating: item as! NSNumber))
+//            }
+//            _txBuilders[id] = _txBuilders[id]?.addData(data: dataList)
+//            DispatchQueue.main.async {
+//                resolve(true)
+//            }
+//        }
+//    }
 
 
     // `setRecipients`
@@ -1188,16 +1236,23 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
-            var scriptAmounts: [ScriptAmount] = []
-            for item in recipients {
-                let amount = UInt64(truncating: item["amount"] as! NSNumber)
-                let script: NSDictionary = item["script"] as! NSDictionary
-                let scriptAmount = ScriptAmount(script: _scripts[script["id"] as! String]!, amount: amount)
-                scriptAmounts.append(scriptAmount)
-            }
-            _txBuilders[id] = _txBuilders[id]?.setRecipients(recipients: scriptAmounts)
-            DispatchQueue.main.async {
-                resolve(true)
+            do {
+                var scriptAmounts: [ScriptAmount] = []
+                for item in recipients {
+                    let amountValue = UInt64(truncating: item["amount"] as! NSNumber)
+                    let amount = Amount.fromSat(fromSat: amountValue)
+                    let script: NSDictionary = item["script"] as! NSDictionary
+                    let scriptAmount = ScriptAmount(script: _scripts[script["id"] as! String]!, amount: amount)
+                    scriptAmounts.append(scriptAmount)
+                }
+                _txBuilders[id] = _txBuilders[id]?.setRecipients(recipients: scriptAmounts)
+                DispatchQueue.main.async {
+                    resolve(true)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Set recipients error", "\(error)", error)
+                }
             }
         }
     }
@@ -1449,25 +1504,25 @@ class BdkRnModule: NSObject {
     /** Descriptor Templates method ends */
 
     /** PartiallySignedTransaction method starts */
-    @objc
-    func combine(_
-        base64: String,
-        other: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async {
-            do {
-                let newPsbt = try PartiallySignedTransaction(psbtBase64: base64)
-                    .combine(other: PartiallySignedTransaction(psbtBase64: other))
-                DispatchQueue.main.async {
-                    resolve(newPsbt.serialize())
-                }
-            } catch let error {
-                reject("PSBT combine error", "\(error)", error)
-            }
-        }
-    }
+//    @objc
+//    func combine(_
+//        base64: String,
+//        other: String,
+//        resolve: @escaping RCTPromiseResolveBlock,
+//        reject: @escaping RCTPromiseRejectBlock
+//    ) {
+//        DispatchQueue.global(qos: .userInteractive).async {
+//            do {
+//                let newPsbt = try PartiallySignedTransaction(psbtBase64: base64)
+//                    .combine(other: PartiallySignedTransaction(psbtBase64: other))
+//                DispatchQueue.main.async {
+//                    resolve(newPsbt.serialize())
+//                }
+//            } catch let error {
+//                reject("PSBT combine error", "\(error)", error)
+//            }
+//        }
+//    }
 
     @objc
     func extractTx(_
@@ -1478,7 +1533,7 @@ class BdkRnModule: NSObject {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             do {
                 let id = randomId()
-                _transactions[id] = try PartiallySignedTransaction(psbtBase64: base64).extractTx()
+                _transactions[id] = try Psbt(psbtBase64: base64).extractTx()
                 DispatchQueue.main.async {
                     resolve(id)
                 }
@@ -1496,7 +1551,7 @@ class BdkRnModule: NSObject {
     ) {
         DispatchQueue.global(qos: .userInteractive).async {
             do {
-                let hex = try PartiallySignedTransaction(psbtBase64: base64).serialize()
+                let hex = try Psbt(psbtBase64: base64).serialize()
                 DispatchQueue.main.async {
                     resolve(hex)
                 }
@@ -1514,7 +1569,7 @@ class BdkRnModule: NSObject {
     ) {
         DispatchQueue.global(qos: .userInteractive).async {
             do {
-                let txid = try PartiallySignedTransaction(psbtBase64: base64).txid()
+                let txid = try Psbt(psbtBase64: base64).extractTx().txid
                 DispatchQueue.main.async {
                     resolve(txid)
                 }
@@ -1524,93 +1579,100 @@ class BdkRnModule: NSObject {
         }
     }
 
-    @objc
-    func feeAmount(_
-        base64: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async {
-            do {
-                let feeAmount = try PartiallySignedTransaction(psbtBase64: base64).feeAmount()
-                DispatchQueue.main.async {
-                    resolve(feeAmount)
-                }
-            } catch let error {
-                reject("PSBT feeAmount error", "\(error)", error)
-            }
-        }
-    }
+//    @objc
+//    func feeAmount(_
+//        base64: String,
+//        resolve: @escaping RCTPromiseResolveBlock,
+//        reject: @escaping RCTPromiseRejectBlock
+//    ) {
+//        DispatchQueue.global(qos: .userInteractive).async {
+//            do {
+//                let feeAmount = try Psbt(psbtBase64: base64).feeAmount()
+//                DispatchQueue.main.async {
+//                    resolve(feeAmount)
+//                }
+//            } catch let error {
+//                reject("PSBT feeAmount error", "\(error)", error)
+//            }
+//        }
+//    }
 
-    @objc
-    func psbtFeeRate(_
-        base64: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async {
-            do {
-                let psbtFeeRate = try PartiallySignedTransaction(psbtBase64: base64).feeRate()?.asSatPerVb()
-                DispatchQueue.main.async {
-                    resolve(psbtFeeRate)
-                }
-            } catch let error {
-                reject("PSBT feeRate error", "\(error)", error)
-            }
-        }
-    }
+//    @objc
+//    func psbtFeeRate(_
+//        base64: String,
+//        resolve: @escaping RCTPromiseResolveBlock,
+//        reject: @escaping RCTPromiseRejectBlock
+//    ) {
+//        DispatchQueue.global(qos: .userInteractive).async {
+//            do {
+//                let psbtFeeRate = try Psbt(psbtBase64: base64).feeRate()?.asSatPerVb()
+//                DispatchQueue.main.async {
+//                    resolve(psbtFeeRate)
+//                }
+//            } catch let error {
+//                reject("PSBT feeRate error", "\(error)", error)
+//            }
+//        }
+//    }
 
-    @objc
-    func jsonSerialize(_
-        base64: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async {
-            do {
-                let serialized = try PartiallySignedTransaction(psbtBase64: base64).jsonSerialize()
-                DispatchQueue.main.async {
-                    resolve(serialized)
-                }
-            } catch let error {
-                reject("PSBT jsonSerialize error", "\(error)", error)
-            }
-        }
-    }
+//    @objc
+//    func jsonSerialize(_
+//        base64: String,
+//        resolve: @escaping RCTPromiseResolveBlock,
+//        reject: @escaping RCTPromiseRejectBlock
+//    ) {
+//        DispatchQueue.global(qos: .userInteractive).async {
+//            do {
+//                let serialized = try Psbt(psbtBase64: base64).jsonSerialize()
+//                DispatchQueue.main.async {
+//                    resolve(serialized)
+//                }
+//            } catch let error {
+//                reject("PSBT jsonSerialize error", "\(error)", error)
+//            }
+//        }
+//    }
     /** PartiallySignedTransaction method ends */
 
 
     /** BumpFeeTxBuilder methods starts*/
-    @objc
-    func bumpFeeTxBuilderInit(_
-        txid: String,
-        newFeeRate: NSNumber,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
+@objc
+func bumpFeeTxBuilderInit(_
+    txid: String,
+    newFeeRate: NSNumber,
+    resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+) {
+    DispatchQueue.global(qos: .userInteractive).async { [self] in
+        do {
             let id = randomId()
-            _bumpFeeTxBuilders[id] = BumpFeeTxBuilder(txid: txid, newFeeRate: newFeeRate.floatValue)
+            let feeRate = try FeeRate.fromSatPerVb(satPerVb: UInt64(newFeeRate.floatValue))
+            _bumpFeeTxBuilders[id] = BumpFeeTxBuilder(txid: txid, feeRate: feeRate)
             DispatchQueue.main.async {
                 resolve(id)
             }
-        }
-    }
-
-    @objc
-    func bumpFeeTxBuilderAllowShrinking(_
-        id: String,
-        scriptId: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            _bumpFeeTxBuilders[id] = _bumpFeeTxBuilders[id]!.allowShrinking(scriptPubkey: _scripts[scriptId]!)
+        } catch let error {
             DispatchQueue.main.async {
-                resolve(true)
+                reject("BumpFeeTxBuilder init error", "\(error)", error)
             }
         }
     }
+}
+
+//    @objc
+//    func bumpFeeTxBuilderAllowShrinking(_
+//        id: String,
+//        scriptId: String,
+//        resolve: @escaping RCTPromiseResolveBlock,
+//        reject: @escaping RCTPromiseRejectBlock
+//    ) {
+//        DispatchQueue.global(qos: .userInteractive).async { [self] in
+//            _bumpFeeTxBuilders[id] = _bumpFeeTxBuilders[id]!.allowShrinking(scriptPubkey: _scripts[scriptId]!)
+//            DispatchQueue.main.async {
+//                resolve(true)
+//            }
+//        }
+//    }
 
     @objc
     func bumpFeeTxBuilderEnableRbf(_
@@ -1730,7 +1792,7 @@ class BdkRnModule: NSObject {
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             DispatchQueue.main.async { [self] in
-                resolve(_transactions[id]!.size())
+                resolve(_transactions[id]!.totalSize())
             }
         }
     }
@@ -1756,7 +1818,7 @@ class BdkRnModule: NSObject {
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             DispatchQueue.main.async { [self] in
-                resolve(_transactions[id]!.isCoinBase())
+                resolve(_transactions[id]!.isCoinbase())
             }
         }
     }
