@@ -29,6 +29,8 @@ A React Native version of the Bitcoin Development Kit (https://bitcoindevkit.org
 
 ## Installation
 
+### Install and run with React-Native bare apps
+
 Using npm:
 
 ```bash
@@ -101,6 +103,7 @@ const externalPublicDescriptor = await new Descriptor().newBip84Public(
 ```
 
 ### Store wallet data persistently
+
 ```ts
 import RNFS from 'react-native-fs'
 import { DatabaseConfig, ... } from 'bdk-rn';
@@ -109,6 +112,14 @@ import { DatabaseConfig, ... } from 'bdk-rn';
 const dbConfig = await new DatabaseConfig().sqlite(`${RNFS.DocumentDirectoryPath}/bdk-wallet`)
 
 ```
+
+### A note on developing with Expo
+
+Only development builds allow this package working with Expo.
+
+Please check following link to see the difference between Expo Go vs Development builds.
+
+https://docs.expo.dev/develop/development-builds/introduction/#how-are-development-builds-different-from-expo
 
 ### References:
 
