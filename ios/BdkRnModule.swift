@@ -6,25 +6,39 @@
 import Foundation
 
 
+
 @objc(BdkRnModule)
 class BdkRnModule: NSObject {
     @objc static func requiresMainQueueSetup() -> Bool {
         return false
     }
+    
+    var _wallets: [String: Wallet] = [:]
+    private func randomId() -> String {
+        return UUID().uuidString
+    }
 
+    private func setNetwork(networkStr: String) -> Network {
+        switch networkStr.lowercased() {
+        case "testnet":
+            return Network.testnet
+        case "regtest":
+            return Network.regtest
+        default:
+            return Network.bitcoin
+        }
+    }
+    var _blockChainMethods: [String: Any] = [:]
+    var _sqlitePaths: [String: String] = [:]
+    var _sledPaths: [String: (path: String, treeName: String)] = [:]
+    var _memoryDBs: [String: Bool] = [:]
     var _descriptorSecretKeys: [String: DescriptorSecretKey] = [:]
     var _descriptorPublicKeys: [String: DescriptorPublicKey] = [:]
-
-    var _wallets: [String: Wallet] = [:]
-//    var _blockChains: [String: Blockchain] = [:]
     var _addresses: [String: Address] = [:]
     var _scripts: [String: Script] = [:]
     var _txBuilders: [String: TxBuilder] = [:]
-
-
     var _descriptors: [String: Descriptor] = [:]
     var _derivationPaths: [String: DerivationPath] = [:]
-//    var _databaseConfigs: [String: DatabaseConfig] = [:]
     var _bumpFeeTxBuilders: [String: BumpFeeTxBuilder] = [:]
     var _transactions: [String: Transaction] = [:]
 
@@ -286,250 +300,67 @@ class BdkRnModule: NSObject {
     /** Descriptor public key methods ends */
 
 
-    /** Blockchain methods starts */
-    func getBlockchainById(id: String) -> Blockchain {
-        return _blockChains[id]!
-    }
-    @objc
-    func initElectrumBlockchain(_
-        url: String,
-        sock5: String,
-        retry: NSNumber,
-        timeout: NSNumber,
-        stopGap: NSNumber,
-        validateDomain: Bool,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            do {
-                let _blockchainConfig = BlockchainConfig.electrum(
-                    config: ElectrumConfig(
-                        url: url,
-                        socks5: sock5.isEmpty ? nil : sock5,
-                        retry: UInt8(truncating: retry),
-                        timeout: UInt8(truncating: timeout),
-                        stopGap: UInt64(truncating: stopGap),
-                        validateDomain: validateDomain
-                    )
-                )
-                let blockChainId = randomId()
-                _blockChains[blockChainId] = try Blockchain(config: _blockchainConfig)
-                DispatchQueue.main.async {
-                    resolve(blockChainId)
-                }
-            } catch let error {
-                reject("BlockchainElectrum init error", "\(error)", error)
-            }
-        }
-    }
-
-    @objc
-    func initEsploraBlockchain(_
-        baseUrl: String,
-        proxy: String,
-        concurrency: NSNumber,
-        stopGap: NSNumber,
-        timeout: NSNumber,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            do {
-                let _blockchainConfig = BlockchainConfig.esplora(
-                    config: EsploraConfig(
-                        baseUrl: baseUrl,
-                        proxy: proxy.isEmpty ? nil : proxy,
-                        concurrency: UInt8(truncating: concurrency),
-                        stopGap: UInt64(truncating: stopGap),
-                        timeout: UInt64(truncating: timeout)
-                    )
-                )
-                let blockChainId = randomId()
-                _blockChains[blockChainId] = try Blockchain(config: _blockchainConfig)
-                DispatchQueue.main.async {
-                    resolve(blockChainId)
-                }
-            } catch let error {
-                reject("BlockchainEsplora init error", "\(error)", error)
-            }
-        }
-    }
-
-    @objc
-    func initRpcBlockchain(_
-        config: NSDictionary,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            do {
-                var authType = Auth.none
-                if config["authCookie"] != nil {
-                    authType = Auth.cookie(file: config["authCookie"] as! String)
-                }
-                
-                if config["authUserPass"] != nil {
-                    let userPass = config["authUserPass"] as! NSDictionary
-                    authType = Auth.userPass(
-                        username: userPass["username"] as! String,
-                        password: userPass["password"] as! String
-                    )
-                }
-                
-                var syncParams: RpcSyncParams? = nil
-                if config["syncParams"] != nil {
-                    let syncParamsConfig = config["syncParams"] as! NSDictionary
-                    syncParams = RpcSyncParams(
-                        startScriptCount: syncParamsConfig["startScriptCount"] as! UInt64,
-                        startTime: syncParamsConfig["startTime"] as! UInt64,
-                        forceStartTime: syncParamsConfig["forceStartTime"] as! Bool,
-                        pollRateSec: syncParamsConfig["pollRateSec"] as! UInt64
-                    )
-                }
-                
-                let _blockchainConfig = BlockchainConfig.rpc(
-                    config: RpcConfig(
-                        url: config["url"] as! String,
-                        auth: authType,
-                        network: setNetwork(networkStr: config["network"] as? String),
-                        walletName: config["walletName"] as! String,
-                        syncParams: syncParams
-                    )
-                )
-                let blockChainId = randomId()
-                _blockChains[blockChainId] = try Blockchain(config: _blockchainConfig)
-                DispatchQueue.main.async {
-                    resolve(blockChainId)
-                }
-            } catch let error {
-                reject("BlockchainRpc init error", "\(error)", error)
-            }
-        }
-    }
-
-    @objc
-    func getBlockchainHeight(_
-        id: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            do {
-                let height = try getBlockchainById(id: id).getHeight()
-                DispatchQueue.main.async {
-                    resolve(height)
-                }
-            } catch let error {
-                reject("Blockchain get height error", "\(error)", error)
-            }
-        }
-    }
-
-
-    @objc
-    func getBlockchainHash(_
-        id: String,
-        height: NSNumber,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            do {
-                let hash = try getBlockchainById(id: id).getBlockHash(height: UInt32(truncating: height))
-                DispatchQueue.main.async {
-                    resolve(hash)
-                }
-            } catch let error {
-                reject("Blockchain get block hash error", "\(error)", error)
-            }
-        }
-    }
-
-    @objc
-    func broadcast(_
-        id: String,
-        txId: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            do {
-                _ = try getBlockchainById(id: id).broadcast(transaction: _transactions[txId]!)
-                DispatchQueue.main.async {
-                    resolve(true)
-                }
-            } catch let error {
-                reject("Broadcast transaction error", "\(error)", error)
-            }
-        }
-    }
-
-    @objc
-    func estimateFee(_
-        id: String,
-        target: NSNumber,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            do {
-                let fee = try getBlockchainById(id: id).estimateFee(target: UInt64(truncating: target))
-                DispatchQueue.main.async {
-                    resolve(fee.asSatPerVb())
-                }
-            } catch let error {
-                reject("Estimate Fee error", "\(error)", error)
-            }
-        }
-    }
-    /** Blockchain methods ends */
-
     /** DB configuration methods starts*/
+    
     @objc
-    func memoryDBInit(_
-        resolve: @escaping RCTPromiseResolveBlock,
+    func memoryDBInit(
+        _ resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            let id = randomId()
-            _databaseConfigs[id] = DatabaseConfig.memory
+        DispatchQueue.global(qos: .userInteractive).async {
+            let id = self.randomId()
+            self._memoryDBs[id] = true
+            
             DispatchQueue.main.async {
                 resolve(id)
             }
         }
     }
-
     @objc
-    func sledDBInit(_
-        path: String,
+    func sledDBInit(
+        _ path: String,
         treeName: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            let id = randomId()
-            _databaseConfigs[id] = DatabaseConfig.sled(config: SledDbConfiguration(path: path, treeName: treeName))
-            DispatchQueue.main.async {
-                resolve(id)
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                let id = self.randomId()
+                self._sledPaths[id] = (path: path, treeName: treeName)
+                
+                DispatchQueue.main.async {
+                    resolve(id)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Sled DB Init error", "\(error)", error)
+                }
             }
         }
     }
 
     @objc
-    func sqliteDBInit(_
-        path: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            let id = randomId()
-            _databaseConfigs[id] = DatabaseConfig.sqlite(config: SqliteDbConfiguration(path: path))
-            DispatchQueue.main.async {
-                resolve(id)
-            }
-        }
-    }
+       func sqliteDBInit(
+           _ path: String,
+           resolve: @escaping RCTPromiseResolveBlock,
+           reject: @escaping RCTPromiseRejectBlock
+       ) {
+           DispatchQueue.global(qos: .userInteractive).async {
+               do {
+                   let id = self.randomId()
+                   self._sqlitePaths[id] = path
+                   
+                   DispatchQueue.main.async {
+                       resolve(id)
+                   }
+               } catch let error {
+                   DispatchQueue.main.async {
+                       reject("SQLite DB Init error", "\(error)", error)
+                   }
+               }
+           }
+       }
+    
     /** DB configuration methods ends*/
 
     /** Wallet methods starts*/
@@ -571,31 +402,6 @@ class BdkRnModule: NSObject {
             } catch let error {
                 DispatchQueue.main.async {
                     reject("Init wallet error", "\(error)", error)
-                }
-            }
-        }
-    }
-
-
-    @objc
-    func sync(_
-        id: String,
-        blockChainId: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async {
-            do {
-                let wallet = self.getWalletById(id: id)
-                let blockchain = self.getBlockchainById(id: blockChainId)
-                let syncRequest = wallet.startSyncWithRevealedSpks()
-                
-                DispatchQueue.main.async {
-                    resolve(true)
-                }
-            } catch let error {
-                DispatchQueue.main.async {
-                    reject("Sync wallet error", "\(error)", error)
                 }
             }
         }
@@ -827,26 +633,6 @@ class BdkRnModule: NSObject {
         }
     }
 
-    // @objc
-    // func addressFromScript(_
-    //     scriptId: String,
-    //     network: String,
-    //     resolve: @escaping RCTPromiseResolveBlock,
-    //     reject: @escaping RCTPromiseRejectBlock
-    // ) {
-    //     DispatchQueue.global(qos: .userInteractive).async { [self] in
-    //         do {
-    //             let id = randomId()
-    //             _addresses[id] = try Address.fromScript(script: _scripts[scriptId]!, network: setNetwork(networkStr: network))
-    //             DispatchQueue.main.async {
-    //                 resolve(id)
-    //             }
-    //         } catch let error {
-    //             reject("Address from script error", "\(error)", error)
-    //         }
-    //     }
-    // }
-
     @objc
     func addressToScriptPubkeyHex(_
         id: String,
@@ -861,20 +647,6 @@ class BdkRnModule: NSObject {
             }
         }
     }
-
-    // @objc
-    // func addressPayload(_
-    //     id: String,
-    //     resolve: @escaping RCTPromiseResolveBlock,
-    //     reject: @escaping RCTPromiseRejectBlock
-    // ) {
-    //     DispatchQueue.global(qos: .userInteractive).async { [self] in
-    //         let pay = _addresses[id]?.payload()
-    //         DispatchQueue.main.async {
-    //             resolve(getPayload(payload: pay!))
-    //         }
-    //     }
-    // }
 
     @objc
     func addressNetwork(_
@@ -934,6 +706,54 @@ class BdkRnModule: NSObject {
 
 
     /** Address methods ends*/
+    
+    /** Amount methods starts*/
+    
+    @objc
+    func createAmountFromSat(_ sat: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            let amount = Amount.fromSat(fromSat: UInt64(truncating: sat))
+            DispatchQueue.main.async {
+                resolve(amount.toSat())
+            }
+        }
+    }
+
+    @objc
+    func createAmountFromBtc(_ btc: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                let amount = try Amount.fromBtc(fromBtc: btc.doubleValue)
+                DispatchQueue.main.async {
+                    resolve(amount.toSat())
+                }
+            } catch let error {
+                reject("Amount creation error", "\(error)", error)
+            }
+        }
+    }
+
+    @objc
+    func amountAsSats(_ sats: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            let amount = Amount.fromSat(fromSat: UInt64(truncating: sats))
+            DispatchQueue.main.async {
+                resolve(amount.toSat())
+            }
+        }
+    }
+
+    @objc
+    func amountAsBtc(_ sats: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            let amount = Amount.fromSat(fromSat: UInt64(truncating: sats))
+            DispatchQueue.main.async {
+                resolve(amount.toBtc())
+            }
+        }
+    }
+    
+    /** Amount methods ends*/
 
     /** TxBuilder methods starts */
     @objc
@@ -1126,6 +946,46 @@ class BdkRnModule: NSObject {
             }
         }
     }
+    
+    @objc
+    func createFeeRateFromSatPerVb(_ satPerVb: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            let feeRate = createFeeRate(satPerVb: satPerVb)
+            DispatchQueue.main.async {
+                resolve(feeRateToSatPerVb(feeRate: feeRate))
+            }
+        }
+    }
+
+    @objc
+    func createFeeRateFromSatPerKw(_ satPerKw: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            let feeRate = createFeeRate(satPerKw: satPerKw)
+            DispatchQueue.main.async {
+                resolve(feeRateToSatPerVb(feeRate: feeRate))
+            }
+        }
+    }
+
+    @objc
+    func feeRateAsSatPerVb(_ satPerVb: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            let feeRate = createFeeRate(satPerVb: satPerVb)
+            DispatchQueue.main.async {
+                resolve(feeRateToSatPerVb(feeRate: feeRate))
+            }
+        }
+    }
+
+    @objc
+    func feeRateAsSatPerKw(_ satPerVb: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            let feeRate = createFeeRate(satPerVb: satPerVb)
+            DispatchQueue.main.async {
+                resolve(feeRateToSatPerKw(feeRate: feeRate))
+            }
+        }
+    }
 
     // `feeAbsolute`
     @objc
@@ -1204,27 +1064,6 @@ class BdkRnModule: NSObject {
             }
         }
     }
-
-
-    // `addData`
-//    @objc
-//    func addData(_
-//        id: String,
-//        data: NSArray,
-//        resolve: @escaping RCTPromiseResolveBlock,
-//        reject: @escaping RCTPromiseRejectBlock
-//    ) {
-//        DispatchQueue.global(qos: .userInteractive).async { [self] in
-//            var dataList: [UInt8] = []
-//            for item in data {
-//                dataList.append(UInt8(truncating: item as! NSNumber))
-//            }
-//            _txBuilders[id] = _txBuilders[id]?.addData(data: dataList)
-//            DispatchQueue.main.async {
-//                resolve(true)
-//            }
-//        }
-//    }
 
 
     // `setRecipients`
@@ -1503,26 +1342,7 @@ class BdkRnModule: NSObject {
     }
     /** Descriptor Templates method ends */
 
-    /** PartiallySignedTransaction method starts */
-//    @objc
-//    func combine(_
-//        base64: String,
-//        other: String,
-//        resolve: @escaping RCTPromiseResolveBlock,
-//        reject: @escaping RCTPromiseRejectBlock
-//    ) {
-//        DispatchQueue.global(qos: .userInteractive).async {
-//            do {
-//                let newPsbt = try PartiallySignedTransaction(psbtBase64: base64)
-//                    .combine(other: PartiallySignedTransaction(psbtBase64: other))
-//                DispatchQueue.main.async {
-//                    resolve(newPsbt.serialize())
-//                }
-//            } catch let error {
-//                reject("PSBT combine error", "\(error)", error)
-//            }
-//        }
-//    }
+    /** Psbt method starts */
 
     @objc
     func extractTx(_
@@ -1579,60 +1399,7 @@ class BdkRnModule: NSObject {
         }
     }
 
-//    @objc
-//    func feeAmount(_
-//        base64: String,
-//        resolve: @escaping RCTPromiseResolveBlock,
-//        reject: @escaping RCTPromiseRejectBlock
-//    ) {
-//        DispatchQueue.global(qos: .userInteractive).async {
-//            do {
-//                let feeAmount = try Psbt(psbtBase64: base64).feeAmount()
-//                DispatchQueue.main.async {
-//                    resolve(feeAmount)
-//                }
-//            } catch let error {
-//                reject("PSBT feeAmount error", "\(error)", error)
-//            }
-//        }
-//    }
-
-//    @objc
-//    func psbtFeeRate(_
-//        base64: String,
-//        resolve: @escaping RCTPromiseResolveBlock,
-//        reject: @escaping RCTPromiseRejectBlock
-//    ) {
-//        DispatchQueue.global(qos: .userInteractive).async {
-//            do {
-//                let psbtFeeRate = try Psbt(psbtBase64: base64).feeRate()?.asSatPerVb()
-//                DispatchQueue.main.async {
-//                    resolve(psbtFeeRate)
-//                }
-//            } catch let error {
-//                reject("PSBT feeRate error", "\(error)", error)
-//            }
-//        }
-//    }
-
-//    @objc
-//    func jsonSerialize(_
-//        base64: String,
-//        resolve: @escaping RCTPromiseResolveBlock,
-//        reject: @escaping RCTPromiseRejectBlock
-//    ) {
-//        DispatchQueue.global(qos: .userInteractive).async {
-//            do {
-//                let serialized = try Psbt(psbtBase64: base64).jsonSerialize()
-//                DispatchQueue.main.async {
-//                    resolve(serialized)
-//                }
-//            } catch let error {
-//                reject("PSBT jsonSerialize error", "\(error)", error)
-//            }
-//        }
-//    }
-    /** PartiallySignedTransaction method ends */
+    /** Psbt method ends */
 
 
     /** BumpFeeTxBuilder methods starts*/
@@ -1658,21 +1425,6 @@ func bumpFeeTxBuilderInit(_
         }
     }
 }
-
-//    @objc
-//    func bumpFeeTxBuilderAllowShrinking(_
-//        id: String,
-//        scriptId: String,
-//        resolve: @escaping RCTPromiseResolveBlock,
-//        reject: @escaping RCTPromiseRejectBlock
-//    ) {
-//        DispatchQueue.global(qos: .userInteractive).async { [self] in
-//            _bumpFeeTxBuilders[id] = _bumpFeeTxBuilders[id]!.allowShrinking(scriptPubkey: _scripts[scriptId]!)
-//            DispatchQueue.main.async {
-//                resolve(true)
-//            }
-//        }
-//    }
 
     @objc
     func bumpFeeTxBuilderEnableRbf(_
@@ -1913,6 +1665,85 @@ func bumpFeeTxBuilderInit(_
         }
     }
     /** Transaction methods ends*/
+    
+    @objc
+    func transactionOutput(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async { [self] in
+            let outputs = _transactions[id]!.output()
+            let result = outputs.map { createTxOut(txOut: $0, _scripts: &_scripts) }
+            DispatchQueue.main.async {
+                resolve(result)
+            }
+        }
+    }
+
+    
+    @objc
+    func transactionLockTime(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async { [self] in
+            let lockTime = _transactions[id]!.lockTime()
+            DispatchQueue.main.async {
+                resolve(lockTime)
+            }
+        }
+    }
+    
+    @objc
+    func createElectrumClient(_ config: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                let url = config["url"] as! String
+                let retry = config["retry"] as? UInt8 ?? 5
+                let timeout = config["timeout"] as? UInt8 ?? 5
+                let stopGap = config["stopGap"] as? UInt64 ?? 10
+                let validateDomain = config["validateDomain"] as? Bool ?? true
+
+                let client = try ElectrumClient(url: url)
+                
+                let id = self.randomId()
+                self._blockChains[id] = client
+                
+                DispatchQueue.main.async {
+                    resolve(id)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Create Electrum client error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    @objc
+       func createMemoryWallet(_ network: String, descriptor: String, changeDescriptor: String?, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+           DispatchQueue.global(qos: .userInteractive).async {
+               do {
+                   let networkType = self.setNetwork(networkStr: network)
+                   let desc = try Descriptor(descriptor: descriptor, network: networkType)
+                   let changeDesc = changeDescriptor != nil ? try Descriptor(descriptor: changeDescriptor!, network: networkType) : nil
+                   
+                   let wallet = try Wallet(
+                       descriptor: desc,
+                       changeDescriptor: changeDesc,
+                       persistenceBackendPath: ":memory:",
+                       network: networkType
+                   )
+                   
+                   let id = self.randomId()
+                   self._wallets[id] = wallet
+                   
+                   DispatchQueue.main.async {
+                       resolve(id)
+                   }
+               } catch let error {
+                   DispatchQueue.main.async {
+                       reject("Create memory wallet error", "\(error)", error)
+                   }
+               }
+           }
+       }
+    
+
     
     /** Script methods starts*/
     

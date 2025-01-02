@@ -169,3 +169,47 @@ func createSignOptions(options: NSDictionary) -> SignOptions? {
         allowGrinding: (options["allowGrinding"] != nil)
     )
 }
+
+func getDatabaseConfig(id: String) -> DatabaseConfig? {
+    // Implement this method to retrieve the DatabaseConfig based on the ID
+    // This might involve accessing a dictionary or some other data structure
+    // where you store your database configurations
+    // For example:
+    // return _databaseConfigs[id]
+    
+    // For now, let's return a default memory configuration
+    return .memory
+}
+func createAmount(satoshis: UInt64) -> [String: Any] {
+    let amount = Amount(sat: satoshis)
+    return [
+        "sat": amount.toSat(),
+        "btc": amount.toBtc()
+    ]
+}
+
+func createFeeRate(satPerVb: NSNumber? = nil, satPerKw: NSNumber? = nil) -> FeeRate {
+    if let satPerVb = satPerVb {
+        return FeeRate(satPerVb: UInt64(truncating: satPerVb))
+    } else if let satPerKw = satPerKw {
+        return FeeRate(satPerKw: UInt64(truncating: satPerKw))
+    } else {
+        fatalError("Either satPerVb or satPerKw must be provided")
+    }
+}
+
+func feeRateToSatPerVb(feeRate: FeeRate) -> UInt64 {
+    return feeRate.satPerVb
+}
+
+func feeRateToSatPerKw(feeRate: FeeRate) -> UInt64 {
+    return feeRate.satPerKw
+}
+
+func createTxIn(txIn: TxIn) -> [String: Any] {
+    return [
+        "txid": txIn.txid,
+        "vout": txIn.vout,
+        "sequence": txIn.sequence
+    ]
+}
