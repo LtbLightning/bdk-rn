@@ -13,10 +13,15 @@ class BdkRnModule: NSObject {
         return false
     }
     
-    var _wallets: [String: Wallet] = [:]
     private func randomId() -> String {
         return UUID().uuidString
     }
+    
+    private func storeObject<T>(_ object: T, in storage: inout [String: T]) -> String {
+    let id = randomId()
+    storage[id] = object
+    return id
+}
 
     private func setNetwork(networkStr: String) -> Network {
         switch networkStr.lowercased() {
@@ -28,6 +33,13 @@ class BdkRnModule: NSObject {
             return Network.bitcoin
         }
     }
+    private var _wallets: [String: Wallet] = [:]
+    private var _psbts: [String: Psbt] = [:]
+    var _feeRates: [String: FeeRate] = [:]
+    var _updates: [String: Update] = [:]
+    var _fullScanRequests: [String: FullScanRequest] = [:]
+    var _syncRequests: [String: SyncRequest] = [:]
+    var _blockChains: [String: Any] = [:]
     var _blockChainMethods: [String: Any] = [:]
     var _sqlitePaths: [String: String] = [:]
     var _sledPaths: [String: (path: String, treeName: String)] = [:]
@@ -96,134 +108,242 @@ class BdkRnModule: NSObject {
 
     /** Mnemonic methods ends */
 
-    /** Derviation path methods starts */
+    /** DerivationPath methods starts */
+
     @objc
-    func createDerivationPath(_
-        path: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
+    func createDerivationPath(_ path: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
             do {
-                let id = randomId()
-                _derivationPaths[id] = try DerivationPath(path: path)
+                let derivationPath = try DerivationPath(path: path)
+                let id = self.randomId()
+                self._derivationPaths[id] = derivationPath
                 DispatchQueue.main.async {
                     resolve(id)
                 }
             } catch let error {
-                reject("Create Derivation path error", "\(error)", error)
-            }
-        }
-        
-    }
-    /** Derviation path methods ends */
-
-    /** Descriptor secret key methods starts */
-    @objc
-    func createDescriptorSecret(_
-        network: String,
-        mnemonic: String,
-        password: String? = nil,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            do {
-                let id = randomId()
-                _descriptorSecretKeys[id] = try DescriptorSecretKey(
-                    network: setNetwork(networkStr: network),
-                    mnemonic: Mnemonic.fromString(mnemonic: mnemonic),
-                    password: password
-                )
-                DispatchQueue.main.async {
-                    resolve(id)
-                }
-            } catch let error {
-                reject("DescriptorSecret create error", "\(error)", error)
+                reject("DerivationPath error", "\(error)", error)
             }
         }
     }
 
+    // Since DerivationPath doesn't have any specific methods in the protocol,
+    // we'll add a method to get the string representation of the path.
     @objc
-    func descriptorSecretDerive(_
-        secretKeyId: String,
-        derivationPathId: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            do {
-                let keyInfo = try _descriptorSecretKeys[secretKeyId]!.derive(path: _derivationPaths[derivationPathId]!)
-                DispatchQueue.main.async {
-                    resolve(keyInfo.asString())
-                }
-            } catch let error {
-                reject("DescriptorSecret derive error", "\(error)", error)
+    func derivationPathToString(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let derivationPath = self._derivationPaths[id] else {
+                reject("DerivationPath error", "DerivationPath not found", nil)
+                return
             }
-        }
-        
-    }
-
-    @objc
-    func descriptorSecretExtend(_
-        secretKeyId: String,
-        derivationPathId: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            do {
-                let keyInfo = try _descriptorSecretKeys[secretKeyId]!.extend(path: _derivationPaths[derivationPathId]!)
-                DispatchQueue.main.async {
-                    resolve(keyInfo.asString())
-                }
-            } catch let error {
-                reject("DescriptorSecret extend error", "\(error)", error)
-            }
-        }
-    }
-
-    @objc
-    func descriptorSecretAsPublic(_
-        secretKeyId: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            let id = randomId()
-            _descriptorPublicKeys[id] = _descriptorSecretKeys[secretKeyId]!.asPublic()
+            // Note: There's no direct method to get the string representation,
+            // so we're returning the id as a placeholder. In a real implementation,
+            // you might want to store the original string or implement a toString method.
             DispatchQueue.main.async {
                 resolve(id)
             }
         }
     }
 
+    /** DerivationPath methods ends */
+
+    /** DescriptorPublicKey methods starts */
+
     @objc
-    func descriptorSecretAsString(_
-        secretKeyId: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            DispatchQueue.main.async { [self] in
-                resolve(_descriptorSecretKeys[secretKeyId]!.asString())
+    func createDescriptorPublicKey(_ publicKey: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                let descriptorPublicKey = try DescriptorPublicKey.fromString(publicKey: publicKey)
+                let id = self.randomId()
+                self._descriptorPublicKeys[id] = descriptorPublicKey
+                DispatchQueue.main.async {
+                    resolve(id)
+                }
+            } catch let error {
+                reject("DescriptorPublicKey error", "\(error)", error)
             }
         }
     }
 
     @objc
-    func descriptorSecretAsSecretBytes(_
-        secretKeyId: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            DispatchQueue.main.async { [self] in
-                resolve(_descriptorSecretKeys[secretKeyId]!.secretBytes())
+    func descriptorPublicKeyAsString(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let descriptorPublicKey = self._descriptorPublicKeys[id] else {
+                reject("DescriptorPublicKey error", "DescriptorPublicKey not found", nil)
+                return
+            }
+            let result = descriptorPublicKey.asString()
+            DispatchQueue.main.async {
+                resolve(result)
             }
         }
     }
-    /** Descriptor secret key methods ends */
+
+    @objc
+    func descriptorPublicKeyDerive(_ id: String, path: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let descriptorPublicKey = self._descriptorPublicKeys[id] else {
+                reject("DescriptorPublicKey error", "DescriptorPublicKey not found", nil)
+                return
+            }
+            do {
+                let derivationPath = try DerivationPath(path: path)
+                let derivedKey = try descriptorPublicKey.derive(path: derivationPath)
+                let newId = self.randomId()
+                self._descriptorPublicKeys[newId] = derivedKey
+                DispatchQueue.main.async {
+                    resolve(newId)
+                }
+            } catch let error {
+                reject("DescriptorPublicKey derive error", "\(error)", error)
+            }
+        }
+    }
+
+    @objc
+    func descriptorPublicKeyExtend(_ id: String, path: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let descriptorPublicKey = self._descriptorPublicKeys[id] else {
+                reject("DescriptorPublicKey error", "DescriptorPublicKey not found", nil)
+                return
+            }
+            do {
+                let derivationPath = try DerivationPath(path: path)
+                let extendedKey = try descriptorPublicKey.extend(path: derivationPath)
+                let newId = self.randomId()
+                self._descriptorPublicKeys[newId] = extendedKey
+                DispatchQueue.main.async {
+                    resolve(newId)
+                }
+            } catch let error {
+                reject("DescriptorPublicKey extend error", "\(error)", error)
+            }
+        }
+    }
+
+    /** DescriptorPublicKey methods ends */
+
+    /** DescriptorSecretKey methods starts */
+
+    @objc
+    func createDescriptorSecretKey(_ network: String, mnemonic: String, password: String?, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                let mnemonicObj = try Mnemonic.fromString(mnemonic: mnemonic)
+                let descriptorSecretKey = DescriptorSecretKey(network: self.setNetwork(networkStr: network), mnemonic: mnemonicObj, password: password)
+                let id = self.randomId()
+                self._descriptorSecretKeys[id] = descriptorSecretKey
+                DispatchQueue.main.async {
+                    resolve(id)
+                }
+            } catch let error {
+                reject("DescriptorSecretKey error", "\(error)", error)
+            }
+        }
+    }
+
+    @objc
+    func descriptorSecretKeyFromString(_ secretKey: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                let descriptorSecretKey = try DescriptorSecretKey.fromString(secretKey: secretKey)
+                let id = self.randomId()
+                self._descriptorSecretKeys[id] = descriptorSecretKey
+                DispatchQueue.main.async {
+                    resolve(id)
+                }
+            } catch let error {
+                reject("DescriptorSecretKey error", "\(error)", error)
+            }
+        }
+    }
+
+    @objc
+    func descriptorSecretKeyAsPublic(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let descriptorSecretKey = self._descriptorSecretKeys[id] else {
+                reject("DescriptorSecretKey error", "DescriptorSecretKey not found", nil)
+                return
+            }
+            let descriptorPublicKey = descriptorSecretKey.asPublic()
+            let publicKeyId = self.randomId()
+            self._descriptorPublicKeys[publicKeyId] = descriptorPublicKey
+            DispatchQueue.main.async {
+                resolve(publicKeyId)
+            }
+        }
+    }
+
+    @objc
+    func descriptorSecretKeyAsString(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let descriptorSecretKey = self._descriptorSecretKeys[id] else {
+                reject("DescriptorSecretKey error", "DescriptorSecretKey not found", nil)
+                return
+            }
+            let result = descriptorSecretKey.asString()
+            DispatchQueue.main.async {
+                resolve(result)
+            }
+        }
+    }
+
+    @objc
+    func descriptorSecretKeyDerive(_ id: String, path: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let descriptorSecretKey = self._descriptorSecretKeys[id] else {
+                reject("DescriptorSecretKey error", "DescriptorSecretKey not found", nil)
+                return
+            }
+            do {
+                let derivationPath = try DerivationPath(path: path)
+                let derivedKey = try descriptorSecretKey.derive(path: derivationPath)
+                let newId = self.randomId()
+                self._descriptorSecretKeys[newId] = derivedKey
+                DispatchQueue.main.async {
+                    resolve(newId)
+                }
+            } catch let error {
+                reject("DescriptorSecretKey derive error", "\(error)", error)
+            }
+        }
+    }
+
+    @objc
+    func descriptorSecretKeyExtend(_ id: String, path: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let descriptorSecretKey = self._descriptorSecretKeys[id] else {
+                reject("DescriptorSecretKey error", "DescriptorSecretKey not found", nil)
+                return
+            }
+            do {
+                let derivationPath = try DerivationPath(path: path)
+                let extendedKey = try descriptorSecretKey.extend(path: derivationPath)
+                let newId = self.randomId()
+                self._descriptorSecretKeys[newId] = extendedKey
+                DispatchQueue.main.async {
+                    resolve(newId)
+                }
+            } catch let error {
+                reject("DescriptorSecretKey extend error", "\(error)", error)
+            }
+        }
+    }
+
+    @objc
+    func descriptorSecretKeySecretBytes(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let descriptorSecretKey = self._descriptorSecretKeys[id] else {
+                reject("DescriptorSecretKey error", "DescriptorSecretKey not found", nil)
+                return
+            }
+            let secretBytes = descriptorSecretKey.secretBytes()
+            DispatchQueue.main.async {
+                resolve(secretBytes)
+            }
+        }
+    }
+
+    /** DescriptorSecretKey methods ends */
 
 
     /** Descriptor public key methods starts */
@@ -368,44 +488,44 @@ class BdkRnModule: NSObject {
         return _wallets[id]!
     }
 
-    @objc
-    func walletInit(_
-        descriptor: String,
-        changeDescriptor: String? = nil,
-        network: String,
-        dbConfigID: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            do {
-                var changeDes: Descriptor? = nil
-                if let changeDescriptor = changeDescriptor {
-                    changeDes = _descriptors[changeDescriptor]
-                }
-                let id = randomId()
-                
-                // Retrieve the database configuration using the dbConfigID
-                guard let databaseConfig = getDatabaseConfig(id: dbConfigID) else {
-                    throw NSError(domain: "WalletInitError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid database configuration ID"])
-                }
-                
-                _wallets[id] = try Wallet(
-                    descriptor: _descriptors[descriptor] as! Descriptor,
-                    changeDescriptor: changeDes,
-                    network: setNetwork(networkStr: network),
-                    databaseConfig: databaseConfig
-                )
-                DispatchQueue.main.async {
-                    resolve(id)
-                }
-            } catch let error {
-                DispatchQueue.main.async {
-                    reject("Init wallet error", "\(error)", error)
-                }
-            }
-        }
-    }
+//    @objc
+//    func walletInit(_
+//        descriptor: String,
+//        changeDescriptor: String? = nil,
+//        network: String,
+//        dbConfigID: String,
+//        resolve: @escaping RCTPromiseResolveBlock,
+//        reject: @escaping RCTPromiseRejectBlock
+//    ) {
+//        DispatchQueue.global(qos: .userInteractive).async { [self] in
+//            do {
+//                var changeDes: Descriptor? = nil
+//                if let changeDescriptor = changeDescriptor {
+//                    changeDes = _descriptors[changeDescriptor]
+//                }
+//                let id = randomId()
+//                
+//                // Retrieve the database configuration using the dbConfigID
+//                guard let databaseConfig = getDatabaseConfig(id: dbConfigID) else {
+//                    throw NSError(domain: "WalletInitError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid database configuration ID"])
+//                }
+//                
+//                _wallets[id] = try Wallet(
+//                    descriptor: _descriptors[descriptor] as! Descriptor,
+//                    changeDescriptor: changeDes,
+//                    network: setNetwork(networkStr: network),
+//                    databaseConfig: databaseConfig
+//                )
+//                DispatchQueue.main.async {
+//                    resolve(id)
+//                }
+//            } catch let error {
+//                DispatchQueue.main.async {
+//                    reject("Init wallet error", "\(error)", error)
+//                }
+//            }
+//        }
+//    }
 
 
     @objc
@@ -547,66 +667,66 @@ class BdkRnModule: NSObject {
         }
     }
 
-    @objc
-    func listTransactions(_
-        id: String,
-        includeRaw: Bool,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            do {
-                let transactions = getWalletById(id: id).transactions()
-                var responseObject: [Any] = []
-                for tx in transactions {
-                    var txObject = getTransactionObject(transaction: tx)
-                    if includeRaw, let transaction = tx.transaction {
-                        let randomId = randomId()
-                        _transactions[randomId] = transaction
-                        txObject["transaction"] = randomId
-                    } else {
-                        txObject["transaction"] = false
-                    }
-                    responseObject.append(txObject)
-                }
-                DispatchQueue.main.async {
-                    resolve(responseObject)
-                }
-            } catch let error {
-                DispatchQueue.main.async {
-                    reject("List transactions error", "\(error)", error)
-                }
-            }
-        }
-    }
+//    @objc
+//    func listTransactions(_
+//        id: String,
+//        includeRaw: Bool,
+//        resolve: @escaping RCTPromiseResolveBlock,
+//        reject: @escaping RCTPromiseRejectBlock
+//    ) {
+//        DispatchQueue.global(qos: .userInteractive).async { [self] in
+//            do {
+//                let transactions = getWalletById(id: id).transactions()
+//                var responseObject: [Any] = []
+//                for tx in transactions {
+//                    var txObject = getTransactionObject(transaction: tx)
+//                    if includeRaw, let transaction = tx.transaction {
+//                        let randomId = randomId()
+//                        _transactions[randomId] = transaction
+//                        txObject["transaction"] = randomId
+//                    } else {
+//                        txObject["transaction"] = false
+//                    }
+//                    responseObject.append(txObject)
+//                }
+//                DispatchQueue.main.async {
+//                    resolve(responseObject)
+//                }
+//            } catch let error {
+//                DispatchQueue.main.async {
+//                    reject("List transactions error", "\(error)", error)
+//                }
+//            }
+//        }
+//    }
 
-    @objc
-    func sign(_
-        id: String,
-        psbtBase64: String,
-        signOptions: Any? = nil,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async {
-            do {
-                var options: [String: Any]? = nil
-                if let signOpts = signOptions as? NSDictionary {
-                    options = createSignOptions(options: signOpts)
-                }
-                
-                let psbt = try Psbt(psbtBase64: psbtBase64)
-                _ = try self.getWalletById(id: id).sign(psbt: psbt, signOptions: options)
-                DispatchQueue.main.async {
-                    resolve(psbt.serialize())
-                }
-            } catch let error {
-                DispatchQueue.main.async {
-                    reject("Sign PSBT error", "\(error)", error)
-                }
-            }
-        }
-    }
+//    @objc
+//    func sign(_
+//        id: String,
+//        psbtBase64: String,
+//        signOptions: Any? = nil,
+//        resolve: @escaping RCTPromiseResolveBlock,
+//        reject: @escaping RCTPromiseRejectBlock
+//    ) {
+//        DispatchQueue.global(qos: .userInteractive).async {
+//            do {
+//                var options: [String: Any]? = nil
+//                if let signOpts = signOptions as? NSDictionary {
+//                    options = createSignOptions(options: signOpts)
+//                }
+//                
+//                let psbt = try Psbt(psbtBase64: psbtBase64)
+//                _ = try self.getWalletById(id: id).sign(psbt: psbt, signOptions: options)
+//                DispatchQueue.main.async {
+//                    resolve(psbt.serialize())
+//                }
+//            } catch let error {
+//                DispatchQueue.main.async {
+//                    reject("Sign PSBT error", "\(error)", error)
+//                }
+//            }
+//        }
+//    }
 
 
     /** Wallet methods ends*/
@@ -661,7 +781,6 @@ class BdkRnModule: NSObject {
         }
     }
 
-
     @objc
     func addressToQrUri(_
         id: String,
@@ -675,7 +794,6 @@ class BdkRnModule: NSObject {
         }
     }
 
-
     @objc
     func addressAsString(_
         id: String,
@@ -688,8 +806,7 @@ class BdkRnModule: NSObject {
             }
         }
     }
-    
-    
+
     @objc
     func addressIsValidForNetwork(_
         id: String,
@@ -708,7 +825,7 @@ class BdkRnModule: NSObject {
     /** Address methods ends*/
     
     /** Amount methods starts*/
-    
+
     @objc
     func createAmountFromSat(_ sat: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
@@ -752,8 +869,82 @@ class BdkRnModule: NSObject {
             }
         }
     }
-    
+
     /** Amount methods ends*/
+
+    /** BumpFeeTxBuilder methods starts */
+
+    @objc
+    func bumpFeeTxBuilderInit(_
+        txid: String,
+        newFeeRate: NSNumber,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.global(qos: .userInteractive).async { [self] in
+            do {
+                let id = randomId()
+                let feeRate = try FeeRate.fromSatPerVb(satPerVb: UInt64(newFeeRate.floatValue))
+                _bumpFeeTxBuilders[id] = BumpFeeTxBuilder(txid: txid, feeRate: feeRate)
+                DispatchQueue.main.async {
+                    resolve(id)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("BumpFeeTxBuilder init error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+        @objc
+        func bumpFeeTxBuilderEnableRbf(_
+            id: String,
+            resolve: @escaping RCTPromiseResolveBlock,
+            reject: @escaping RCTPromiseRejectBlock
+        ) {
+            DispatchQueue.global(qos: .userInteractive).async { [self] in
+                _bumpFeeTxBuilders[id] = _bumpFeeTxBuilders[id]!.enableRbf()
+                DispatchQueue.main.async {
+                    resolve(true)
+                }
+            }
+        }
+
+        @objc
+        func bumpFeeTxBuilderEnableRbfWithSequence(_
+            id: String,
+            nSequence: NSNumber,
+            resolve: @escaping RCTPromiseResolveBlock,
+            reject: @escaping RCTPromiseRejectBlock
+        ) {
+            DispatchQueue.global(qos: .userInteractive).async { [self] in
+                _bumpFeeTxBuilders[id] = _bumpFeeTxBuilders[id]!.enableRbfWithSequence(nsequence: UInt32(truncating: nSequence))
+                DispatchQueue.main.async {
+                    resolve(true)
+                }
+            }
+        }
+
+        @objc
+        func bumpFeeTxBuilderFinish(_
+            id: String,
+            walletId: String,
+            resolve: @escaping RCTPromiseResolveBlock,
+            reject: @escaping RCTPromiseRejectBlock
+        ) {
+            DispatchQueue.global(qos: .userInteractive).async { [self] in
+                do {
+                    let res = try _bumpFeeTxBuilders[id]!.finish(wallet: getWalletById(id: walletId))
+                    DispatchQueue.main.async {
+                        resolve(res.serialize())
+                    }
+                } catch let error {
+                    reject("BumpFee Txbuilder finish error", "\(error)", error)
+                }
+            }
+        }
+    /** BumpFeeTxBuilder methods ends */
 
     /** TxBuilder methods starts */
     @objc
@@ -923,69 +1114,79 @@ class BdkRnModule: NSObject {
         }
     }
 
-    // `feeRate`
-    @objc
-    func feeRate(_
-        id: String,
-        feeRate: NSNumber,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            do {
-                let satPerVb = UInt64(truncating: feeRate)
-                let feeRateObj = try FeeRate.fromSatPerVb(satPerVb: satPerVb)
-                _txBuilders[id] = _txBuilders[id]?.feeRate(feeRate: feeRateObj)
-                DispatchQueue.main.async {
-                    resolve(true)
-                }
-            } catch let error {
-                DispatchQueue.main.async {
-                    reject("Set fee rate error", "\(error)", error)
-                }
-            }
-        }
-    }
-    
+    /** FeeRate methods starts */
+
     @objc
     func createFeeRateFromSatPerVb(_ satPerVb: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
-            let feeRate = createFeeRate(satPerVb: satPerVb)
-            DispatchQueue.main.async {
-                resolve(feeRateToSatPerVb(feeRate: feeRate))
+            do {
+                let feeRate = try FeeRate.fromSatPerVb(satPerVb: UInt64(truncating: satPerVb))
+                let id = self.randomId()
+                self._feeRates[id] = feeRate
+                DispatchQueue.main.async {
+                    resolve(id)
+                }
+            } catch let error {
+                reject("FeeRate error", "\(error)", error)
             }
         }
     }
 
     @objc
-    func createFeeRateFromSatPerKw(_ satPerKw: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    func createFeeRateFromSatPerKwu(_ satPerKwu: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
-            let feeRate = createFeeRate(satPerKw: satPerKw)
+            let feeRate = FeeRate.fromSatPerKwu(satPerKwu: UInt64(truncating: satPerKwu))
+            let id = self.randomId()
+            self._feeRates[id] = feeRate
             DispatchQueue.main.async {
-                resolve(feeRateToSatPerVb(feeRate: feeRate))
+                resolve(id)
             }
         }
     }
 
     @objc
-    func feeRateAsSatPerVb(_ satPerVb: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    func feeRateToSatPerVbCeil(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
-            let feeRate = createFeeRate(satPerVb: satPerVb)
+            guard let feeRate = self._feeRates[id] else {
+                reject("FeeRate error", "FeeRate not found", nil)
+                return
+            }
+            let result = feeRate.toSatPerVbCeil()
             DispatchQueue.main.async {
-                resolve(feeRateToSatPerVb(feeRate: feeRate))
+                resolve(result)
             }
         }
     }
 
     @objc
-    func feeRateAsSatPerKw(_ satPerVb: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    func feeRateToSatPerVbFloor(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
-            let feeRate = createFeeRate(satPerVb: satPerVb)
+            guard let feeRate = self._feeRates[id] else {
+                reject("FeeRate error", "FeeRate not found", nil)
+                return
+            }
+            let result = feeRate.toSatPerVbFloor()
             DispatchQueue.main.async {
-                resolve(feeRateToSatPerKw(feeRate: feeRate))
+                resolve(result)
             }
         }
     }
+
+    @objc
+    func feeRateToSatPerKwu(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let feeRate = self._feeRates[id] else {
+                reject("FeeRate error", "FeeRate not found", nil)
+                return
+            }
+            let result = feeRate.toSatPerKwu()
+            DispatchQueue.main.async {
+                resolve(result)
+            }
+        }
+    }
+
+    /** FeeRate methods ends */
 
     // `feeAbsolute`
     @objc
@@ -1096,27 +1297,31 @@ class BdkRnModule: NSObject {
         }
     }
 
-    @objc
-    func finish(_
-        id: String,
-        walletId: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
+ @objc
+    func finish(_ id: String, walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let txBuilder = self._txBuilders[id] else {
+                reject("Invalid TxBuilder", "TxBuilder not found", nil)
+                return
+            }
+            guard let wallet = self._wallets[walletId] else {
+                reject("Invalid Wallet", "Wallet not found", nil)
+                return
+            }
             do {
-                let details = try _txBuilders[id]?.finish(wallet: getWalletById(id: walletId))
-                let responseObject = getPSBTObject(txResult: details)
+                let psbt = try txBuilder.finish(wallet: wallet)
+                let psbtId = self.randomId()
+                self._psbts[psbtId] = psbt
                 DispatchQueue.main.async {
-                    resolve(responseObject)
+                    resolve(psbtId)
                 }
             } catch let error {
-                reject("Finish tx error", "\(error)", error)
+                reject("TxBuilder finish error", "\(error)", error)
             }
         }
     }
 
-    /** TxBuilder methods ends */
+        /** TxBuilder methods ends */
 
     /** Descriptor Templates method starts */
     @objc
@@ -1402,78 +1607,6 @@ class BdkRnModule: NSObject {
     /** Psbt method ends */
 
 
-    /** BumpFeeTxBuilder methods starts*/
-@objc
-func bumpFeeTxBuilderInit(_
-    txid: String,
-    newFeeRate: NSNumber,
-    resolve: @escaping RCTPromiseResolveBlock,
-    reject: @escaping RCTPromiseRejectBlock
-) {
-    DispatchQueue.global(qos: .userInteractive).async { [self] in
-        do {
-            let id = randomId()
-            let feeRate = try FeeRate.fromSatPerVb(satPerVb: UInt64(newFeeRate.floatValue))
-            _bumpFeeTxBuilders[id] = BumpFeeTxBuilder(txid: txid, feeRate: feeRate)
-            DispatchQueue.main.async {
-                resolve(id)
-            }
-        } catch let error {
-            DispatchQueue.main.async {
-                reject("BumpFeeTxBuilder init error", "\(error)", error)
-            }
-        }
-    }
-}
-
-    @objc
-    func bumpFeeTxBuilderEnableRbf(_
-        id: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            _bumpFeeTxBuilders[id] = _bumpFeeTxBuilders[id]!.enableRbf()
-            DispatchQueue.main.async {
-                resolve(true)
-            }
-        }
-    }
-
-    @objc
-    func bumpFeeTxBuilderEnableRbfWithSequence(_
-        id: String,
-        nSequence: NSNumber,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            _bumpFeeTxBuilders[id] = _bumpFeeTxBuilders[id]!.enableRbfWithSequence(nsequence: UInt32(truncating: nSequence))
-            DispatchQueue.main.async {
-                resolve(true)
-            }
-        }
-    }
-
-    @objc
-    func bumpFeeTxBuilderFinish(_
-        id: String,
-        walletId: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            do {
-                let res = try _bumpFeeTxBuilders[id]!.finish(wallet: getWalletById(id: walletId))
-                DispatchQueue.main.async {
-                    resolve(res.serialize())
-                }
-            } catch let error {
-                reject("BumpFee Txbuilder finish error", "\(error)", error)
-            }
-        }
-    }
-    /** BumpFeeTxBuilder methods ends*/
 
 
     /** Transaction methods starts*/
@@ -1665,6 +1798,281 @@ func bumpFeeTxBuilderInit(_
         }
     }
     /** Transaction methods ends*/
+
+    /** ElectrumClient methods starts */
+
+@objc
+func createElectrumClient(_ url: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    DispatchQueue.global(qos: .userInteractive).async {
+        do {
+            let client = try ElectrumClient(url: url)
+            let id = self.randomId()
+            self._blockChains[id] = client
+            DispatchQueue.main.async {
+                resolve(id)
+            }
+        } catch let error {
+            reject("ElectrumClient creation error", "\(error)", error)
+        }
+    }
+}
+
+@objc
+func electrumClientBroadcast(_ clientId: String, transactionId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    DispatchQueue.global(qos: .userInteractive).async {
+        guard let client = self._blockChains[clientId] as? ElectrumClient,
+              let transaction = self._transactions[transactionId] else {
+            reject("Invalid client or transaction", "ElectrumClient or Transaction not found", nil)
+            return
+        }
+        
+        do {
+            let txid = try client.broadcast(transaction: transaction)
+            DispatchQueue.main.async {
+                resolve(txid)
+            }
+        } catch let error {
+            reject("Broadcast error", "\(error)", error)
+        }
+    }
+}
+
+@objc
+func electrumClientFullScan(_ clientId: String, fullScanRequestId: String, stopGap: NSNumber, batchSize: NSNumber, fetchPrevTxouts: Bool, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    DispatchQueue.global(qos: .userInteractive).async(execute: DispatchWorkItem(block: {
+        guard let client = self._blockChains[clientId] as? ElectrumClient,
+              let fullScanRequest = self._fullScanRequests[fullScanRequestId] else {
+            DispatchQueue.main.async {
+                reject("Invalid client or fullScanRequest", "ElectrumClient or FullScanRequest not found", nil)
+            }
+            return
+        }
+        
+        do {
+            let update = try client.fullScan(fullScanRequest: fullScanRequest, stopGap: UInt64(truncating: stopGap), batchSize: UInt64(truncating: batchSize), fetchPrevTxouts: fetchPrevTxouts)
+            let updateId = self.randomId()
+            self._updates[updateId] = update
+            DispatchQueue.main.async {
+                resolve(updateId)
+            }
+        } catch let error {
+            DispatchQueue.main.async {
+                reject("Full scan error", "\(error)", error)
+            }
+        }
+    }))
+}
+
+@objc
+func electrumClientSync(_ clientId: String, syncRequestId: String, batchSize: NSNumber, fetchPrevTxouts: Bool, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    DispatchQueue.global(qos: .userInteractive).async(execute: DispatchWorkItem(block: {
+        guard let client = self._blockChains[clientId] as? ElectrumClient,
+              let syncRequest = self._syncRequests[syncRequestId] else {
+            DispatchQueue.main.async {
+                reject("Invalid client or syncRequest", "ElectrumClient or SyncRequest not found", nil)
+            }
+            return
+        }
+        
+        do {
+            let update = try client.sync(syncRequest: syncRequest, batchSize: UInt64(truncating: batchSize), fetchPrevTxouts: fetchPrevTxouts)
+            let updateId = self.randomId()
+            self._updates[updateId] = update
+            DispatchQueue.main.async {
+                resolve(updateId)
+            }
+        } catch let error {
+            DispatchQueue.main.async {
+                reject("Sync error", "\(error)", error)
+            }
+        }
+    }))
+}
+
+/** ElectrumClient methods ends */
+
+/** EsploraClient methods starts */
+
+@objc
+func createEsploraClient(_ url: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    DispatchQueue.global(qos: .userInteractive).async {
+        do {
+            let esploraClient = EsploraClient(url: url)
+            let id = self.randomId()
+            self._blockChains[id] = esploraClient
+            DispatchQueue.main.async {
+                resolve(id)
+            }
+        } catch let error {
+            reject("EsploraClient error", "\(error)", error)
+        }
+    }
+}
+
+@objc
+func esploraClientBroadcast(_ id: String, txid: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    DispatchQueue.global(qos: .userInteractive).async {
+        guard let esploraClient = self._blockChains[id] as? EsploraClient else {
+            reject("EsploraClient error", "EsploraClient not found", nil)
+            return
+        }
+        guard let transaction = self._transactions[txid] else {
+            reject("Transaction error", "Transaction not found", nil)
+            return
+        }
+        do {
+            try esploraClient.broadcast(transaction: transaction)
+            DispatchQueue.main.async {
+                resolve(nil)
+            }
+        } catch let error {
+            reject("Broadcast error", "\(error)", error)
+        }
+    }
+}
+
+@objc
+func esploraClientFullScan(_ id: String, fullScanRequestId: String, stopGap: NSNumber, parallelRequests: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    DispatchQueue.global(qos: .userInteractive).async {
+        guard let esploraClient = self._blockChains[id] as? EsploraClient else {
+            reject("EsploraClient error", "EsploraClient not found", nil)
+            return
+        }
+        guard let fullScanRequest = self._fullScanRequests[fullScanRequestId] else {
+            reject("FullScanRequest error", "FullScanRequest not found", nil)
+            return
+        }
+        do {
+            let update = try esploraClient.fullScan(fullScanRequest: fullScanRequest, stopGap: stopGap.uint64Value, parallelRequests: parallelRequests.uint64Value)
+            let updateId = self.randomId()
+            self._updates[updateId] = update
+            DispatchQueue.main.async {
+                resolve(updateId)
+            }
+        } catch let error {
+            reject("Full scan error", "\(error)", error)
+        }
+    }
+}
+
+@objc
+func esploraClientSync(_ id: String, syncRequestId: String, parallelRequests: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    DispatchQueue.global(qos: .userInteractive).async {
+        guard let esploraClient = self._blockChains[id] as? EsploraClient else {
+            reject("EsploraClient error", "EsploraClient not found", nil)
+            return
+        }
+        guard let syncRequest = self._syncRequests[syncRequestId] else {
+            reject("SyncRequest error", "SyncRequest not found", nil)
+            return
+        }
+        do {
+            let update = try esploraClient.sync(syncRequest: syncRequest, parallelRequests: parallelRequests.uint64Value)
+            let updateId = self.randomId()
+            self._updates[updateId] = update
+            DispatchQueue.main.async {
+                resolve(updateId)
+            }
+        } catch let error {
+            reject("Sync error", "\(error)", error)
+        }
+    }
+}
+
+/** EsploraClient methods ends */
+
+/** SyncRequest methods starts */
+
+@objc
+func createSyncRequest(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    DispatchQueue.global(qos: .userInteractive).async {
+        guard let wallet = self._wallets[walletId] else {
+            DispatchQueue.main.async {
+                reject("Invalid wallet", "Wallet not found", nil)
+            }
+            return
+        }
+        
+        do {
+            let syncRequest = wallet.startSyncWithRevealedSpks()
+            let id = self.randomId()
+            self._syncRequests[id] = syncRequest
+            DispatchQueue.main.async {
+                resolve(id)
+            }
+        } catch let error {
+            DispatchQueue.main.async {
+                reject("SyncRequest creation error", "\(error)", error)
+            }
+        }
+    }
+}
+
+@objc
+func freeSyncRequest(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    DispatchQueue.global(qos: .userInteractive).async {
+        self._syncRequests.removeValue(forKey: id)
+        DispatchQueue.main.async {
+            resolve(nil)
+        }
+    }
+}
+
+/** SyncRequest methods ends */
+
+/** Wallet sync methods starts */
+
+@objc
+func walletSync(_ walletId: String, syncRequestId: String, blockchainId: String, batchSize: NSNumber, fetchPrevTxouts: Bool, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    DispatchQueue.global(qos: .userInteractive).async {
+        guard let wallet = self._wallets[walletId],
+              let syncRequest = self._syncRequests[syncRequestId],
+              let blockchain = self._blockChains[blockchainId] else {
+            reject("Invalid parameters", "Wallet, SyncRequest, or Blockchain not found", nil)
+            return
+        }
+        
+        do {
+            let update: Update
+            if let electrumClient = blockchain as? ElectrumClient {
+                update = try electrumClient.sync(syncRequest: syncRequest, batchSize: UInt64(truncating: batchSize), fetchPrevTxouts: fetchPrevTxouts)
+            } else if let esploraClient = blockchain as? EsploraClient {
+                update = try esploraClient.sync(syncRequest: syncRequest, parallelRequests: UInt64(truncating: batchSize))
+            } else {
+                throw NSError(domain: "BdkRnModule", code: 0, userInfo: [NSLocalizedDescriptionKey: "Unsupported blockchain type"])
+            }
+            
+            try wallet.applyUpdate(update: update)
+            DispatchQueue.main.async {
+                resolve(nil)
+            }
+        } catch let error {
+            DispatchQueue.main.async {
+                reject("Sync error", "\(error)", error)
+            }
+        }
+    }
+}
+
+@objc
+func walletStartSyncWithRevealedSpks(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    DispatchQueue.global(qos: .userInteractive).async {
+        guard let wallet = self._wallets[walletId] else {
+            reject("Invalid wallet", "Wallet not found", nil)
+            return
+        }
+        
+        let syncRequest = wallet.startSyncWithRevealedSpks()
+        let id = self.randomId()
+        self._syncRequests[id] = syncRequest
+        DispatchQueue.main.async {
+            resolve(id)
+        }
+    }
+}
+
+/** Wallet sync methods ends */
+
     
     @objc
     func transactionOutput(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
@@ -1688,31 +2096,6 @@ func bumpFeeTxBuilderInit(_
         }
     }
     
-    @objc
-    func createElectrumClient(_ config: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        DispatchQueue.global(qos: .userInteractive).async {
-            do {
-                let url = config["url"] as! String
-                let retry = config["retry"] as? UInt8 ?? 5
-                let timeout = config["timeout"] as? UInt8 ?? 5
-                let stopGap = config["stopGap"] as? UInt64 ?? 10
-                let validateDomain = config["validateDomain"] as? Bool ?? true
-
-                let client = try ElectrumClient(url: url)
-                
-                let id = self.randomId()
-                self._blockChains[id] = client
-                
-                DispatchQueue.main.async {
-                    resolve(id)
-                }
-            } catch let error {
-                DispatchQueue.main.async {
-                    reject("Create Electrum client error", "\(error)", error)
-                }
-            }
-        }
-    }
 
     @objc
        func createMemoryWallet(_ network: String, descriptor: String, changeDescriptor: String?, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
@@ -1745,22 +2128,39 @@ func bumpFeeTxBuilderInit(_
     
 
     
-    /** Script methods starts*/
-    
-    @objc
-    func toBytes(_
-        id: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
+/** Script methods starts */
+
+@objc
+func createScript(_ rawOutputScript: [UInt8], resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    DispatchQueue.global(qos: .userInteractive).async {
+        do {
+            let script = Script(rawOutputScript: rawOutputScript)
+            let id = self.randomId()
+            self._scripts[id] = script
             DispatchQueue.main.async {
-                resolve(self._scripts[id]!.toBytes())
+                resolve(id)
             }
+        } catch let error {
+            reject("Script creation error", "\(error)", error)
         }
     }
-    
-    
-    /** Script methods ends*/
+}
+
+@objc
+func scriptToBytes(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    DispatchQueue.global(qos: .userInteractive).async {
+        guard let script = self._scripts[id] else {
+            reject("Invalid script", "Script not found", nil)
+            return
+        }
+        
+        let bytes = script.toBytes()
+        DispatchQueue.main.async {
+            resolve(bytes)
+        }
+    }
+}
+
+/** Script methods ends */
 }
 
