@@ -24,16 +24,16 @@ export class PartiallySignedTransaction extends NativeLoader {
   }
 
   /**
-   * Return the transaction as bytes.
-   * @returns {Promise<any>}
+   * Extract the final transaction from the PSBT.
+   * @returns {Promise<Transaction>}
    */
   async extractTx(): Promise<Transaction> {
-    let id = await this._bdk.extractTx(this.base64);
-    return new Transaction()._setTransaction(id);
+    const id = await this._bdk.extractTx(this.base64);
+    return new Transaction(id);
   }
 
   /**
-   * Return transaction as string
+   * Serialize the PSBT to hex format.
    * @returns {Promise<string>}
    */
   async serialize(): Promise<string> {
@@ -41,34 +41,47 @@ export class PartiallySignedTransaction extends NativeLoader {
   }
 
   /**
-   * Return txid as string
+   * Get the transaction ID (txid) of the PSBT.
    * @returns {Promise<string>}
    */
   async txid(): Promise<string> {
     return await this._bdk.txid(this.base64);
   }
 
+  // The following methods are not present in the Swift code provided,
+  // so I'm commenting them out. If they are implemented elsewhere in the native code,
+  // you can uncomment and keep them.
+
+  /*
   /**
    * Return feeAmount
    * @returns {Promise<number>}
    */
+  /*
   async feeAmount(): Promise<number> {
     return await this._bdk.feeAmount(this.base64);
   }
+  */
 
+  /*
   /**
    * Return feeRate
    * @returns {Promise<number>}
    */
+  /*
   async feeRate(): Promise<number> {
     return await this._bdk.psbtFeeRate(this.base64);
   }
+  */
 
+  /*
   /**
    * Return transaction as json
    * @returns {Promise<string>}
    */
+  /*
   async jsonSerialize(): Promise<string> {
     return await this._bdk.jsonSerialize(this.base64);
   }
+  */
 }

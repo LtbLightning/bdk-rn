@@ -6,7 +6,6 @@
 import Foundation
 
 
-
 @objc(BdkRnModule)
 class BdkRnModule: NSObject {
     @objc static func requiresMainQueueSetup() -> Bool {
@@ -33,8 +32,93 @@ class BdkRnModule: NSObject {
             return Network.bitcoin
         }
     }
-    private var _wallets: [String: Wallet] = [:]
-    private var _psbts: [String: Psbt] = [:]
+
+    private func getNetworkString(network: Network) -> String {
+    switch network {
+    case .bitcoin:
+        return "bitcoin"
+    case .testnet:
+        return "testnet"
+    case .regtest:
+        return "regtest"
+    case .signet:
+        return "signet"
+    @unknown default:
+        return "unknown"
+    }
+    }
+
+    private func setKeychainKind(keychainKind: String) -> KeychainKind {
+        switch keychainKind {
+        case "external":
+            return KeychainKind.external
+        case "internal":
+            return KeychainKind.internal
+        default:
+            return KeychainKind.external
+        }
+    }
+
+    private func keychainKindToString(_ keychainKind: KeychainKind) -> String {
+    switch keychainKind {
+    case .external:
+        return "external"
+    case .internal:
+        return "internal"
+    @unknown default:
+        return "unknown"
+        }
+    }
+
+    private func createElectrumError(from description: String) -> ElectrumError {
+        if description.contains("IoError") {
+            return .IoError(errorMessage: description)
+        } else if description.contains("Json") {
+            return .Json(errorMessage: description)
+        } else if description.contains("Hex") {
+            return .Hex(errorMessage: description)
+        } else if description.contains("Protocol") {
+            return .Protocol(errorMessage: description)
+        } else if description.contains("Bitcoin") {
+            return .Bitcoin(errorMessage: description)
+        } else if description.contains("AlreadySubscribed") {
+            return .AlreadySubscribed
+        } else if description.contains("NotSubscribed") {
+            return .NotSubscribed
+        } else if description.contains("InvalidResponse") {
+            return .InvalidResponse(errorMessage: description)
+        } else if description.contains("Message") {
+            return .Message(errorMessage: description)
+        } else if description.contains("InvalidDnsNameError") {
+            let domain = description.components(separatedBy: "domain: ").last ?? ""
+            return .InvalidDnsNameError(domain: domain)
+        } else if description.contains("MissingDomain") {
+            return .MissingDomain
+        } else if description.contains("AllAttemptsErrored") {
+            return .AllAttemptsErrored
+        } else if description.contains("SharedIoError") {
+            return .SharedIoError(errorMessage: description)
+        } else if description.contains("CouldntLockReader") {
+            return .CouldntLockReader
+        } else if description.contains("Mpsc") {
+            return .Mpsc
+        } else if description.contains("CouldNotCreateConnection") {
+            return .CouldNotCreateConnection(errorMessage: description)
+        } else if description.contains("RequestAlreadyConsumed") {
+            return .RequestAlreadyConsumed
+        } else {
+            return .Message(errorMessage: "Unknown Electrum error: \(description)")
+        }
+    }
+
+    
+
+    var _localOutputs: [String: LocalOutput] = [:]
+    var _outPoints: [String: OutPoint] = [:]
+    var _addressInfos: [String: AddressInfo] = [:]
+    var _wallets: [String: Wallet] = [:]
+    var _psbts: [String: Psbt] = [:]
+    var _txOuts: [String: TxOut] = [:]
     var _feeRates: [String: FeeRate] = [:]
     var _updates: [String: Update] = [:]
     var _fullScanRequests: [String: FullScanRequest] = [:]
@@ -53,6 +137,7 @@ class BdkRnModule: NSObject {
     var _derivationPaths: [String: DerivationPath] = [:]
     var _bumpFeeTxBuilders: [String: BumpFeeTxBuilder] = [:]
     var _transactions: [String: Transaction] = [:]
+
 
 
     /** Mnemonic methods starts */
@@ -146,81 +231,6 @@ class BdkRnModule: NSObject {
 
     /** DerivationPath methods ends */
 
-    /** DescriptorPublicKey methods starts */
-
-    @objc
-    func createDescriptorPublicKey(_ publicKey: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        DispatchQueue.global(qos: .userInteractive).async {
-            do {
-                let descriptorPublicKey = try DescriptorPublicKey.fromString(publicKey: publicKey)
-                let id = self.randomId()
-                self._descriptorPublicKeys[id] = descriptorPublicKey
-                DispatchQueue.main.async {
-                    resolve(id)
-                }
-            } catch let error {
-                reject("DescriptorPublicKey error", "\(error)", error)
-            }
-        }
-    }
-
-    @objc
-    func descriptorPublicKeyAsString(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        DispatchQueue.global(qos: .userInteractive).async {
-            guard let descriptorPublicKey = self._descriptorPublicKeys[id] else {
-                reject("DescriptorPublicKey error", "DescriptorPublicKey not found", nil)
-                return
-            }
-            let result = descriptorPublicKey.asString()
-            DispatchQueue.main.async {
-                resolve(result)
-            }
-        }
-    }
-
-    @objc
-    func descriptorPublicKeyDerive(_ id: String, path: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        DispatchQueue.global(qos: .userInteractive).async {
-            guard let descriptorPublicKey = self._descriptorPublicKeys[id] else {
-                reject("DescriptorPublicKey error", "DescriptorPublicKey not found", nil)
-                return
-            }
-            do {
-                let derivationPath = try DerivationPath(path: path)
-                let derivedKey = try descriptorPublicKey.derive(path: derivationPath)
-                let newId = self.randomId()
-                self._descriptorPublicKeys[newId] = derivedKey
-                DispatchQueue.main.async {
-                    resolve(newId)
-                }
-            } catch let error {
-                reject("DescriptorPublicKey derive error", "\(error)", error)
-            }
-        }
-    }
-
-    @objc
-    func descriptorPublicKeyExtend(_ id: String, path: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        DispatchQueue.global(qos: .userInteractive).async {
-            guard let descriptorPublicKey = self._descriptorPublicKeys[id] else {
-                reject("DescriptorPublicKey error", "DescriptorPublicKey not found", nil)
-                return
-            }
-            do {
-                let derivationPath = try DerivationPath(path: path)
-                let extendedKey = try descriptorPublicKey.extend(path: derivationPath)
-                let newId = self.randomId()
-                self._descriptorPublicKeys[newId] = extendedKey
-                DispatchQueue.main.async {
-                    resolve(newId)
-                }
-            } catch let error {
-                reject("DescriptorPublicKey extend error", "\(error)", error)
-            }
-        }
-    }
-
-    /** DescriptorPublicKey methods ends */
 
     /** DescriptorSecretKey methods starts */
 
@@ -484,49 +494,10 @@ class BdkRnModule: NSObject {
     /** DB configuration methods ends*/
 
     /** Wallet methods starts*/
+
     func getWalletById(id: String) -> Wallet {
         return _wallets[id]!
     }
-
-//    @objc
-//    func walletInit(_
-//        descriptor: String,
-//        changeDescriptor: String? = nil,
-//        network: String,
-//        dbConfigID: String,
-//        resolve: @escaping RCTPromiseResolveBlock,
-//        reject: @escaping RCTPromiseRejectBlock
-//    ) {
-//        DispatchQueue.global(qos: .userInteractive).async { [self] in
-//            do {
-//                var changeDes: Descriptor? = nil
-//                if let changeDescriptor = changeDescriptor {
-//                    changeDes = _descriptors[changeDescriptor]
-//                }
-//                let id = randomId()
-//                
-//                // Retrieve the database configuration using the dbConfigID
-//                guard let databaseConfig = getDatabaseConfig(id: dbConfigID) else {
-//                    throw NSError(domain: "WalletInitError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid database configuration ID"])
-//                }
-//                
-//                _wallets[id] = try Wallet(
-//                    descriptor: _descriptors[descriptor] as! Descriptor,
-//                    changeDescriptor: changeDes,
-//                    network: setNetwork(networkStr: network),
-//                    databaseConfig: databaseConfig
-//                )
-//                DispatchQueue.main.async {
-//                    resolve(id)
-//                }
-//            } catch let error {
-//                DispatchQueue.main.async {
-//                    reject("Init wallet error", "\(error)", error)
-//                }
-//            }
-//        }
-//    }
-
 
     @objc
     func getAddress(_
@@ -600,32 +571,6 @@ class BdkRnModule: NSObject {
         }
     }
 
-    @objc
-    func getBalance(_
-        id: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            do {
-                let balance = getWalletById(id: id).getBalance()
-                let responseBalance = [
-                    "trustedPending": balance.trustedPending,
-                    "untrustedPending": balance.untrustedPending,
-                    "confirmed": balance.confirmed,
-                    "total": balance.total
-                ] as [String: Any]
-                DispatchQueue.main.async {
-                    resolve(responseBalance)
-                }
-            } catch let error {
-                DispatchQueue.main.async {
-                    reject("Get wallet balance error", "\(error)", error)
-                }
-            }
-        }
-    }
-
 
     @objc
     func getNetwork(_
@@ -667,69 +612,158 @@ class BdkRnModule: NSObject {
         }
     }
 
-//    @objc
-//    func listTransactions(_
-//        id: String,
-//        includeRaw: Bool,
-//        resolve: @escaping RCTPromiseResolveBlock,
-//        reject: @escaping RCTPromiseRejectBlock
-//    ) {
-//        DispatchQueue.global(qos: .userInteractive).async { [self] in
-//            do {
-//                let transactions = getWalletById(id: id).transactions()
-//                var responseObject: [Any] = []
-//                for tx in transactions {
-//                    var txObject = getTransactionObject(transaction: tx)
-//                    if includeRaw, let transaction = tx.transaction {
-//                        let randomId = randomId()
-//                        _transactions[randomId] = transaction
-//                        txObject["transaction"] = randomId
-//                    } else {
-//                        txObject["transaction"] = false
-//                    }
-//                    responseObject.append(txObject)
-//                }
-//                DispatchQueue.main.async {
-//                    resolve(responseObject)
-//                }
-//            } catch let error {
-//                DispatchQueue.main.async {
-//                    reject("List transactions error", "\(error)", error)
-//                }
-//            }
-//        }
-//    }
-
-//    @objc
-//    func sign(_
-//        id: String,
-//        psbtBase64: String,
-//        signOptions: Any? = nil,
-//        resolve: @escaping RCTPromiseResolveBlock,
-//        reject: @escaping RCTPromiseRejectBlock
-//    ) {
-//        DispatchQueue.global(qos: .userInteractive).async {
-//            do {
-//                var options: [String: Any]? = nil
-//                if let signOpts = signOptions as? NSDictionary {
-//                    options = createSignOptions(options: signOpts)
-//                }
-//                
-//                let psbt = try Psbt(psbtBase64: psbtBase64)
-//                _ = try self.getWalletById(id: id).sign(psbt: psbt, signOptions: options)
-//                DispatchQueue.main.async {
-//                    resolve(psbt.serialize())
-//                }
-//            } catch let error {
-//                DispatchQueue.main.async {
-//                    reject("Sign PSBT error", "\(error)", error)
-//                }
-//            }
-//        }
-//    }
-
-
     /** Wallet methods ends*/
+
+    /** Balance methods starts*/
+    @objc
+    func getBalance(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.global(qos: .userInteractive).async { [self] in
+            do {
+                let balance = getWalletById(id: id).getBalance()
+                let responseBalance = [
+                    "immature": balance.immature.toSat(),
+                    "trustedPending": balance.trustedPending.toSat(),
+                    "untrustedPending": balance.untrustedPending.toSat(),
+                    "confirmed": balance.confirmed.toSat(),
+                    "trustedSpendable": balance.trustedSpendable.toSat(),
+                    "total": balance.total.toSat()
+                ] as [String: UInt64]
+                DispatchQueue.main.async {
+                    resolve(responseBalance)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Get wallet balance error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    @objc
+    func getBalanceImmature(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.global(qos: .userInteractive).async { [self] in
+            do {
+                let balance = getWalletById(id: id).getBalance()
+                DispatchQueue.main.async {
+                    resolve(balance.immature.toSat())
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Get wallet immature balance error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    @objc
+    func getBalanceTrustedPending(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.global(qos: .userInteractive).async { [self] in
+            do {
+                let balance = getWalletById(id: id).getBalance()
+                DispatchQueue.main.async {
+                    resolve(balance.trustedPending.toSat())
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Get wallet trusted pending balance error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    @objc
+    func getBalanceUntrustedPending(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.global(qos: .userInteractive).async { [self] in
+            do {
+                let balance = getWalletById(id: id).getBalance()
+                DispatchQueue.main.async {
+                    resolve(balance.untrustedPending.toSat())
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Get wallet untrusted pending balance error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    @objc
+    func getBalanceConfirmed(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.global(qos: .userInteractive).async { [self] in
+            do {
+                let balance = getWalletById(id: id).getBalance()
+                DispatchQueue.main.async {
+                    resolve(balance.confirmed.toSat())
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Get wallet confirmed balance error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    @objc
+    func getBalanceTrustedSpendable(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.global(qos: .userInteractive).async { [self] in
+            do {
+                let balance = getWalletById(id: id).getBalance()
+                DispatchQueue.main.async {
+                    resolve(balance.trustedSpendable.toSat())
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Get wallet trusted spendable balance error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    @objc
+    func getBalanceTotal(_
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.global(qos: .userInteractive).async { [self] in
+            do {
+                let balance = getWalletById(id: id).getBalance()
+                DispatchQueue.main.async {
+                    resolve(balance.total.toSat())
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Get wallet total balance error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    /** Balance methods ends*/
 
     /** Address methods starts*/
 
@@ -1113,6 +1147,82 @@ class BdkRnModule: NSObject {
             }
         }
     }
+
+    /** LocalOutput methods starts */
+
+    @objc
+    func getLocalOutputOutpoint(
+        _ id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let localOutput = self._localOutputs[id] else {
+                reject("Invalid LocalOutput", "LocalOutput not found", nil)
+                return
+            }
+            let outpointId = self.randomId()
+            self._outPoints[outpointId] = localOutput.outpoint
+            DispatchQueue.main.async {
+                resolve(outpointId)
+            }
+        }
+    }
+
+    @objc
+    func getLocalOutputTxout(
+        _ id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let localOutput = self._localOutputs[id] else {
+                reject("Invalid LocalOutput", "LocalOutput not found", nil)
+                return
+            }
+            let txoutId = self.randomId()
+            self._txOuts[txoutId] = localOutput.txout
+            DispatchQueue.main.async {
+                resolve(txoutId)
+            }
+        }
+    }
+
+    @objc
+    func getLocalOutputKeychain(
+        _ id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let localOutput = self._localOutputs[id] else {
+                reject("Invalid LocalOutput", "LocalOutput not found", nil)
+                return
+            }
+            DispatchQueue.main.async {
+                resolve(self.keychainKindToString(localOutput.keychain))
+            }
+        }
+    }
+
+    @objc
+    func isLocalOutputSpent(
+        _ id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let localOutput = self._localOutputs[id] else {
+                reject("Invalid LocalOutput", "LocalOutput not found", nil)
+                return
+            }
+            DispatchQueue.main.async {
+                resolve(localOutput.isSpent)
+            }
+        }
+    }
+
+    /** LocalOutput methods ends */
 
     /** FeeRate methods starts */
 
@@ -1606,6 +1716,84 @@ class BdkRnModule: NSObject {
 
     /** Psbt method ends */
 
+    /** AddressInfo methods starts */
+
+    @objc
+    func createAddressInfo(_ index: NSNumber, addressId: String, keychain: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async { [self] in
+            do {
+                guard let address = _addresses[addressId] else {
+                    throw NSError(domain: "AddressInfoError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Address not found"])
+                }
+                
+                let keychainKind = setKeychainKind(keychainKind: keychain)
+                let addressInfo = AddressInfo(index: UInt32(truncating: index), address: address, keychain: keychainKind)
+                let id = randomId()
+                _addressInfos[id] = addressInfo
+                
+                DispatchQueue.main.async {
+                    resolve(id)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("CreateAddressInfo error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    @objc
+    func getAddressInfoIndex(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async { [self] in
+            guard let addressInfo = _addressInfos[id] else {
+                DispatchQueue.main.async {
+                    reject("GetAddressInfoIndex error", "AddressInfo not found", nil)
+                }
+                return
+            }
+            
+            DispatchQueue.main.async {
+                resolve(addressInfo.index)
+            }
+        }
+    }
+
+    @objc
+    func getAddressInfoAddress(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async { [self] in
+            guard let addressInfo = _addressInfos[id] else {
+                DispatchQueue.main.async {
+                    reject("GetAddressInfoAddress error", "AddressInfo not found", nil)
+                }
+                return
+            }
+            
+            let addressId = randomId()
+            _addresses[addressId] = addressInfo.address
+            
+            DispatchQueue.main.async {
+                resolve(addressId)
+            }
+        }
+    }
+
+    @objc
+    func getAddressInfoKeychain(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async { [self] in
+            guard let addressInfo = _addressInfos[id] else {
+                DispatchQueue.main.async {
+                    reject("GetAddressInfoKeychain error", "AddressInfo not found", nil)
+                }
+                return
+            }
+            
+            DispatchQueue.main.async {
+                resolve(keychainKindToString(addressInfo.keychain))
+            }
+        }
+    }
+
+    /** AddressInfo methods ends */
 
 
 
@@ -1801,277 +1989,625 @@ class BdkRnModule: NSObject {
 
     /** ElectrumClient methods starts */
 
-@objc
-func createElectrumClient(_ url: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-    DispatchQueue.global(qos: .userInteractive).async {
-        do {
-            let client = try ElectrumClient(url: url)
-            let id = self.randomId()
-            self._blockChains[id] = client
-            DispatchQueue.main.async {
-                resolve(id)
+    @objc
+    func createElectrumClient(_ url: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                let client = try ElectrumClient(url: url)
+                let id = self.randomId()
+                self._blockChains[id] = client
+                DispatchQueue.main.async {
+                    resolve(id)
+                }
+            } catch let error {
+                reject("ElectrumClient creation error", "\(error)", error)
             }
-        } catch let error {
-            reject("ElectrumClient creation error", "\(error)", error)
         }
     }
-}
 
-@objc
-func electrumClientBroadcast(_ clientId: String, transactionId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-    DispatchQueue.global(qos: .userInteractive).async {
-        guard let client = self._blockChains[clientId] as? ElectrumClient,
-              let transaction = self._transactions[transactionId] else {
-            reject("Invalid client or transaction", "ElectrumClient or Transaction not found", nil)
-            return
-        }
-        
-        do {
-            let txid = try client.broadcast(transaction: transaction)
-            DispatchQueue.main.async {
-                resolve(txid)
+    @objc
+    func electrumClientBroadcast(_ clientId: String, transactionId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let client = self._blockChains[clientId] as? ElectrumClient,
+                let transaction = self._transactions[transactionId] else {
+                reject("Invalid client or transaction", "ElectrumClient or Transaction not found", nil)
+                return
             }
-        } catch let error {
-            reject("Broadcast error", "\(error)", error)
+            
+            do {
+                let txid = try client.broadcast(transaction: transaction)
+                DispatchQueue.main.async {
+                    resolve(txid)
+                }
+            } catch let error {
+                reject("Broadcast error", "\(error)", error)
+            }
         }
     }
-}
 
-@objc
-func electrumClientFullScan(_ clientId: String, fullScanRequestId: String, stopGap: NSNumber, batchSize: NSNumber, fetchPrevTxouts: Bool, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-    DispatchQueue.global(qos: .userInteractive).async(execute: DispatchWorkItem(block: {
-        guard let client = self._blockChains[clientId] as? ElectrumClient,
-              let fullScanRequest = self._fullScanRequests[fullScanRequestId] else {
-            DispatchQueue.main.async {
-                reject("Invalid client or fullScanRequest", "ElectrumClient or FullScanRequest not found", nil)
+    @objc
+    func electrumClientFullScan(_ clientId: String, fullScanRequestId: String, stopGap: NSNumber, batchSize: NSNumber, fetchPrevTxouts: Bool, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async(execute: DispatchWorkItem(block: {
+            guard let client = self._blockChains[clientId] as? ElectrumClient,
+                let fullScanRequest = self._fullScanRequests[fullScanRequestId] else {
+                DispatchQueue.main.async {
+                    reject("Invalid client or fullScanRequest", "ElectrumClient or FullScanRequest not found", nil)
+                }
+                return
             }
-            return
+            
+            do {
+                let update = try client.fullScan(fullScanRequest: fullScanRequest, stopGap: UInt64(truncating: stopGap), batchSize: UInt64(truncating: batchSize), fetchPrevTxouts: fetchPrevTxouts)
+                let updateId = self.randomId()
+                self._updates[updateId] = update
+                DispatchQueue.main.async {
+                    resolve(updateId)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Full scan error", "\(error)", error)
+                }
+            }
+        }))
+    }
+
+    @objc
+    func electrumClientSync(_ clientId: String, syncRequestId: String, batchSize: NSNumber, fetchPrevTxouts: Bool, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async(execute: DispatchWorkItem(block: {
+            guard let client = self._blockChains[clientId] as? ElectrumClient,
+                let syncRequest = self._syncRequests[syncRequestId] else {
+                DispatchQueue.main.async {
+                    reject("Invalid client or syncRequest", "ElectrumClient or SyncRequest not found", nil)
+                }
+                return
+            }
+            
+            do {
+                let update = try client.sync(syncRequest: syncRequest, batchSize: UInt64(truncating: batchSize), fetchPrevTxouts: fetchPrevTxouts)
+                let updateId = self.randomId()
+                self._updates[updateId] = update
+                DispatchQueue.main.async {
+                    resolve(updateId)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Sync error", "\(error)", error)
+                }
+            }
+        }))
+    }
+
+    /** ElectrumClient methods ends */
+
+    /** EsploraClient methods starts */
+
+    @objc
+    func createEsploraClient(_ url: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                let esploraClient = EsploraClient(url: url)
+                let id = self.randomId()
+                self._blockChains[id] = esploraClient
+                DispatchQueue.main.async {
+                    resolve(id)
+                }
+            } catch let error {
+                reject("EsploraClient error", "\(error)", error)
+            }
         }
-        
-        do {
-            let update = try client.fullScan(fullScanRequest: fullScanRequest, stopGap: UInt64(truncating: stopGap), batchSize: UInt64(truncating: batchSize), fetchPrevTxouts: fetchPrevTxouts)
-            let updateId = self.randomId()
-            self._updates[updateId] = update
-            DispatchQueue.main.async {
-                resolve(updateId)
+    }
+
+    @objc
+    func esploraClientBroadcast(_ id: String, txid: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let esploraClient = self._blockChains[id] as? EsploraClient else {
+                reject("EsploraClient error", "EsploraClient not found", nil)
+                return
             }
-        } catch let error {
-            DispatchQueue.main.async {
+            guard let transaction = self._transactions[txid] else {
+                reject("Transaction error", "Transaction not found", nil)
+                return
+            }
+            do {
+                try esploraClient.broadcast(transaction: transaction)
+                DispatchQueue.main.async {
+                    resolve(nil)
+                }
+            } catch let error {
+                reject("Broadcast error", "\(error)", error)
+            }
+        }
+    }
+
+    @objc
+    func esploraClientFullScan(_ id: String, fullScanRequestId: String, stopGap: NSNumber, parallelRequests: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let esploraClient = self._blockChains[id] as? EsploraClient else {
+                reject("EsploraClient error", "EsploraClient not found", nil)
+                return
+            }
+            guard let fullScanRequest = self._fullScanRequests[fullScanRequestId] else {
+                reject("FullScanRequest error", "FullScanRequest not found", nil)
+                return
+            }
+            do {
+                let update = try esploraClient.fullScan(fullScanRequest: fullScanRequest, stopGap: stopGap.uint64Value, parallelRequests: parallelRequests.uint64Value)
+                let updateId = self.randomId()
+                self._updates[updateId] = update
+                DispatchQueue.main.async {
+                    resolve(updateId)
+                }
+            } catch let error {
                 reject("Full scan error", "\(error)", error)
             }
         }
-    }))
-}
+    }
 
-@objc
-func electrumClientSync(_ clientId: String, syncRequestId: String, batchSize: NSNumber, fetchPrevTxouts: Bool, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-    DispatchQueue.global(qos: .userInteractive).async(execute: DispatchWorkItem(block: {
-        guard let client = self._blockChains[clientId] as? ElectrumClient,
-              let syncRequest = self._syncRequests[syncRequestId] else {
-            DispatchQueue.main.async {
-                reject("Invalid client or syncRequest", "ElectrumClient or SyncRequest not found", nil)
+    @objc
+    func esploraClientSync(_ id: String, syncRequestId: String, parallelRequests: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let esploraClient = self._blockChains[id] as? EsploraClient else {
+                reject("EsploraClient error", "EsploraClient not found", nil)
+                return
             }
-            return
-        }
-        
-        do {
-            let update = try client.sync(syncRequest: syncRequest, batchSize: UInt64(truncating: batchSize), fetchPrevTxouts: fetchPrevTxouts)
-            let updateId = self.randomId()
-            self._updates[updateId] = update
-            DispatchQueue.main.async {
-                resolve(updateId)
+            guard let syncRequest = self._syncRequests[syncRequestId] else {
+                reject("SyncRequest error", "SyncRequest not found", nil)
+                return
             }
-        } catch let error {
-            DispatchQueue.main.async {
+            do {
+                let update = try esploraClient.sync(syncRequest: syncRequest, parallelRequests: parallelRequests.uint64Value)
+                let updateId = self.randomId()
+                self._updates[updateId] = update
+                DispatchQueue.main.async {
+                    resolve(updateId)
+                }
+            } catch let error {
                 reject("Sync error", "\(error)", error)
             }
         }
-    }))
-}
+    }
 
-/** ElectrumClient methods ends */
+    /** EsploraClient methods ends */
 
-/** EsploraClient methods starts */
+    /** SyncRequest methods starts */
 
-@objc
-func createEsploraClient(_ url: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-    DispatchQueue.global(qos: .userInteractive).async {
-        do {
-            let esploraClient = EsploraClient(url: url)
-            let id = self.randomId()
-            self._blockChains[id] = esploraClient
-            DispatchQueue.main.async {
-                resolve(id)
+    @objc
+    func createSyncRequest(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let wallet = self._wallets[walletId] else {
+                DispatchQueue.main.async {
+                    reject("Invalid wallet", "Wallet not found", nil)
+                }
+                return
             }
-        } catch let error {
-            reject("EsploraClient error", "\(error)", error)
+            
+            do {
+                let syncRequest = wallet.startSyncWithRevealedSpks()
+                let id = self.randomId()
+                self._syncRequests[id] = syncRequest
+                DispatchQueue.main.async {
+                    resolve(id)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("SyncRequest creation error", "\(error)", error)
+                }
+            }
         }
     }
-}
 
-@objc
-func esploraClientBroadcast(_ id: String, txid: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-    DispatchQueue.global(qos: .userInteractive).async {
-        guard let esploraClient = self._blockChains[id] as? EsploraClient else {
-            reject("EsploraClient error", "EsploraClient not found", nil)
-            return
-        }
-        guard let transaction = self._transactions[txid] else {
-            reject("Transaction error", "Transaction not found", nil)
-            return
-        }
-        do {
-            try esploraClient.broadcast(transaction: transaction)
+    @objc
+    func freeSyncRequest(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            self._syncRequests.removeValue(forKey: id)
             DispatchQueue.main.async {
                 resolve(nil)
             }
-        } catch let error {
-            reject("Broadcast error", "\(error)", error)
         }
     }
-}
 
-@objc
-func esploraClientFullScan(_ id: String, fullScanRequestId: String, stopGap: NSNumber, parallelRequests: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-    DispatchQueue.global(qos: .userInteractive).async {
-        guard let esploraClient = self._blockChains[id] as? EsploraClient else {
-            reject("EsploraClient error", "EsploraClient not found", nil)
-            return
-        }
-        guard let fullScanRequest = self._fullScanRequests[fullScanRequestId] else {
-            reject("FullScanRequest error", "FullScanRequest not found", nil)
-            return
-        }
-        do {
-            let update = try esploraClient.fullScan(fullScanRequest: fullScanRequest, stopGap: stopGap.uint64Value, parallelRequests: parallelRequests.uint64Value)
-            let updateId = self.randomId()
-            self._updates[updateId] = update
-            DispatchQueue.main.async {
-                resolve(updateId)
+    /** SyncRequest methods ends */
+
+    /** Wallet sync methods starts */
+
+    @objc
+    func walletSync(_ walletId: String, syncRequestId: String, blockchainId: String, batchSize: NSNumber, fetchPrevTxouts: Bool, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let wallet = self._wallets[walletId],
+                let syncRequest = self._syncRequests[syncRequestId],
+                let blockchain = self._blockChains[blockchainId] else {
+                reject("Invalid parameters", "Wallet, SyncRequest, or Blockchain not found", nil)
+                return
             }
-        } catch let error {
-            reject("Full scan error", "\(error)", error)
-        }
-    }
-}
-
-@objc
-func esploraClientSync(_ id: String, syncRequestId: String, parallelRequests: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-    DispatchQueue.global(qos: .userInteractive).async {
-        guard let esploraClient = self._blockChains[id] as? EsploraClient else {
-            reject("EsploraClient error", "EsploraClient not found", nil)
-            return
-        }
-        guard let syncRequest = self._syncRequests[syncRequestId] else {
-            reject("SyncRequest error", "SyncRequest not found", nil)
-            return
-        }
-        do {
-            let update = try esploraClient.sync(syncRequest: syncRequest, parallelRequests: parallelRequests.uint64Value)
-            let updateId = self.randomId()
-            self._updates[updateId] = update
-            DispatchQueue.main.async {
-                resolve(updateId)
+            
+            do {
+                let update: Update
+                if let electrumClient = blockchain as? ElectrumClient {
+                    update = try electrumClient.sync(syncRequest: syncRequest, batchSize: UInt64(truncating: batchSize), fetchPrevTxouts: fetchPrevTxouts)
+                } else if let esploraClient = blockchain as? EsploraClient {
+                    update = try esploraClient.sync(syncRequest: syncRequest, parallelRequests: UInt64(truncating: batchSize))
+                } else {
+                    throw NSError(domain: "BdkRnModule", code: 0, userInfo: [NSLocalizedDescriptionKey: "Unsupported blockchain type"])
+                }
+                
+                try wallet.applyUpdate(update: update)
+                DispatchQueue.main.async {
+                    resolve(nil)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Sync error", "\(error)", error)
+                }
             }
-        } catch let error {
-            reject("Sync error", "\(error)", error)
         }
     }
-}
 
-/** EsploraClient methods ends */
-
-/** SyncRequest methods starts */
-
-@objc
-func createSyncRequest(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-    DispatchQueue.global(qos: .userInteractive).async {
-        guard let wallet = self._wallets[walletId] else {
-            DispatchQueue.main.async {
+    @objc
+    func walletStartSyncWithRevealedSpks(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let wallet = self._wallets[walletId] else {
                 reject("Invalid wallet", "Wallet not found", nil)
+                return
             }
-            return
-        }
-        
-        do {
+            
             let syncRequest = wallet.startSyncWithRevealedSpks()
             let id = self.randomId()
             self._syncRequests[id] = syncRequest
             DispatchQueue.main.async {
                 resolve(id)
             }
-        } catch let error {
-            DispatchQueue.main.async {
-                reject("SyncRequest creation error", "\(error)", error)
+        }
+    }
+
+    /** Wallet sync methods ends */
+
+    /** Wallet Protocol Methods starts */
+
+    @objc
+    func walletApplyUpdate(_ walletId: String, updateId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                guard let wallet = self._wallets[walletId], let update = self._updates[updateId] else {
+                    throw NSError(domain: "BdkRnModule", code: 0, userInfo: [NSLocalizedDescriptionKey: "Wallet or Update not found"])
+                }
+                try wallet.applyUpdate(update: update)
+                DispatchQueue.main.async {
+                    resolve(nil)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Apply update error", "\(error)", error)
+                }
             }
         }
     }
-}
 
-@objc
-func freeSyncRequest(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-    DispatchQueue.global(qos: .userInteractive).async {
-        self._syncRequests.removeValue(forKey: id)
-        DispatchQueue.main.async {
-            resolve(nil)
+    @objc
+    func walletCalculateFee(_ walletId: String, txId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                guard let wallet = self._wallets[walletId], let tx = self._transactions[txId] else {
+                    throw NSError(domain: "BdkRnModule", code: 0, userInfo: [NSLocalizedDescriptionKey: "Wallet or Transaction not found"])
+                }
+                let fee = try wallet.calculateFee(tx: tx)
+                DispatchQueue.main.async {
+                    resolve(fee)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Calculate fee error", "\(error)", error)
+                }
+            }
         }
     }
-}
 
-/** SyncRequest methods ends */
-
-/** Wallet sync methods starts */
-
-@objc
-func walletSync(_ walletId: String, syncRequestId: String, blockchainId: String, batchSize: NSNumber, fetchPrevTxouts: Bool, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-    DispatchQueue.global(qos: .userInteractive).async {
-        guard let wallet = self._wallets[walletId],
-              let syncRequest = self._syncRequests[syncRequestId],
-              let blockchain = self._blockChains[blockchainId] else {
-            reject("Invalid parameters", "Wallet, SyncRequest, or Blockchain not found", nil)
-            return
+    @objc
+    func walletCalculateFeeRate(_ walletId: String, txId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                guard let wallet = self._wallets[walletId], let tx = self._transactions[txId] else {
+                    throw NSError(domain: "BdkRnModule", code: 0, userInfo: [NSLocalizedDescriptionKey: "Wallet or Transaction not found"])
+                }
+                let feeRate = try wallet.calculateFeeRate(tx: tx)
+                let feeRateId = self.randomId()
+                self._feeRates[feeRateId] = feeRate
+                DispatchQueue.main.async {
+                    resolve(feeRateId)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Calculate fee rate error", "\(error)", error)
+                }
+            }
         }
-        
-        do {
-            let update: Update
-            if let electrumClient = blockchain as? ElectrumClient {
-                update = try electrumClient.sync(syncRequest: syncRequest, batchSize: UInt64(truncating: batchSize), fetchPrevTxouts: fetchPrevTxouts)
-            } else if let esploraClient = blockchain as? EsploraClient {
-                update = try esploraClient.sync(syncRequest: syncRequest, parallelRequests: UInt64(truncating: batchSize))
-            } else {
-                throw NSError(domain: "BdkRnModule", code: 0, userInfo: [NSLocalizedDescriptionKey: "Unsupported blockchain type"])
+    }
+
+    @objc
+    func walletCommit(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                guard let wallet = self._wallets[walletId] else {
+                    throw NSError(domain: "BdkRnModule", code: 0, userInfo: [NSLocalizedDescriptionKey: "Wallet not found"])
+                }
+                let result = try wallet.commit()
+                DispatchQueue.main.async {
+                    resolve(result)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Commit error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    @objc
+    func walletGetBalance(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let wallet = self._wallets[walletId] else {
+                DispatchQueue.main.async {
+                    reject("Invalid wallet", "Wallet not found", nil)
+                }
+                return
             }
             
-            try wallet.applyUpdate(update: update)
+            let balance = wallet.getBalance()
+            let result: [String: UInt64] = [
+                "immature": balance.immature.toSat(),
+                "trustedPending": balance.trustedPending.toSat(),
+                "untrustedPending": balance.untrustedPending.toSat(),
+                "confirmed": balance.confirmed.toSat(),
+                "trustedSpendable": balance.trustedSpendable.toSat(),
+                "total": balance.total.toSat()
+            ]
             DispatchQueue.main.async {
-                resolve(nil)
-            }
-        } catch let error {
-            DispatchQueue.main.async {
-                reject("Sync error", "\(error)", error)
+                resolve(result)
             }
         }
     }
-}
 
-@objc
-func walletStartSyncWithRevealedSpks(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-    DispatchQueue.global(qos: .userInteractive).async {
-        guard let wallet = self._wallets[walletId] else {
-            reject("Invalid wallet", "Wallet not found", nil)
-            return
-        }
-        
-        let syncRequest = wallet.startSyncWithRevealedSpks()
-        let id = self.randomId()
-        self._syncRequests[id] = syncRequest
-        DispatchQueue.main.async {
-            resolve(id)
+    @objc
+    func walletGetTx(_ walletId: String, txid: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                guard let wallet = self._wallets[walletId] else {
+                    throw NSError(domain: "BdkRnModule", code: 0, userInfo: [NSLocalizedDescriptionKey: "Wallet not found"])
+                }
+                if let tx = try wallet.getTx(txid: txid) {
+                    let txId = self.randomId()
+                    self._transactions[txId] = tx.transaction
+                    let result: [String: Any] = [
+                        "txid": tx.transaction.txid(),
+                        "received": tx.transaction.output().reduce(0) { $0 + $1.value },
+                        "sent": 0, // We can't determine this without more context
+                        "fee": 0, // We can't determine this without more context
+                        "confirmationTime": NSNull(), // We don't have this information from just the transaction
+                        "transaction": txId
+                    ]
+                    DispatchQueue.main.async {
+                        resolve(result)
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        resolve(nil)
+                    }
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Get transaction error", "\(error)", error)
+                }
+            }
         }
     }
-}
 
-/** Wallet sync methods ends */
+    @objc
+    func walletIsMine(_ walletId: String, scriptId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let wallet = self._wallets[walletId], let script = self._scripts[scriptId] else {
+                DispatchQueue.main.async {
+                    reject("Invalid wallet or script", "Wallet or Script not found", nil)
+                }
+                return
+            }
+            
+            let result = wallet.isMine(script: script)
+            DispatchQueue.main.async {
+                resolve(result)
+            }
+        }
+    }
+
+    @objc
+    func walletListOutput(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let wallet = self._wallets[walletId] else {
+                DispatchQueue.main.async {
+                    reject("Invalid wallet", "Wallet not found", nil)
+                }
+                return
+            }
+            
+            let outputs = wallet.listOutput()
+            let result = outputs.map { output -> [String: Any] in
+                let txoutId = self.randomId()
+                self._txOuts[txoutId] = output.txout
+                return [
+                    "outpoint": [
+                        "txid": output.outpoint.txid,
+                        "vout": output.outpoint.vout
+                    ],
+                    "txout": txoutId,
+                    "isSpent": output.isSpent,
+                    "keychain": self.keychainKindToString(output.keychain)
+                ]
+            }
+            DispatchQueue.main.async {
+                resolve(result)
+            }
+        }
+    }
+
+    @objc
+    func walletListUnspent(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let wallet = self._wallets[walletId] else {
+                DispatchQueue.main.async {
+                    reject("Invalid wallet", "Wallet not found", nil)
+                }
+                return
+            }
+            
+            let unspentOutputs = wallet.listUnspent()
+            let result = unspentOutputs.map { output -> [String: Any] in
+                let txoutId = self.randomId()
+                self._txOuts[txoutId] = output.txout
+                return [
+                    "outpoint": [
+                        "txid": output.outpoint.txid,
+                        "vout": output.outpoint.vout
+                    ],
+                    "txout": txoutId,
+                    "isSpent": output.isSpent,
+                    "keychain": self.keychainKindToString(output.keychain)
+                ]
+            }
+            DispatchQueue.main.async {
+                resolve(result)
+            }
+        }
+    }
+
+    @objc
+    func walletNetwork(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let wallet = self._wallets[walletId] else {
+                DispatchQueue.main.async {
+                    reject("Invalid wallet", "Wallet not found", nil)
+                }
+                return
+            }
+            
+            let network = wallet.network()
+            DispatchQueue.main.async {
+                resolve(self.getNetworkString(network: network))
+            }
+        }
+    }
+
+    @objc
+    func walletRevealNextAddress(_ walletId: String, keychain: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                guard let wallet = self._wallets[walletId] else {
+                    throw NSError(domain: "BdkRnModule", code: 0, userInfo: [NSLocalizedDescriptionKey: "Wallet not found"])
+                }
+                let keychainKind = self.setKeychainKind(keychainKind: keychain)
+                let addressInfo = try wallet.revealNextAddress(keychain: keychainKind)
+                let result: [String: Any] = [
+                    "index": addressInfo.index,
+                    "address": addressInfo.address.asString(),
+                    "keychain": self.keychainKindToString(addressInfo.keychain)
+                ]
+                DispatchQueue.main.async {
+                    resolve(result)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Reveal next address error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    @objc
+    func walletSentAndReceived(_ walletId: String, txId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let wallet = self._wallets[walletId], let tx = self._transactions[txId] else {
+                DispatchQueue.main.async {
+                    reject("Invalid wallet or transaction", "Wallet or Transaction not found", nil)
+                }
+                return
+            }
+            
+            let values = wallet.sentAndReceived(tx: tx)
+            let result: [String: UInt64] = [
+                "sent": values.sent.toSat(),
+                "received": values.received.toSat()
+            ]
+            DispatchQueue.main.async {
+                resolve(result)
+            }
+        }
+    }
+
+    @objc
+    func walletSign(_ walletId: String, psbtId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                guard let wallet = self._wallets[walletId], let psbt = self._psbts[psbtId] else {
+                    throw NSError(domain: "BdkRnModule", code: 0, userInfo: [NSLocalizedDescriptionKey: "Wallet or PSBT not found"])
+                }
+                let finalized = try wallet.sign(psbt: psbt)
+                DispatchQueue.main.async {
+                    resolve(finalized)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Sign error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    @objc
+    func walletStartFullScan(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let wallet = self._wallets[walletId] else {
+                DispatchQueue.main.async {
+                    reject("Invalid wallet", "Wallet not found", nil)
+                }
+                return
+            }
+            
+            let fullScanRequest = wallet.startFullScan()
+            let id = self.randomId()
+            self._fullScanRequests[id] = fullScanRequest
+            DispatchQueue.main.async {
+                resolve(id)
+            }
+        }
+    }
+
+    @objc
+    func walletTransactions(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let wallet = self._wallets[walletId] else {
+                DispatchQueue.main.async {
+                    reject("Invalid wallet", "Wallet not found", nil)
+                }
+                return
+            }
+            
+            let transactions = wallet.transactions()
+            let result = transactions.map { tx -> [String: Any] in
+                let txId = self.randomId()
+                self._transactions[txId] = tx.transaction
+                return [
+                    "txid": tx.transaction.txid(),
+                    "received": tx.transaction.output().reduce(0) { $0 + $1.value },
+                    "sent": 0, // We can't determine this without more context
+                    "fee": 0, // We can't determine this without more context
+                    "confirmationTime": NSNull(), // We don't have this information from just the transaction
+                    "transaction": txId
+                ]
+            }
+            DispatchQueue.main.async {
+                resolve(result)
+            }
+        }
+    }
+
+    /** Wallet Protocol Methods ends */
 
     
     @objc
@@ -2128,39 +2664,123 @@ func walletStartSyncWithRevealedSpks(_ walletId: String, resolve: @escaping RCTP
     
 
     
-/** Script methods starts */
+    /** Script methods starts */
 
-@objc
-func createScript(_ rawOutputScript: [UInt8], resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-    DispatchQueue.global(qos: .userInteractive).async {
-        do {
-            let script = Script(rawOutputScript: rawOutputScript)
-            let id = self.randomId()
-            self._scripts[id] = script
-            DispatchQueue.main.async {
-                resolve(id)
+    @objc
+    func createScript(_ rawOutputScript: [UInt8], resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                let script = Script(rawOutputScript: rawOutputScript)
+                let id = self.randomId()
+                self._scripts[id] = script
+                DispatchQueue.main.async {
+                    resolve(id)
+                }
+            } catch let error {
+                reject("Script creation error", "\(error)", error)
             }
-        } catch let error {
-            reject("Script creation error", "\(error)", error)
         }
     }
-}
 
-@objc
-func scriptToBytes(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-    DispatchQueue.global(qos: .userInteractive).async {
-        guard let script = self._scripts[id] else {
-            reject("Invalid script", "Script not found", nil)
-            return
-        }
-        
-        let bytes = script.toBytes()
-        DispatchQueue.main.async {
-            resolve(bytes)
+    @objc
+    func scriptToBytes(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let script = self._scripts[id] else {
+                reject("Invalid script", "Script not found", nil)
+                return
+            }
+            
+            let bytes = script.toBytes()
+            DispatchQueue.main.async {
+                resolve(bytes)
+            }
         }
     }
-}
 
-/** Script methods ends */
+    /** Script methods ends */
+
+    /** ChangeSpendPolicy methods starts */
+    @objc
+    func createChainPosition(_ position: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                let chainPosition: ChainPosition
+                
+                if let height = position["height"] as? NSNumber,
+                let timestamp = position["timestamp"] as? NSNumber {
+                    chainPosition = .confirmed(height: UInt32(truncating: height), timestamp: UInt64(truncating: timestamp))
+                } else if let timestamp = position["timestamp"] as? NSNumber {
+                    chainPosition = .unconfirmed(timestamp: UInt64(truncating: timestamp))
+                } else {
+                    throw NSError(domain: "ChainPositionError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid chain position data"])
+                }
+                
+                let id = self.randomId()
+                // Store the chainPosition in a dictionary if needed for later use
+                // self._chainPositions[id] = chainPosition
+                
+                DispatchQueue.main.async {
+                    resolve(id)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("ChainPosition error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    @objc
+    func getChainPositionType(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            // Retrieve the chainPosition from the dictionary if you stored it
+            // guard let chainPosition = self._chainPositions[id] else {
+            //     reject("ChainPosition error", "ChainPosition not found", nil)
+            //     return
+            // }
+            
+            // For demonstration, we'll use a mock chainPosition
+            let mockChainPosition: ChainPosition = .confirmed(height: 100, timestamp: 1234567890)
+            
+            let type: String
+            switch mockChainPosition {
+            case .confirmed:
+                type = "confirmed"
+            case .unconfirmed:
+                type = "unconfirmed"
+            }
+            
+            DispatchQueue.main.async {
+                resolve(type)
+            }
+        }
+    }
+
+    @objc
+    func getChainPositionData(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            // Retrieve the chainPosition from the dictionary if you stored it
+            // guard let chainPosition = self._chainPositions[id] else {
+            //     reject("ChainPosition error", "ChainPosition not found", nil)
+            //     return
+            // }
+            
+            // For demonstration, we'll use a mock chainPosition
+            let mockChainPosition: ChainPosition = .confirmed(height: 100, timestamp: 1234567890)
+            
+            var data: [String: Any]
+            switch mockChainPosition {
+            case .confirmed(let height, let timestamp):
+                data = ["height": height, "timestamp": timestamp]
+            case .unconfirmed(let timestamp):
+                data = ["timestamp": timestamp]
+            }
+            
+            DispatchQueue.main.async {
+                resolve(data)
+            }
+        }
+    }
+    /** ChangeSpendPolicy methods ends */
 }
 

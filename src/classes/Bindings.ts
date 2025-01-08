@@ -1,5 +1,3 @@
-import { Address } from './Address';
-import { KeychainKind } from '../lib/enums';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 import { Script } from './Script';
 import { Transaction } from './Transaction';
@@ -7,24 +5,24 @@ import { Transaction } from './Transaction';
 /**
  * A derived address and the index it was found at For convenience this automatically derefs to Address
  */
+export class Address {
+  id: string;
+
+  constructor(id: string) {
+    this.id = id;
+  }
+}
+
+export enum KeychainKind {
+  External = 'external',
+  Internal = 'internal'
+}
+
 export class AddressInfo {
-  /**
-   * Child index of this address
-   */
-  index: number;
-
-  /**
-   * Address
-   */
   address: Address;
-
-  /**
-   * KeychainKind
-   */
   keychain: KeychainKind;
 
-  constructor(index: number, address: Address, keychain: KeychainKind) {
-    this.index = index;
+  constructor(address: Address, keychain: KeychainKind) {
     this.address = address;
     this.keychain = keychain;
   }
@@ -284,6 +282,30 @@ export class TxIn {
     this.scriptSig = scriptSig;
     this.sequence = sequence;
     this.witness = witness;
+  }
+}
+
+export class FullScanRequest {
+  id: string;
+
+  constructor(id: string) {
+    this.id = id;
+  }
+}
+
+export class SyncRequest {
+  id: string;
+
+  constructor(id: string) {
+    this.id = id;
+  }
+}
+
+export class Update {
+  id: string;
+
+  constructor(id: string) {
+    this.id = id;
   }
 }
 

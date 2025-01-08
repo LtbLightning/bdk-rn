@@ -72,4 +72,15 @@ export class Blockchain extends NativeLoader {
     let feeRate = await this._bdk.estimateFee(this.id, target);
     return new FeeRate(feeRate);
   }
+
+    /**
+   * Init RPC blockchain
+   * @param config
+   * @returns {Promise<Blockchain>}
+   */
+  async createRpc(config: BlockchainRpcConfig): Promise<Blockchain> {
+    this.id = await this._bdk.initRpcBlockchain(config);
+    this.isInit = true;
+    return this;
+  }
 }
