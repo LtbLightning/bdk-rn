@@ -1,4 +1,4 @@
-import { ChainPositionData } from 'bdk-rn/src/classes/ChainPosition';
+import { ChainPositionData } from './ChainPosition';
 import { AddressIndex, BlockchainRpcConfig, KeychainKind, Network, Payload, WordCount } from '../lib/enums';
 import { Address, AddressInfo, Balance, LocalUtxo, OutPoint, ScriptAmount, SignOptions, TransactionDetails } from './Bindings';
 

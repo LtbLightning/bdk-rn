@@ -1,5 +1,6 @@
 import { NativeLoader } from './NativeLoader';
-import { OutPoint, TxOut, LocalUtxo, KeychainKind, Script } from 'bdk-rn/src/classes/Bindings';
+import { OutPoint, TxOut, LocalUtxo, KeychainKind } from './Bindings';
+import { Script } from './Script';
 
 export class LocalOutput extends NativeLoader {
   private localUtxo: LocalUtxo;

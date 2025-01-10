@@ -1,7 +1,7 @@
 import { NativeLoader } from './NativeLoader';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 import { Wallet } from './Wallet';
-import { FeeRate } from 'bdk-rn/src/classes/FeeRate';
+import { FeeRate } from './Bindings';
 
 /**
  * BumpFeeTxBuilder methods

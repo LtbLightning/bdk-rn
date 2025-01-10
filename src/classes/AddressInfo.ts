@@ -1,5 +1,5 @@
 import { NativeLoader } from './NativeLoader';
-import { Address, KeychainKind } from 'bdk-rn/src/classes/Bindings';
+import { Address, KeychainKind } from './Bindings';
 
 export class AddressInfo extends NativeLoader {
   private id: string;

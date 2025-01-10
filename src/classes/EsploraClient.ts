@@ -1,6 +1,6 @@
 import { NativeLoader } from './NativeLoader';
-import {  FullScanRequest, SyncRequest, Update } from './Bindings';
-import { Transaction } from 'bdk-rn/src/classes/Transaction';
+import { FullScanRequest, SyncRequest, Update } from './Bindings';
+import { Transaction } from './Transaction';
 
 export class EsploraClient extends NativeLoader {
   private id: string;

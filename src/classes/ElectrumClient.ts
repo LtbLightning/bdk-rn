@@ -1,4 +1,4 @@
-import { FullScanRequest, SyncRequest, Update } from 'bdk-rn/src/classes/Bindings';
+import { FullScanRequest, SyncRequest, Update } from './Bindings';
 import { NativeLoader } from './NativeLoader';
 import { Transaction } from './Transaction';
 
