@@ -1,7 +1,8 @@
+import { FeeRate } from './FeeRate';
 import { NativeLoader } from './NativeLoader';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 import { Wallet } from './Wallet';
-import { FeeRate } from './Bindings';
+
 
 /**
  * BumpFeeTxBuilder methods
