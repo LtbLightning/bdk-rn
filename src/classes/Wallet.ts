@@ -2,7 +2,6 @@ import { AddressIndex, Network } from '../lib/enums';
 import { AddressInfo, Balance, BlockTime, FeeRate, FullScanRequest, KeychainKind, LocalUtxo, SignOptions, SyncRequest, TransactionDetails, Update } from './Bindings';
 import { createOutpoint, createTxDetailsObject, createTxOut, getKeychainKind, getNetwork } from '../lib/utils';
 
-import { Address } from './Address';
 import { Blockchain } from './Blockchain';
 import { DatabaseConfig } from './DatabaseConfig';
 import { Descriptor } from './Descriptor';
