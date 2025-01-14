@@ -23,10 +23,28 @@ export declare class Mnemonic extends NativeLoader {
      * @param entropy
      * @returns {Promise<Mnemonic>}
      */
-    fromEntropy(entropy: Array<number>): Promise<Mnemonic>;
+    fromEntropy(entropy: number[]): Promise<Mnemonic>;
     /**
      * Get mnemonic as string
      * @returns {string}
      */
     asString(): string;
+    /**
+     * Static method to create a Mnemonic from a word count
+     * @param wordCount
+     * @returns {Promise<Mnemonic>}
+     */
+    static fromWordCount(wordCount?: WordCount): Promise<Mnemonic>;
+    /**
+     * Static method to create a Mnemonic from a string
+     * @param mnemonicString
+     * @returns {Promise<Mnemonic>}
+     */
+    static fromMnemonicString(mnemonicString: string): Promise<Mnemonic>;
+    /**
+     * Static method to create a Mnemonic from entropy
+     * @param entropy
+     * @returns {Promise<Mnemonic>}
+     */
+    static fromEntropyArray(entropy: number[]): Promise<Mnemonic>;
 }

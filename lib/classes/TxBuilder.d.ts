@@ -1,7 +1,10 @@
-import { OutPoint, ScriptAmount, TxBuilderResult } from './Bindings';
 import { NativeLoader } from './NativeLoader';
 import { Script } from './Script';
+import { OutPoint } from './Bindings';
+import { Amount } from './Amount';
 import { Wallet } from './Wallet';
+import { PartiallySignedTransaction } from './PartiallySignedTransaction';
+import { FeeRate } from './FeeRate';
 /**
  * TxBuilder methods
  */
@@ -18,7 +21,7 @@ export declare class TxBuilder extends NativeLoader {
      * @param amount
      * @returns {Promise<TxBuilder>}
      */
-    addRecipient(script: Script, amount: number): Promise<TxBuilder>;
+    addRecipient(script: Script, amount: Amount): Promise<TxBuilder>;
     /**
      * Add unspendable
      * @param outPoint
@@ -33,7 +36,7 @@ export declare class TxBuilder extends NativeLoader {
     addUtxo(outPoint: OutPoint): Promise<TxBuilder>;
     /**
      * Add Utxos
-     * @param {Array<outPoint>}
+     * @param {Array<OutPoint>}
      * @returns {Promise<TxBuilder>}
      */
     addUtxos(outPoints: Array<OutPoint>): Promise<TxBuilder>;
@@ -54,22 +57,22 @@ export declare class TxBuilder extends NativeLoader {
     onlySpendChange(): Promise<TxBuilder>;
     /**
      * Add unspendable utxos list
-     * @param {Array<outPoint>}
+     * @param {Array<OutPoint>}
      * @returns {Promise<TxBuilder>}
      */
     unspendable(outPoints: Array<OutPoint>): Promise<TxBuilder>;
     /**
      * Set a custom fee rate
-     * @param {feeRate}
+     * @param {FeeRate}
      * @returns {Promise<TxBuilder>}
      */
-    feeRate(feeRate: number): Promise<TxBuilder>;
+    feeRate(feeRate: FeeRate): Promise<TxBuilder>;
     /**
      * Set an absolute fee
-     * @param {feeRate}
+     * @param {Amount}
      * @returns {Promise<TxBuilder>}
      */
-    feeAbsolute(feeRate: number): Promise<TxBuilder>;
+    feeAbsolute(fee: Amount): Promise<TxBuilder>;
     /**
      * Spend all the available inputs. This respects filters like TxBuilder().unSpendable and the change policy.
      * @returns {Promise<TxBuilder>}
@@ -87,26 +90,29 @@ export declare class TxBuilder extends NativeLoader {
     enableRbf(): Promise<TxBuilder>;
     /**
      * Enable signaling RBF with a specific nSequence value
-     * @param {nsequence}
+     * @param {number}
      * @returns {Promise<TxBuilder>}
      */
     enableRbfWithSequence(nsequence: number): Promise<TxBuilder>;
     /**
      * Add data as an output, using OP_RETURN
-     * @param {data}
+     * @param {Array<number>}
      * @returns {Promise<TxBuilder>}
      */
     addData(data: Array<number>): Promise<TxBuilder>;
     /**
-     * Add number of receipents at once
-     * @param {data}
+     * Add number of recipients at once
+     * @param {Array<{script: Script; amount: Amount}>}
      * @returns {Promise<TxBuilder>}
      */
-    setRecipients(recipients: Array<ScriptAmount>): Promise<TxBuilder>;
+    setRecipients(recipients: Array<{
+        script: Script;
+        amount: Amount;
+    }>): Promise<TxBuilder>;
     /**
      * Finishes the transaction building
      * @param wallet
-     * @returns
+     * @returns {Promise<PartiallySignedTransaction>}
      */
-    finish(wallet: Wallet): Promise<TxBuilderResult>;
+    finish(wallet: Wallet): Promise<PartiallySignedTransaction>;
 }

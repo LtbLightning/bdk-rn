@@ -1,4 +1,4 @@
-import { BumpFeeTxBuilder, DatabaseConfig, Descriptor, PartiallySignedTransaction, Wallet } from '../../src';
+import { BumpFeeTxBuilder, DatabaseConfig, Descriptor, PartiallySignedTransaction, Wallet, FeeRate } from '../../src';
 import { Network } from '../../src/lib/enums';
 import { mockScript, mockWallet } from '../mockData';
 import { mockBdkRnModule } from '../setup';
@@ -10,11 +10,11 @@ describe('BumpFeeTxBuilder', () => {
   const walletId = 'walletId';
   mockBdkRnModule.walletInit.mockResolvedValue(walletId);
   const txid = 'txid';
-  const newFeeRate = 20;
+  const newFeeRate = FeeRate.fromSatPerVb(20);
   let bumpFeeTxBuilder;
 
   beforeAll(async () => {
-    bumpFeeTxBuilder = await new BumpFeeTxBuilder().create(txid, newFeeRate);
+    bumpFeeTxBuilder = await new BumpFeeTxBuilder().create(txid, await newFeeRate);
   });
 
   afterEach(() => {

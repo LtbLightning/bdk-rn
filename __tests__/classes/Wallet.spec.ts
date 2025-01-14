@@ -54,14 +54,14 @@ describe('Wallet', () => {
   it('Should return a new AddressInfo using the external descriptor', async () => {
     let res = await wallet.getAddress(AddressIndex.New);
     expect(res).toBeInstanceOf(AddressInfo);
-    expect(res.index).toBe(addressIndex);
+    expect((res as any).index).toBe(addressIndex);
     expect(res.address).toStrictEqual(new Address()._setAddress(address));
     expect(mockBdkRnModule.getAddress).toHaveBeenCalledWith(wallet.id, AddressIndex.New);
   });
 
   it('Should return a last unused AddressInfo using the external descriptor', async () => {
     let res = await wallet.getAddress(AddressIndex.LastUnused);
-    expect(res.index).toBe(addressIndex);
+    expect((res as any).index).toBe(addressIndex);
     expect(res.address).toStrictEqual(new Address()._setAddress(address));
     expect(mockBdkRnModule.getAddress).toHaveBeenCalledWith(wallet.id, AddressIndex.LastUnused);
   });
@@ -69,22 +69,21 @@ describe('Wallet', () => {
   it('Should return AddressInfo at index using the external descriptor', async () => {
     const index = 21;
     let res = await wallet.getAddress(index);
-    expect(res.index).toBe(addressIndex);
+    expect((res as any).index).toBe(addressIndex);
     expect(res.address).toStrictEqual(new Address()._setAddress(address));
     expect(mockBdkRnModule.getAddress).toHaveBeenCalledWith(wallet.id, index);
   });
-
   it('Should return a new AddressInfo using the internal descriptor', async () => {
     let res = await wallet.getInternalAddress(AddressIndex.New);
     expect(res).toBeInstanceOf(AddressInfo);
-    expect(res.index).toBe(addressIndex);
+    expect((res as any).index).toBe(addressIndex);
     expect(res.address).toStrictEqual(new Address()._setAddress(address));
     expect(mockBdkRnModule.getInternalAddress).toHaveBeenCalledWith(wallet.id, AddressIndex.New);
   });
 
   it('Should return a last unused AddressInfo using the internal descriptor', async () => {
     let res = await wallet.getInternalAddress(AddressIndex.LastUnused);
-    expect(res.index).toBe(addressIndex);
+    expect((res as any).index).toBe(addressIndex);
     expect(res.address).toStrictEqual(new Address()._setAddress(address));
     expect(mockBdkRnModule.getInternalAddress).toHaveBeenCalledWith(wallet.id, AddressIndex.LastUnused);
   });
@@ -92,7 +91,7 @@ describe('Wallet', () => {
   it('Should return AddressInfo at index using the internal descriptor', async () => {
     const index = 21;
     let res = await wallet.getInternalAddress(index);
-    expect(res.index).toBe(addressIndex);
+    expect((res as any).index).toBe(addressIndex);
     expect(res.address).toStrictEqual(new Address()._setAddress(address));
     expect(mockBdkRnModule.getInternalAddress).toHaveBeenCalledWith(wallet.id, index);
   });
@@ -109,7 +108,6 @@ describe('Wallet', () => {
     });
     expect(await wallet.getBalance()).toEqual(expectedBalance);
   });
-
   it('Should return Network', async () => {
     mockBdkRnModule.getNetwork.mockResolvedValueOnce('regtest');
     expect(await wallet.network()).toBe(Network.Regtest);
@@ -155,7 +153,6 @@ describe('Wallet', () => {
     expect(await wallet.listUnspent()).toEqual(expected);
     expect(mockBdkRnModule.listUnspent).toHaveBeenCalledWith(wallet.id);
   });
-
   it('Should return list of TransactionDetails', async () => {
     const rawTxDetails = {
       txid: mockTransactionDetails.txid,
@@ -182,12 +179,5 @@ describe('Wallet', () => {
     expect(res).toBeInstanceOf(PartiallySignedTransaction);
     expect(res.base64).toBe(base64PSBTSigned);
     expect(mockBdkRnModule.sign).toHaveBeenCalledWith(wallet.id, base64PSBT, signOptions);
-  });
-
-  it('should check if Wallet is mine or not', async () => {
-    mockBdkRnModule.isMine.mockResolvedValueOnce(true);
-    let res = await wallet.isMine(script);
-    expect(res).toBe(true);
-    expect(mockBdkRnModule.isMine).toHaveBeenCalledWith(wallet.id, script.id);
   });
 });

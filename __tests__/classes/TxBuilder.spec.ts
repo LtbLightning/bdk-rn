@@ -17,6 +17,12 @@ describe('TxBuilder', () => {
   let txBuilder: TxBuilder;
 
   mockBdkRnModule.createTxBuilder.mockResolvedValue(txBuilderId);
+  // const mockPsbt = new PartiallySignedTransaction(psbtString);
+  // const mockTxBuilderResult = new TxBuilderResult(mockPsbt, mockTransactionDetails);
+
+  // let txBuilder: TxBuilder;
+
+  mockBdkRnModule.createTxBuilder.mockResolvedValue(txBuilderId);
 
   beforeAll(async () => {
     txBuilder = await new TxBuilder().create();
@@ -115,7 +121,6 @@ describe('TxBuilder', () => {
     expect(res).toEqual(mockTxBuilderResult);
     expect(mockBdkRnModule.finish).toHaveBeenCalledWith(txBuilder.id, mockWallet.id);
   });
-
   it('should return a exception when funds are insufficient', async () => {
     try {
       mockBdkRnModule.finish.mockRejectedValue(new Error('{ needed: 751, available: 0 }'));

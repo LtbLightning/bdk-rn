@@ -1,9 +1,8 @@
-import { mockPayload, mockScript } from '../mockData';
+import { mockScript } from '../mockData';
 
 import { Address } from '../../src';
 import { Network } from '../../src/lib/enums';
 import { Script } from '../../src/classes/Script';
-import { WitnessProgram } from '../../src/classes/Bindings';
 import { mockBdkRnModule } from '../setup';
 
 describe('Address', () => {
@@ -23,57 +22,41 @@ describe('Address', () => {
 
   it('creates instance of Address', async () => {
     expect(address).toBeInstanceOf(Address);
-    expect(address.id).toBe(addressId);
-  });
-
-  it('verify fromScript()', async () => {
-    mockBdkRnModule.addressFromScript.mockResolvedValueOnce(address);
-    let res = await address.fromScript(mockScript, Network.Testnet);
-    expect(res.id).toBe(address.id);
-    expect(res).toBeInstanceOf(Address);
-    expect(mockBdkRnModule.addressFromScript).toHaveBeenCalledWith(mockScript.id, Network.Testnet);
+    expect(address['id']).toBe(addressId);
   });
 
   it('verify scriptPubKey()', async () => {
     mockBdkRnModule.addressToScriptPubkeyHex.mockResolvedValueOnce(mockScript.id);
     let res = await address.scriptPubKey();
     expect(res).toBeInstanceOf(Script);
-    expect(res.id).toBe(mockScript.id);
-    expect(mockBdkRnModule.addressToScriptPubkeyHex).toHaveBeenCalledWith(address.id);
-  });
-
-  it('verify payload()', async () => {
-    mockBdkRnModule.addressPayload.mockResolvedValueOnce(mockPayload);
-    let res = (await address.payload()) as WitnessProgram;
-    expect(res.program).toBe(mockPayload.value);
-    expect(res).toBeInstanceOf(WitnessProgram);
-    expect(mockBdkRnModule.addressPayload).toHaveBeenCalledWith(address.id);
+    expect(res['id']).toBe(mockScript.id);
+    expect(mockBdkRnModule.addressToScriptPubkeyHex).toHaveBeenCalledWith(address['id']);
   });
 
   it('verify network()', async () => {
     let res = await address.network();
     expect(res).toBe(Network.Testnet);
-    expect(mockBdkRnModule.addressNetwork).toHaveBeenCalledWith(address.id);
+    expect(mockBdkRnModule.addressNetwork).toHaveBeenCalledWith(address['id']);
   });
 
   it('verify toQrUri()', async () => {
     mockBdkRnModule.addressToQrUri.mockResolvedValueOnce(addressQrUri);
     let res = await address.toQrUri();
     expect(res).toBe(addressQrUri);
-    expect(mockBdkRnModule.addressToQrUri).toHaveBeenCalledWith(address.id);
+    expect(mockBdkRnModule.addressToQrUri).toHaveBeenCalledWith(address['id']);
   });
 
   it('verify asString()', async () => {
     mockBdkRnModule.addressAsString.mockResolvedValueOnce(addressString);
     let res = await address.asString();
     expect(res).toBe(addressString);
-    expect(mockBdkRnModule.addressAsString).toHaveBeenCalledWith(address.id);
+    expect(mockBdkRnModule.addressAsString).toHaveBeenCalledWith(address['id']);
   });
 
   it('verify addressIsValidForNetwork()', async () => {
     mockBdkRnModule.addressIsValidForNetwork.mockResolvedValueOnce(true);
     let res = await address.isValidForNetwork(Network.Testnet);
     expect(res).toBe(true);
-    expect(mockBdkRnModule.addressIsValidForNetwork).toHaveBeenCalledWith(address.id, Network.Testnet);
+    expect(mockBdkRnModule.addressIsValidForNetwork).toHaveBeenCalledWith(address.asString(), Network.Testnet);
   });
 });

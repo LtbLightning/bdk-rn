@@ -5,9 +5,14 @@ import { NativeLoader } from './NativeLoader';
 export declare class DerivationPath extends NativeLoader {
     id: string;
     /**
-     * Verify derivation path
-     * @param path
+     * Create a new DerivationPath instance
+     * @param path The derivation path string
      * @returns {Promise<DerivationPath>}
      */
     create(path: string): Promise<DerivationPath>;
+    /**
+     * Get the string representation of the derivation path
+     * @returns {Promise<string>}
+     */
+    toString(): Promise<string>;
 }

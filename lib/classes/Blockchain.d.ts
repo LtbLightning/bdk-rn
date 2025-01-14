@@ -38,4 +38,10 @@ export declare class Blockchain extends NativeLoader {
      * @returns {Promise<number>}
      */
     estimateFee(target: number): Promise<FeeRate>;
+    /**
+   * Init RPC blockchain
+   * @param config
+   * @returns {Promise<Blockchain>}
+   */
+    createRpc(config: BlockchainRpcConfig): Promise<Blockchain>;
 }

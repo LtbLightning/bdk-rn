@@ -1,20 +1,17 @@
-import { TxOut } from '../classes/Bindings';
+import { TxIn, TxOut } from '../classes/Bindings';
 import { NativeLoader } from './NativeLoader';
 /**
  * Transaction methods
  */
 export declare class Transaction extends NativeLoader {
     id: string;
-    /**
-     * Set Transaction from extractTx
-     * @returns {Transaction}
-     */
-    _setTransaction(id: string): Transaction;
+    constructor(id?: string);
     /**
      * Create Transaction at native side
+     * @param {Array<number>} bytes - Transaction bytes
      * @returns {Promise<Transaction>}
      */
-    create(bytes: Array<number>): Promise<Transaction>;
+    static create(bytes: Array<number>): Promise<Transaction>;
     /**
      * Return the transaction bytes, bitcoin consensus encoded.
      * @returns {Promise<Array<number>>}
@@ -29,6 +26,12 @@ export declare class Transaction extends NativeLoader {
     isLockTimeEnabled(): Promise<boolean>;
     version(): Promise<number>;
     lockTime(): Promise<number>;
-    input(): Promise<Array<any>>;
+    input(): Promise<Array<TxIn>>;
     output(): Promise<Array<TxOut>>;
+    /**
+     * Static method to create a Transaction from extracted data
+     * @param {string} id - Transaction ID
+     * @returns {Transaction}
+     */
+    static fromData(id: string): Transaction;
 }

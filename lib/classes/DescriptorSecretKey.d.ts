@@ -9,7 +9,7 @@ import { NativeLoader } from './NativeLoader';
 export declare class DescriptorSecretKey extends NativeLoader {
     id: string;
     /**
-     * Create xprv
+     * Create a DescriptorSecretKey from network, mnemonic, and optional password
      * @param network
      * @param mnemonic
      * @param password
@@ -17,30 +17,36 @@ export declare class DescriptorSecretKey extends NativeLoader {
      */
     create(network: Network, mnemonic: Mnemonic, password?: string): Promise<DescriptorSecretKey>;
     /**
-     * Derive xprv from derivation path
-     * @param path
+     * Create a DescriptorSecretKey from a string representation
+     * @param secretKey
      * @returns {Promise<DescriptorSecretKey>}
      */
-    derive(derivationPath: DerivationPath): Promise<string>;
+    fromString(secretKey: string): Promise<DescriptorSecretKey>;
     /**
-     * Extend xprv from derivation path
-     * @param path
+     * Derive a new DescriptorSecretKey from a derivation path
+     * @param derivationPath
      * @returns {Promise<DescriptorSecretKey>}
      */
-    extend(derivationPath: DerivationPath): Promise<string>;
+    derive(derivationPath: DerivationPath): Promise<DescriptorSecretKey>;
     /**
-     * Create publicSecretKey from xprv
-     * @returns {Promise<string>}
+     * Extend the DescriptorSecretKey with a derivation path
+     * @param derivationPath
+     * @returns {Promise<DescriptorSecretKey>}
+     */
+    extend(derivationPath: DerivationPath): Promise<DescriptorSecretKey>;
+    /**
+     * Create a DescriptorPublicKey from this DescriptorSecretKey
+     * @returns {Promise<DescriptorPublicKey>}
      */
     asPublic(): Promise<DescriptorPublicKey>;
     /**
-     * Create secret bytes of xprv
-     * @returns {Promise<Array<number>>}
+     * Get the secret bytes of the DescriptorSecretKey
+     * @returns {Promise<number[]>}
      */
-    secretBytes(): Promise<Array<number>>;
+    secretBytes(): Promise<number[]>;
     /**
-     * Get secret key as string
-     * @returns {string}
+     * Get the string representation of the DescriptorSecretKey
+     * @returns {Promise<string>}
      */
     asString(): Promise<string>;
 }

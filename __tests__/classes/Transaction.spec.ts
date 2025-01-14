@@ -1,7 +1,6 @@
+import { Transaction } from '../../src';
 import { createTxIn, createTxOut } from '../../src/lib/utils';
 import { mockTxIn, mockTxOut } from '../mockData';
-
-import { Transaction } from '../../src';
 import { mockBdkRnModule } from '../setup';
 
 describe('Transaction', () => {
@@ -10,18 +9,12 @@ describe('Transaction', () => {
   const txId = '271ee42f7c527a9215a058be427453f89aad7a8835711659c6ee8ba8953f7651';
   let transaction: Transaction;
 
-  mockBdkRnModule.createTransaction.mockResolvedValue(id);
-
   beforeEach(async () => {
-    transaction = await new Transaction().create(rawTx);
+    mockBdkRnModule.createTransaction.mockResolvedValue(id);
+    transaction = await Transaction.create(rawTx);
   });
 
   it('id is stored in class', async () => {
-    expect(transaction.id).toBe(id);
-  });
-
-  it('sets transcation', async () => {
-    await transaction._setTransaction(id);
     expect(transaction.id).toBe(id);
   });
 
@@ -45,7 +38,6 @@ describe('Transaction', () => {
     expect(res).toBe(616);
     expect(mockBdkRnModule.txWeight).toHaveBeenCalledWith(transaction.id);
   });
-
   it('verify size()', async () => {
     mockBdkRnModule.txSize.mockResolvedValueOnce(154);
     const res = await transaction.size();
@@ -80,7 +72,6 @@ describe('Transaction', () => {
     expect(res).toBe(true);
     expect(mockBdkRnModule.txIsLockTimeEnabled).toHaveBeenCalledWith(transaction.id);
   });
-
   it('verify version()', async () => {
     mockBdkRnModule.txVersion.mockResolvedValueOnce(1);
     const res = await transaction.version();
