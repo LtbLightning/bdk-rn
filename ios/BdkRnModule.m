@@ -242,6 +242,161 @@ RCT_EXTERN_METHOD(
     reject:(RCTPromiseRejectBlock)reject
 )
 
+RCT_EXTERN_METHOD(
+    walletSync:(nonnull NSString*)walletId
+    syncRequest:(nonnull NSString*)syncRequest
+    blockchain:(nonnull NSString*)blockchain
+    batchSize:(nonnull NSNumber*)batchSize
+    fetchPrevTxouts:(nonnull BOOL*)fetchPrevTxouts
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletStartSyncWithRevealedSpks:(nonnull NSString*)walletId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletApplyUpdate:(nonnull NSString*)walletId
+    updateId:(nonnull NSString*)updateId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletGetBalanceImmature:(nonnull NSString*)walletId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletGetBalanceTrustedPending:(nonnull NSString*)walletId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletGetBalanceUntrustedPending:(nonnull NSString*)walletId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletGetBalanceConfirmed:(nonnull NSString*)walletId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletGetBalanceTrustedSpendable:(nonnull NSString*)walletId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletGetBalanceTotal:(nonnull NSString*)walletId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletCalculateFee:(nonnull NSString*)walletId
+    transactionId:(nonnull NSString*)transactionId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletCalculateFeeRate:(nonnull NSString*)walletId
+    transactionId:(nonnull NSString*)transactionId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletCommit:(nonnull NSString*)walletId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletGetNextInternalAddress:(nonnull NSString*)walletId
+    addressIndex:(nonnull NSNumber*)addressIndex
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletGetNextChangeAddress:(nonnull NSString*)walletId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletGetNextChangeInternalAddress:(nonnull NSString*)walletId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletGetNextReceivingAddress:(nonnull NSString*)walletId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletGetNextReceivingInternalAddress:(nonnull NSString*)walletId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletGetNextChangeAddressIndex:(nonnull NSString*)walletId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletGetNextReceivingAddressIndex:(nonnull NSString*)walletId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletGetTx:(nonnull NSString*)walletId
+    txid:(nonnull NSString*)txid
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletListOutput:(nonnull NSString*)walletId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletRevealNextAddress:(nonnull NSString*)walletId
+    keychain:(nonnull NSString*)keychain
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletSentAndReceived:(nonnull NSString*)walletId
+    transactionId:(nonnull NSString*)transactionId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletStartFullScan:(nonnull NSString*)walletId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
 
 
 /** Address methods */
@@ -297,7 +452,18 @@ RCT_EXTERN_METHOD(
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
+/** Amount methods */
+RCT_EXTERN_METHOD(
+    amountAsSats:(nonnull NSNumber*)amount
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
 
+RCT_EXTERN_METHOD(
+    amountAsBtc:(nonnull NSNumber*)amount
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
 
 /** TxBuilder methods */
 RCT_EXTERN_METHOD(createTxBuilder:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
@@ -367,6 +533,24 @@ RCT_EXTERN_METHOD(
 RCT_EXTERN_METHOD(
     feeAbsolute:(nonnull NSString*)id
     feeRate:(nonnull NSNumber*)feeRate
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    feeRateToSatPerVbCeil:(nonnull NSString*)id
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    feeRateToSatPerVbFloor:(nonnull NSString*)id
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    feeRateToSatPerKwu:(nonnull NSString*)id
     resolve:(RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
@@ -680,4 +864,200 @@ RCT_EXTERN_METHOD(
     resolve: (RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
+
+/** Chain Position methods */
+
+RCT_EXTERN_METHOD(
+    createChainPosition:(nonnull NSDictionary*)position
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    getChainPositionType:(nonnull NSString*)id
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    getChainPositionData:(nonnull NSString*)id
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+/** Local Output methods */
+
+RCT_EXTERN_METHOD(
+    getLocalOutputOutpoint:(nonnull NSString*)id
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    getLocalOutputTxout:(nonnull NSString*)id
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    getLocalOutputKeychain:(nonnull NSString*)id
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    isLocalOutputSpent:(nonnull NSString*)id
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+/** ElectrumClient methods */
+RCT_EXTERN_METHOD(
+    createElectrumClient:(nonnull NSString*)url
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    electrumClientBroadcast:(nonnull NSString*)clientId
+    transactionId:(nonnull NSString*)transactionId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    electrumClientFullScan:(nonnull NSString*)clientId
+    fullScanRequest:(nonnull NSString*)fullScanRequest
+    stopGap:(nonnull NSNumber*)stopGap
+    batchSize:(nonnull NSNumber*)batchSize
+    fetchPrevTxouts:(nonnull BOOL*)fetchPrevTxouts
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    electrumClientSync:(nonnull NSString*)clientId
+    syncRequest:(nonnull NSString*)syncRequest
+    batchSize:(nonnull NSNumber*)batchSize
+    fetchPrevTxouts:(nonnull BOOL*)fetchPrevTxouts
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+/** AddressInfo methods */
+
+RCT_EXTERN_METHOD(
+    createAddressInfo:(nonnull NSNumber*)index
+    addressId:(nonnull NSString*)addressId
+    keychain:(nonnull NSString*)keychain
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    getAddressInfoIndex:(nonnull NSString*)id
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    getAddressInfoAddress:(nonnull NSString*)id
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    getAddressInfoKeychain:(nonnull NSString*)id
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+/** EsploraClient methods */
+
+RCT_EXTERN_METHOD(
+    createEsploraClient:(nonnull NSString*)url
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    esploraClientBroadcast:(nonnull NSString*)clientId
+    transactionId:(nonnull NSString*)transactionId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    esploraClientSync:(nonnull NSString*)clientId
+    syncRequest:(nonnull NSString*)syncRequest
+    parallelRequests:(nonnull NSNumber*)parallelRequests
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    esploraClientFullScan:(nonnull NSString*)clientId
+    fullScanRequest:(nonnull NSString*)fullScanRequest
+    stopGap:(nonnull NSNumber*)stopGap
+    parallelRequests:(nonnull NSNumber*)parallelRequests
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+/** SyncRequest methods */
+
+RCT_EXTERN_METHOD(
+    createSyncRequest:(nonnull NSString*)walletId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    getSyncRequestHeight:(nonnull NSString*)id
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    getSyncRequestWalletId:(nonnull NSString*)id
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    getSyncRequestRange:(nonnull NSString*)id
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    getSyncRequestFetchPrevTxouts:(nonnull NSString*)id
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    getSyncRequestParallelRequests:(nonnull NSString*)id
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    freeSyncRequest:(nonnull NSString*)id
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    freeAddress:(nonnull NSString*)id
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    freeNetwork:(nonnull NSString*)id
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
 @end
