@@ -34,6 +34,12 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     private var _bumpFeeTxBuilders = mutableMapOf<String, BumpFeeTxBuilder>()
     private var _transactions = mutableMapOf<String, Transaction>()
 
+    private var _localOutputs = mutableMapOf<String, LocalUtxo>()
+    private var _outPoints = mutableMapOf<String, OutPoint>()
+    private var _txOuts = mutableMapOf<String, TxOut>()
+    private var _feeRates = mutableMapOf<String, FeeRate>()
+
+
 
     /** Mnemonic methods starts */
     @ReactMethod
@@ -403,71 +409,65 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         return _wallets[id]!!
     }
 
-    @ReactMethod
-    fun walletInit(
-        descriptor: String,
-        changeDescriptor: String? = null,
-        network: String,
-        dbConfigID: String,
-        result: Promise
-    ) {
-        try {
-            val id = randomId()
-            val nativeDescriptor = _descriptors[descriptor]!!
-            val nativeChangeDescriptor = if (changeDescriptor != null) _descriptors[changeDescriptor]!! else null
-            Thread {
-                _wallets[id] = Wallet(
-                    nativeDescriptor,
-                    nativeChangeDescriptor,
-                    setNetwork(network),
-                    _databaseConfigs[dbConfigID]!!
-                )
-                result.resolve(id)
-            }.start()
-        } catch (error: Throwable) {
-            result.reject("Init wallet error", error.localizedMessage, error)
-        }
-    }
+    // @ReactMethod
+    // fun walletInit(
+    //     descriptor: String,
+    //     changeDescriptor: String? = null,
+    //     network: String,
+    //     dbConfigID: String,
+    //     result: Promise
+    // ) {
+    //     try {
+    //         val id = randomId()
+    //         val nativeDescriptor = _descriptors[descriptor]!!
+    //         val nativeChangeDescriptor = if (changeDescriptor != null) _descriptors[changeDescriptor]!! else null
+    //         Thread {
+    //             _wallets[id] = Wallet(
+    //                 nativeDescriptor,
+    //                 nativeChangeDescriptor,
+    //                 setNetwork(network),
+    //                 _databaseConfigs[dbConfigID]!!
+    //             )
+    //             result.resolve(id)
+    //         }.start()
+    //     } catch (error: Throwable) {
+    //         result.reject("Init wallet error", error.localizedMessage, error)
+    //     }
+    // }
 
-    @ReactMethod
-    fun sync(id: String, blockChainId: String, result: Promise) {
-        Thread {
-            try {
-                getWalletById(id).sync(getBlockchainById(blockChainId), BdkProgress)
-                result.resolve(true)
-            } catch (error: Throwable) {
-                result.reject("Sync wallet error", error.localizedMessage, error)
-            }
-        }.start()
-    }
+    // @ReactMethod
+    // fun sync(id: String, blockChainId: String, result: Promise) {
+    //     Thread {
+    //         try {
+    //             getWalletById(id).sync(getBlockchainById(blockChainId), BdkProgress)
+    //             result.resolve(true)
+    //         } catch (error: Throwable) {
+    //             result.reject("Sync wallet error", error.localizedMessage, error)
+    //         }
+    //     }.start()
+    // }
 
-    @ReactMethod
+      @ReactMethod
     fun getAddress(id: String, addressIndex: Dynamic, result: Promise) {
         Thread {
             try {
-                val randomId = randomId()
-
-                var resolvedIndex: Any = "new"
-                when (val type = addressIndex.getType()) {
-                    ReadableType.String -> {
-                        resolvedIndex = (addressIndex as Dynamic).asString() ?: "new"
+                val keychain = when (addressIndex.type) {
+                    ReadableType.Boolean -> {
+                        if (addressIndex.asBoolean()) KeychainKind.INTERNAL else KeychainKind.EXTERNAL
                     }
-
-                    ReadableType.Number -> {
-                        resolvedIndex = (addressIndex as Dynamic).asDouble() ?: "new"
-                    }
-
-                    else -> {
-                        resolvedIndex = setAddressIndex("new")
-                    }
+                    else -> KeychainKind.EXTERNAL
                 }
-
-                val addressInfo = getWalletById(id).getAddress(setAddressIndex(resolvedIndex))
+                
+                val addressInfo = getWalletById(id).getAddress(setAddressIndex("new"))
+                
+                val randomId = randomId()
                 _addresses[randomId] = addressInfo.address
+                
                 val responseObject = mutableMapOf<String, Any?>()
                 responseObject["index"] = addressInfo.index.toInt()
                 responseObject["address"] = randomId
                 responseObject["keychain"] = addressInfo.keychain.toString()
+                
                 result.resolve(Arguments.makeNativeMap(responseObject))
             } catch (error: Throwable) {
                 result.reject("Get wallet address error", error.localizedMessage, error)
@@ -479,28 +479,15 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun getInternalAddress(id: String, addressIndex: Dynamic, result: Promise) {
         Thread {
             try {
+                val addressInfo = getWalletById(id).getAddress(setAddressIndex("new"))
                 val randomId = randomId()
-                var resolvedIndex: Any = "new"
-                when (val type = addressIndex.getType()) {
-                    ReadableType.String -> {
-                        resolvedIndex = (addressIndex as Dynamic).asString() ?: "new"
-                    }
-
-                    ReadableType.Number -> {
-                        resolvedIndex = (addressIndex as Dynamic).asDouble() ?: "new"
-                    }
-
-                    else -> {
-                        resolvedIndex = setAddressIndex("new")
-                    }
-                }
-
-                val addressInfo = getWalletById(id).getInternalAddress(setAddressIndex(resolvedIndex))
                 _addresses[randomId] = addressInfo.address
+                
                 val responseObject = mutableMapOf<String, Any?>()
                 responseObject["index"] = addressInfo.index.toInt()
                 responseObject["address"] = randomId
                 responseObject["keychain"] = addressInfo.keychain.toString()
+                
                 result.resolve(Arguments.makeNativeMap(responseObject))
             } catch (error: Throwable) {
                 result.reject("Get internal address error", error.localizedMessage, error)
@@ -515,24 +502,6 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 result.resolve(getWalletById(id).isMine(_scripts[scriptId]!!))
             } catch (error: Throwable) {
                 result.reject("Get isMine error", error.localizedMessage, error)
-            }
-        }.start()
-    }
-
-    @ReactMethod
-    fun getBalance(id: String, result: Promise) {
-        Thread {
-            try {
-                val balance = getWalletById(id).getBalance()
-                val responseObject = mutableMapOf<String, Any?>()
-                responseObject["trustedPending"] = balance.trustedPending.toDouble()
-                responseObject["untrustedPending"] = balance.untrustedPending.toDouble()
-                responseObject["confirmed"] = balance.confirmed.toDouble()
-                responseObject["spendable"] = balance.spendable.toDouble()
-                responseObject["total"] = balance.total.toDouble()
-                result.resolve(Arguments.makeNativeMap(responseObject))
-            } catch (error: Throwable) {
-                result.reject("Get wallet balance error", error.localizedMessage, error)
             }
         }.start()
     }
@@ -566,46 +535,142 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         }.start()
     }
 
-    @ReactMethod
-    fun listTransactions(id: String, includeRaw: Boolean, result: Promise) {
-        Thread {
-            try {
-                val list = getWalletById(id).listTransactions(includeRaw)
-                val transactions: MutableList<Map<String, Any?>> = mutableListOf()
-                for (item in list) {
-                    var txObject = getTransactionObject(item)
-                    if (item.transaction != null) {
-                        val randomId = randomId()
-                        _transactions[randomId] = item.transaction!!
-                        txObject["transaction"] = randomId
-                    } else {
-                        txObject["transaction"] = false
-                    }
-                    transactions.add(txObject)
-                }
-                result.resolve(Arguments.makeNativeArray(transactions))
-            } catch (error: Throwable) {
-                result.reject("List transactions error", error.localizedMessage, error)
-            }
-        }.start()
-    }
+    // @ReactMethod
+    // fun listTransactions(id: String, includeRaw: Boolean, result: Promise) {
+    //     Thread {
+    //         try {
+    //             val list = getWalletById(id).listTransactions(includeRaw)
+    //             val transactions: MutableList<Map<String, Any?>> = mutableListOf()
+    //             for (item in list) {
+    //                 var txObject = getTransactionObject(item)
+    //                 if (item.transaction != null) {
+    //                     val randomId = randomId()
+    //                     _transactions[randomId] = item.transaction!!
+    //                     txObject["transaction"] = randomId
+    //                 } else {
+    //                     txObject["transaction"] = false
+    //                 }
+    //                 transactions.add(txObject)
+    //             }
+    //             result.resolve(Arguments.makeNativeArray(transactions))
+    //         } catch (error: Throwable) {
+    //             result.reject("List transactions error", error.localizedMessage, error)
+    //         }
+    //     }.start()
+    // }
 
-    @ReactMethod
-    fun sign(id: String, psbtBase64: String, signOptions: ReadableMap? = null, result: Promise) {
-        Thread {
-            try {
-                var options: SignOptions? = null
-                if (signOptions != null) options = createSignOptions(signOptions)
+    // @ReactMethod
+    // fun sign(id: String, psbtBase64: String, signOptions: ReadableMap? = null, result: Promise) {
+    //     Thread {
+    //         try {
+    //             var options: SignOptions? = null
+    //             if (signOptions != null) options = createSignOptions(signOptions)
 
-                val psbt = PartiallySignedTransaction(psbtBase64)
-                getWalletById(id).sign(psbt, options)
-                result.resolve(psbt.serialize())
-            } catch (error: Throwable) {
-                result.reject("Sign PSBT error", error.localizedMessage, error)
-            }
-        }.start()
-    }
+    //             val psbt = PartiallySignedTransaction(psbtBase64)
+    //             getWalletById(id).sign(psbt, options)
+    //             result.resolve(psbt.serialize())
+    //         } catch (error: Throwable) {
+    //             result.reject("Sign PSBT error", error.localizedMessage, error)
+    //         }
+    //     }.start()
+    // }
     /** Wallet methods ends*/
+
+    /** Balance methods starts*/
+
+        @ReactMethod
+    fun getBalance(id: String, result: Promise) {
+        Thread {
+            try {
+                val balance = getWalletById(id).getBalance()
+                val responseObject = mutableMapOf<String, Any?>()
+                responseObject["immature"] = balance.immature
+                responseObject["trustedPending"] = balance.trustedPending
+                responseObject["untrustedPending"] = balance.untrustedPending
+                responseObject["confirmed"] = balance.confirmed
+                responseObject["spendable"] = balance.spendable
+                responseObject["total"] = balance.total
+                
+                result.resolve(Arguments.makeNativeMap(responseObject))
+            } catch (error: Throwable) {
+                result.reject("Get wallet balance error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun getBalanceImmature(id: String, result: Promise) {
+        Thread {
+            try {
+            val balance = getWalletById(id).getBalance()
+            result.resolve(balance.immature)
+        } catch (error: Throwable) {
+            result.reject("Get wallet immature balance error", error.localizedMessage, error)
+        }
+        }.start()
+    }
+
+    @ReactMethod
+    fun getBalanceTrustedPending(id: String, result: Promise) {
+        Thread {
+            try {
+            val balance = getWalletById(id).getBalance()
+            result.resolve(balance.trustedPending)
+        } catch (error: Throwable) {
+            result.reject("Get wallet trusted pending balance error", error.localizedMessage, error)
+        }
+        }.start()
+    }
+
+    @ReactMethod
+    fun getBalanceUntrustedPending(id: String, result: Promise) {
+        Thread {
+            try {
+            val balance = getWalletById(id).getBalance()
+            result.resolve(balance.untrustedPending)
+        } catch (error: Throwable) {
+            result.reject("Get wallet untrusted pending balance error", error.localizedMessage, error)
+        }
+        }.start()
+    }
+
+    @ReactMethod
+    fun getBalanceConfirmed(id: String, result: Promise) {
+        Thread {
+            try {
+                val balance = getWalletById(id).getBalance()
+                result.resolve(balance.confirmed)
+            } catch (error: Throwable) {
+                result.reject("Get wallet confirmed balance error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun getBalanceTrustedSpendable(id: String, result: Promise) {
+        Thread {
+            try {
+                val balance = getWalletById(id).getBalance()
+                result.resolve(balance.spendable)  // Note: using spendable instead of trustedSpendable
+            } catch (error: Throwable) {
+                result.reject("Get wallet trusted spendable balance error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun getBalanceTotal(id: String, result: Promise) {
+        Thread {
+            try {
+                val balance = getWalletById(id).getBalance()
+                result.resolve(balance.total)
+            } catch (error: Throwable) {
+                result.reject("Get wallet total balance error", error.localizedMessage, error)
+            }
+            }.start()
+        }
+
+    /** Balance methods ends*/
 
 
     /** Address methods starts*/
@@ -686,6 +751,55 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     /** Address methods ends*/
 
+    /** Amount methods starts */
+    @ReactMethod
+    fun createAmountFromSat(sat: Double, result: Promise) {
+        Thread {
+            try {
+                result.resolve(sat.toLong())
+            } catch (error: Throwable) {
+                result.reject("Amount creation error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun createAmountFromBtc(btc: Double, result: Promise) {
+        Thread {
+            try {
+                // Convert BTC to satoshis (1 BTC = 100,000,000 sats)
+                val sats = (btc * 100_000_000).toLong()
+                result.resolve(sats)
+            } catch (error: Throwable) {
+                result.reject("Amount creation error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun amountAsSats(sats: Double, result: Promise) {
+        Thread {
+            try {
+                result.resolve(sats.toLong())
+            } catch (error: Throwable) {
+                result.reject("Amount conversion error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun amountAsBtc(sats: Double, result: Promise) {
+        Thread {
+            try {
+                // Convert satoshis to BTC (1 BTC = 100,000,000 sats)
+                val btc = sats / 100_000_000.0
+                result.resolve(btc)
+            } catch (error: Throwable) {
+                result.reject("Amount conversion error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+    /** Amount methods ends */
 
     /** TxBuilder methods starts */
     @ReactMethod
@@ -697,6 +811,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         }.start()
     }
 
+    // `addRecipient`
     @ReactMethod
     fun addRecipient(id: String, scriptId: String, amount: Int, result: Promise) {
         Thread {
@@ -775,14 +890,125 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         }.start()
     }
 
-    // `feeRate`
+    /** LocalOutput methods starts */
     @ReactMethod
-    fun feeRate(id: String, feeRate: Int, result: Promise) {
+    fun getLocalOutputOutpoint(id: String, result: Promise) {
         Thread {
-            _txBuilders[id] = _txBuilders[id]!!.feeRate(feeRate.toFloat())
-            result.resolve(true)
+            try {
+                val localOutput = _localOutputs[id] ?: throw Exception("LocalOutput not found")
+                val outpointId = randomId()
+                _outPoints[outpointId] = localOutput.outpoint
+                result.resolve(outpointId)
+            } catch (error: Throwable) {
+                result.reject("Invalid LocalOutput", error.localizedMessage, error)
+            }
         }.start()
     }
+
+    @ReactMethod
+    fun getLocalOutputTxout(id: String, result: Promise) {
+        Thread {
+            try {
+                val localOutput = _localOutputs[id] ?: throw Exception("LocalOutput not found")
+                val txoutId = randomId()
+                _txOuts[txoutId] = localOutput.txout
+                result.resolve(txoutId)
+            } catch (error: Throwable) {
+                result.reject("Invalid LocalOutput", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun getLocalOutputKeychain(id: String, result: Promise) {
+        Thread {
+            try {
+                val localOutput = _localOutputs[id] ?: throw Exception("LocalOutput not found")
+                result.resolve(localOutput.keychain.toString())
+            } catch (error: Throwable) {
+                result.reject("Invalid LocalOutput", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun isLocalOutputSpent(id: String, result: Promise) {
+        Thread {
+            try {
+                val localOutput = _localOutputs[id] ?: throw Exception("LocalOutput not found")
+                result.resolve(localOutput.isSpent)
+            } catch (error: Throwable) {
+                result.reject("Invalid LocalOutput", error.localizedMessage, error)
+            }
+        }.start()
+    }
+    /** LocalOutput methods ends */
+
+    /** FeeRate methods starts */
+    @ReactMethod
+    fun createFeeRateFromSatPerVb(satPerVb: Double, result: Promise) {
+        Thread {
+            try {
+                val feeRate = FeeRate.fromSatPerVb(satPerVb.toFloat())
+                val id = randomId()
+                _feeRates[id] = feeRate
+                result.resolve(id)
+            } catch (error: Throwable) {
+                result.reject("FeeRate error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun createFeeRateFromSatPerKwu(satPerKwu: Double, result: Promise) {
+        Thread {
+            try {
+                val feeRate = FeeRate.fromSatPerKw(satPerKwu.toFloat())
+                val id = randomId()
+                _feeRates[id] = feeRate
+                result.resolve(id)
+            } catch (error: Throwable) {
+                result.reject("FeeRate error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun feeRateToSatPerVbCeil(id: String, result: Promise) {
+        Thread {
+            try {
+                val feeRate = _feeRates[id] ?: throw Exception("FeeRate not found")
+                result.resolve(feeRate.asSatPerVb())
+            } catch (error: Throwable) {
+                result.reject("FeeRate error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun feeRateToSatPerVbFloor(id: String, result: Promise) {
+        Thread {
+            try {
+                val feeRate = _feeRates[id] ?: throw Exception("FeeRate not found")
+                result.resolve(feeRate.asSatPerVb())
+            } catch (error: Throwable) {
+                result.reject("FeeRate error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun feeRateToSatPerKwu(id: String, result: Promise) {
+        Thread {
+            try {
+                val feeRate = _feeRates[id] ?: throw Exception("FeeRate not found")
+                result.resolve(feeRate.asSatPerKw())
+            } catch (error: Throwable) {
+                result.reject("FeeRate error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+    /** FeeRate methods ends */
 
     // `feeAbsolute`
     @ReactMethod
