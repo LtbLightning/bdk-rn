@@ -13,6 +13,9 @@ import org.bitcoindevkit.Descriptor.Companion.newBip84Public
 import org.bitcoindevkit.Descriptor.Companion.newBip86
 import org.bitcoindevkit.Descriptor.Companion.newBip86Public
 import org.bitcoindevkit.Amount
+import org.bitcoindevkit.OutPoint
+import org.bitcoindevkit.KeychainKind
+import io.ltbl.bdkrn.getTxBytes
 
 class BdkRnModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -26,7 +29,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     private var _wallets = mutableMapOf<String, Wallet>()
     private var _addresses = mutableMapOf<String, Address>()
-    private var _scripts = mutableMapOf<String, Script>()
+    private var _scripts = mutableMapOf<String, org.bitcoindevkit.Script>()
     private var _txBuilders = mutableMapOf<String, TxBuilder>()
     private var _descriptors = mutableMapOf<String, Descriptor>()
 
@@ -34,8 +37,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     private var _bumpFeeTxBuilders = mutableMapOf<String, BumpFeeTxBuilder>()
     private var _transactions = mutableMapOf<String, Transaction>()
 
-    private var _outPoints = mutableMapOf<String, OutPoint>()
-    private var _txOuts = mutableMapOf<String, TxOut>()
+    private var _outPoints = mutableMapOf<String, org.bitcoindevkit.OutPoint>()
+    private var _txOuts = mutableMapOf<String, org.bitcoindevkit.TxOut>()
     private var _feeRates = mutableMapOf<String, FeeRate>()
     private val _memoryDBs = mutableMapOf<String, Boolean>()
     private val _sledPaths = mutableMapOf<String, Pair<String, String>>()
@@ -269,9 +272,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             try {
                 val keychain = when (addressIndex.type) {
                     ReadableType.Boolean -> {
-                        if (addressIndex.asBoolean()) KeychainKind.INTERNAL else KeychainKind.EXTERNAL
+                        if (addressIndex.asBoolean()) org.bitcoindevkit.KeychainKind.INTERNAL 
+                        else org.bitcoindevkit.KeychainKind.EXTERNAL
                     }
-                    else -> KeychainKind.EXTERNAL
+                    else -> org.bitcoindevkit.KeychainKind.EXTERNAL
                 }
                 
                 val addressInfo = getWalletById(id).revealNextAddress(keychain)
@@ -290,11 +294,11 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         }.start()
     }
 
-    @ReactMethod
+       @ReactMethod
     fun getInternalAddress(id: String, addressIndex: Dynamic, result: Promise) {
         Thread {
             try {
-                val addressInfo = getWalletById(id).revealNextAddress(KeychainKind.INTERNAL)
+                val addressInfo = getWalletById(id).revealNextAddress(org.bitcoindevkit.KeychainKind.INTERNAL)
                 val randomId = randomId()
                 _addresses[randomId] = addressInfo.address
                 
@@ -913,14 +917,15 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun finish(id: String, walletId: String, result: Promise) {
+    fun finish(id: String, walletId: String, promise: Promise) {
         Thread {
             try {
-                val details = _txBuilders[id]?.finish(getWalletById(walletId))
-                val responseObject = getPSBTObject(details)
-                result.resolve(Arguments.makeNativeMap(responseObject))
+                val builder = _bumpFeeTxBuilders[id] ?: throw Exception("BumpFeeTxBuilder not found")
+                val wallet = getWalletById(walletId)
+                val result = builder.finish(wallet)
+                promise.resolve(result.serialize())
             } catch (error: Throwable) {
-                result.reject("Finish tx error", error.localizedMessage, error)
+                promise.reject("BumpFee TxBuilder finish error", error.localizedMessage, error)
             }
         }.start()
     }
@@ -1220,10 +1225,11 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             try {
                 val id = randomId()
-                _transactions[id] = Transaction(getTxBytes(bytes))
+                val txBytes = getTxBytes(bytes)
+                _transactions[id] = Transaction(txBytes)
                 result.resolve(id)
             } catch (error: Throwable) {
-                result.reject("BumpFee Txbuilder finish error", error.localizedMessage, error)
+                result.reject("Transaction creation error", error.localizedMessage, error)
             }
         }.start()
     }
