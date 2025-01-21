@@ -59,7 +59,8 @@ export class Address extends NativeLoader {
    * @returns {Promise<boolean>}
    */
   async isValidForNetwork(network: Network): Promise<boolean> {
-    return await this._bdk.addressIsValidForNetwork(this.id, network);
+    const addressString = await this.asString();
+    return await this._bdk.addressIsValidForNetwork(addressString, network);
   }
 
   /**
