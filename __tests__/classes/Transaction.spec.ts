@@ -1,6 +1,6 @@
 import { Transaction } from '../../src';
-import { createTxIn, createTxOut } from '../../src/lib/utils';
-import { mockTxIn, mockTxOut } from '../mockData';
+import { createTxOut } from '../../src/lib/utils';
+import { mockTxOut } from '../mockData';
 import { mockBdkRnModule } from '../setup';
 
 describe('Transaction', () => {
