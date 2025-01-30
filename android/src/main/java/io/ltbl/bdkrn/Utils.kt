@@ -33,11 +33,12 @@ fun getNetworkString(network: Network): String {
 
 fun setWordCount(wordCount: Int?): WordCount {
     return when (wordCount) {
-        15 -> WordCount.WORDS12
+        12 -> WordCount.WORDS12
+        15 -> WordCount.WORDS15
         18 -> WordCount.WORDS18
         21 -> WordCount.WORDS21
         24 -> WordCount.WORDS24
-        else -> WordCount.WORDS12
+        else -> throw IllegalArgumentException("Invalid word count. Must be one of: 12, 15, 18, 21, or 24")
     }
 }
 
