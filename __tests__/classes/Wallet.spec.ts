@@ -13,8 +13,6 @@ describe('Wallet', () => {
   let descriptor: Descriptor;
   let changeDescriptor: Descriptor;
   let wallet: Wallet;
-  const addressIndex = 82;
-  const address = 'A4CCF9FD-FCA0-4171-94FD-4726F025FAC9';
   const scriptId = '29D8A421-29F8-4113-ADA3-69D0A97C3305';
   const script = new Script(scriptId);
 
@@ -23,16 +21,6 @@ describe('Wallet', () => {
     changeDescriptor = await new Descriptor().create(changeDescriptorString, Network.Regtest);
 
     mockBdkRnModule.walletInit.mockResolvedValue(walletId);
-    mockBdkRnModule.getAddress.mockResolvedValue({
-      index: addressIndex,
-      address,
-      keychain: KeychainKind.External,
-    });
-    mockBdkRnModule.getInternalAddress.mockResolvedValue({
-      index: addressIndex,
-      address,
-      keychain: KeychainKind.Internal,
-    });
 
     wallet = await new Wallet().create(descriptor, changeDescriptor, Network.Regtest, databaseConfig);
   });

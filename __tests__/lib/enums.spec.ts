@@ -1,7 +1,6 @@
 import {
   Network,
   BlockChainNames,
-  AddressIndex,
   KeychainKind,
   WordCount,
   EntropyLength,
@@ -22,11 +21,6 @@ describe('Enums', () => {
     expect(BlockChainNames.Electrum).toBe('Electrum');
     expect(BlockChainNames.Esplora).toBe('Esplora');
     expect(BlockChainNames.Rpc).toBe('Rpc');
-  });
-
-  it('should have correct AddressIndex values', () => {
-    expect(AddressIndex.New).toBe('new');
-    expect(AddressIndex.LastUnused).toBe('lastUnused');
   });
 
   it('should have correct KeychainKind values', () => {
