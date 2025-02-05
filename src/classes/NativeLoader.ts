@@ -1,6 +1,15 @@
 import { ChainPositionData } from './ChainPosition';
 import { AddressIndex, BlockchainRpcConfig, KeychainKind, Network, Payload, WordCount } from '../lib/enums';
-import { Address, AddressInfo, Balance, LocalUtxo, OutPoint, ScriptAmount, SignOptions, TransactionDetails } from './Bindings';
+import {
+  Address,
+  AddressInfo,
+  Balance,
+  LocalUtxo,
+  OutPoint,
+  ScriptAmount,
+  SignOptions,
+  TransactionDetails,
+} from './Bindings';
 
 import { NativeModules } from 'react-native';
 
@@ -10,7 +19,7 @@ export interface NativeBdkRn {
   generateSeedFromEntropy(entropy: Array<number>): string;
 
   createDerivationPath(path: string): string;
-  getDerivationPathAsString(id: string): string;
+  derivationPathToString(id: string): string;
   createDescriptorSecretKey(network: Network, mnemonic: string, password?: string): string;
   descriptorSecretKeyDerive(id: string, derivationPathId: string): string;
   descriptorSecretKeyExtend(id: string, derivationPathId: string): string;
@@ -24,7 +33,6 @@ export interface NativeBdkRn {
   descriptorPublicExtend(id: string, path: string): Promise<string>;
   descriptorPublicAsString(id: string): Promise<string>;
   descriptorPublicKeyAsBytes(id: string): Array<number>;
-
 
   initElectrumBlockchain(
     url: string,
@@ -161,7 +169,13 @@ export interface NativeBdkRn {
 
   createElectrumClient(url: string): string;
   electrumClientBroadcast(clientId: string, transactionId: string): boolean;
-  electrumClientFullScan(clientId: string, fullScanRequest: string, stopGap: number, batchSize: number, fetchPrevTxouts: boolean): string;
+  electrumClientFullScan(
+    clientId: string,
+    fullScanRequest: string,
+    stopGap: number,
+    batchSize: number,
+    fetchPrevTxouts: boolean
+  ): string;
   electrumClientSync(clientId: string, syncRequest: string, batchSize: number, fetchPrevTxouts: boolean): string;
   createAddressInfo(index: number, addressId: string, keychain: string): string;
   getAddressInfoIndex(id: string): number;
@@ -184,7 +198,13 @@ export interface NativeBdkRn {
   getNetwork(id: string): Network;
   freeNetwork(id: string): void;
 
-  walletSync(walletId: string, syncRequest: string, blockchain: string, batchSize: number, fetchPrevTxouts: boolean): void;
+  walletSync(
+    walletId: string,
+    syncRequest: string,
+    blockchain: string,
+    batchSize: number,
+    fetchPrevTxouts: boolean
+  ): void;
   walletStartSyncWithRevealedSpks(walletId: string): string;
   walletApplyUpdate(walletId: string, updateId: string): void;
   walletGetTransactions(walletId: string, includeRaw: boolean): Array<TransactionDetails>;
@@ -211,6 +231,15 @@ export interface NativeBdkRn {
   walletRevealNextAddress(walletId: string, keychain: KeychainKind): AddressInfo;
   walletSentAndReceived(walletId: string, transactionId: string): { sent: number; received: number };
   walletStartFullScan(walletId: string): string;
+  walletTransactions(walletId: string, includeRaw: boolean): Array<TransactionDetails>;
+  walletSign(walletId: string, psbtId: string): string;
+  walletNetwork(walletId: string): Network;
+  walletListUnspent(walletId: string): Array<LocalUtxo>;
+  walletIsMine(walletId: string, scriptId: string): boolean;
+
+  createScripwalletStartFullScan(walletId: string): string;
+  t(rawOutputScript: Array<number>): Promise<string>;
+  scriptToBytes(id: string): Promise<Array<number>>;
 }
 
 export class NativeLoader {

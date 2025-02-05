@@ -6,7 +6,7 @@ export interface NativeBdkRn {
     generateSeedFromString(mnemonic: string): string;
     generateSeedFromEntropy(entropy: Array<number>): string;
     createDerivationPath(path: string): string;
-    getDerivationPathAsString(id: string): string;
+    derivationPathToString(id: string): string;
     createDescriptorSecretKey(network: Network, mnemonic: string, password?: string): string;
     descriptorSecretKeyDerive(id: string, derivationPathId: string): string;
     descriptorSecretKeyExtend(id: string, derivationPathId: string): string;
@@ -176,6 +176,14 @@ export interface NativeBdkRn {
         received: number;
     };
     walletStartFullScan(walletId: string): string;
+    walletTransactions(walletId: string, includeRaw: boolean): Array<TransactionDetails>;
+    walletSign(walletId: string, psbtId: string): string;
+    walletNetwork(walletId: string): Network;
+    walletListUnspent(walletId: string): Array<LocalUtxo>;
+    walletIsMine(walletId: string, scriptId: string): boolean;
+    createScripwalletStartFullScan(walletId: string): string;
+    t(rawOutputScript: Array<number>): Promise<string>;
+    scriptToBytes(id: string): Promise<Array<number>>;
 }
 export declare class NativeLoader {
     protected _bdk: NativeBdkRn;

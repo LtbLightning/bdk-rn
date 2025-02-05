@@ -10,9 +10,4 @@ export declare class DerivationPath extends NativeLoader {
      * @returns {Promise<DerivationPath>}
      */
     create(path: string): Promise<DerivationPath>;
-    /**
-     * Get the string representation of the derivation path
-     * @returns {Promise<string>}
-     */
-    toString(): Promise<string>;
 }

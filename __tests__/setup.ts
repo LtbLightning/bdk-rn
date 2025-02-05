@@ -4,7 +4,6 @@ export const mockBdkRnModule = {
   generateSeedFromEntropy: jest.fn(),
 
   createDerivationPath: jest.fn(),
-  getDerivationPathAsString: jest.fn(),
 
   createDescriptorSecretKey: jest.fn(),
   descriptorSecretKeyFromString: jest.fn(),

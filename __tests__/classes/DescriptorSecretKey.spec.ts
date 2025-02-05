@@ -20,7 +20,6 @@ describe('DescriptorSecretKey', () => {
       descriptorSecretKeyAsString: jest.fn().mockResolvedValue('string-value'),
       descriptorSecretKeyAsPublic: jest.fn().mockResolvedValue('public-key-id'),
       descriptorSecretKeySecretBytes: jest.fn().mockResolvedValue([1, 2, 3]),
-      getDerivationPathAsString: jest.fn().mockResolvedValue('path'),
     });
   });
 
@@ -58,7 +57,7 @@ describe('DescriptorSecretKey', () => {
   it('derives a new descriptor from derivation path', async () => {
     mockBdkRnModule.descriptorSecretKeyDerive.mockResolvedValueOnce(mockDescriptorSecret.id);
     const res = await descriptorSecret.derive(mockDerivationPath);
-    expect(mockBdkRnModule.descriptorSecretKeyDerive).toHaveBeenCalledWith(secretKeyId, 'path');
+    expect(mockBdkRnModule.descriptorSecretKeyDerive).toHaveBeenCalledWith(secretKeyId, mockDerivationPath.toString());
     expect(res).toBeInstanceOf(DescriptorSecretKey);
     expect(res.id).toBe(mockDescriptorSecret.id);
   });
@@ -66,7 +65,7 @@ describe('DescriptorSecretKey', () => {
   it('extends descriptorSecret from derivation path', async () => {
     mockBdkRnModule.descriptorSecretKeyExtend.mockResolvedValueOnce(mockDescriptorSecret.id);
     const res = await descriptorSecret.extend(mockDerivationPath);
-    expect(mockBdkRnModule.descriptorSecretKeyExtend).toHaveBeenCalledWith(secretKeyId, 'path');
+    expect(mockBdkRnModule.descriptorSecretKeyExtend).toHaveBeenCalledWith(secretKeyId, mockDerivationPath.toString());
     expect(res).toBeInstanceOf(DescriptorSecretKey);
     expect(res.id).toBe(mockDescriptorSecret.id);
   });
