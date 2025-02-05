@@ -92,76 +92,125 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             }
         }.start()
     }
+
+    @ReactMethod
+    fun derivationPathToString(id: String, result: Promise) {
+        Thread {
+            try {
+            val derivationPath = _derivationPaths[id] ?: throw Exception("DerivationPath not found")
+            // Note: Similar to iOS, we're returning the id as there's no direct toString method
+            // In a real implementation, you might want to store the original string or implement a toString method
+            result.resolve(id)
+        } catch (error: Throwable) {
+                result.reject("DerivationPath error", error.localizedMessage, error)
+            }
+        }.start()
+    }
     /** Derviation path methods ends */
 
-    /** Descriptor secret key methods starts */
+   /** Descriptor secret key methods starts */
     @ReactMethod
-    fun createDescriptorSecret(
-        network: String, mnemonic: String, password: String? = null, result: Promise
-    ) {
+    fun createDescriptorSecretKey(network: String, mnemonic: String, password: String?, result: Promise) {
         Thread {
             try {
+                val mnemonicObj = Mnemonic.fromString(mnemonic)
+                val descriptorSecretKey = DescriptorSecretKey(
+                    setNetwork(network),
+                    mnemonicObj,
+                    password
+                )
                 val id = randomId()
-                _descriptorSecretKeys[id] =
-                    DescriptorSecretKey(
-                        setNetwork(network),
-                        Mnemonic.fromString(mnemonic),
-                        password
-                    )
+                _descriptorSecretKeys[id] = descriptorSecretKey
                 result.resolve(id)
             } catch (error: Throwable) {
-                result.reject("DescriptorSecret create error", error.localizedMessage, error)
+                result.reject("DescriptorSecretKey error", error.localizedMessage, error)
             }
         }.start()
     }
 
     @ReactMethod
-    fun descriptorSecretDerive(secretKeyId: String, derivationPathId: String, result: Promise) {
+    fun descriptorSecretKeyFromString(secretKey: String, result: Promise) {
         Thread {
             try {
-                val keyInfo =
-                    _descriptorSecretKeys[secretKeyId]!!.derive(_derivationPaths[derivationPathId]!!)
-                result.resolve(keyInfo.asString())
+                val descriptorSecretKey = DescriptorSecretKey.fromString(secretKey)
+                val id = randomId()
+                _descriptorSecretKeys[id] = descriptorSecretKey
+                result.resolve(id)
             } catch (error: Throwable) {
-                result.reject("DescriptorSecret derive error", error.localizedMessage, error)
+                result.reject("DescriptorSecretKey error", error.localizedMessage, error)
             }
         }.start()
     }
 
     @ReactMethod
-    fun descriptorSecretExtend(secretKeyId: String, derivationPathId: String, result: Promise) {
+    fun descriptorSecretKeyAsPublic(id: String, result: Promise) {
         Thread {
             try {
-                val keyInfo =
-                    _descriptorSecretKeys[secretKeyId]!!.extend(_derivationPaths[derivationPathId]!!)
-                result.resolve(keyInfo.asString())
+                val descriptorSecretKey = _descriptorSecretKeys[id] ?: throw Exception("DescriptorSecretKey not found")
+                val descriptorPublicKey = descriptorSecretKey.asPublic()
+                val publicKeyId = randomId()
+                _descriptorPublicKeys[publicKeyId] = descriptorPublicKey
+                result.resolve(publicKeyId)
             } catch (error: Throwable) {
-                result.reject("DescriptorSecret extend error", error.localizedMessage, error)
+                result.reject("DescriptorSecretKey error", error.localizedMessage, error)
             }
         }.start()
     }
 
     @ReactMethod
-    fun descriptorSecretAsPublic(secretKeyId: String, result: Promise) {
+    fun descriptorSecretKeyAsString(id: String, result: Promise) {
         Thread {
-            val id = randomId()
-            _descriptorPublicKeys[id] = _descriptorSecretKeys[secretKeyId]!!.asPublic()
-            result.resolve(id)
+            try {
+                val descriptorSecretKey = _descriptorSecretKeys[id] ?: throw Exception("DescriptorSecretKey not found")
+                result.resolve(descriptorSecretKey.asString())
+            } catch (error: Throwable) {
+                result.reject("DescriptorSecretKey error", error.localizedMessage, error)
+            }
         }.start()
     }
 
     @ReactMethod
-    fun descriptorSecretAsString(secretKeyId: String, result: Promise) {
+    fun descriptorSecretKeyDerive(id: String, path: String, result: Promise) {
         Thread {
-            result.resolve(_descriptorSecretKeys[secretKeyId]!!.asString())
+            try {
+                val descriptorSecretKey = _descriptorSecretKeys[id] ?: throw Exception("DescriptorSecretKey not found")
+                val derivationPath = DerivationPath(path)
+                val derivedKey = descriptorSecretKey.derive(derivationPath)
+                val newId = randomId()
+                _descriptorSecretKeys[newId] = derivedKey
+                result.resolve(newId)
+            } catch (error: Throwable) {
+                result.reject("DescriptorSecretKey derive error", error.localizedMessage, error)
+            }
         }.start()
     }
 
     @ReactMethod
-    fun descriptorSecretAsSecretBytes(secretKeyId: String, result: Promise) {
+    fun descriptorSecretKeyExtend(id: String, path: String, result: Promise) {
         Thread {
-            val secretBytes = _descriptorSecretKeys[secretKeyId]!!.secretBytes()
-            result.resolve(makeNativeArray(secretBytes))
+            try {
+                val descriptorSecretKey = _descriptorSecretKeys[id] ?: throw Exception("DescriptorSecretKey not found")
+                val derivationPath = DerivationPath(path)
+                val extendedKey = descriptorSecretKey.extend(derivationPath)
+                val newId = randomId()
+                _descriptorSecretKeys[newId] = extendedKey
+                result.resolve(newId)
+            } catch (error: Throwable) {
+                result.reject("DescriptorSecretKey extend error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun descriptorSecretKeySecretBytes(id: String, result: Promise) {
+        Thread {
+            try {
+                val descriptorSecretKey = _descriptorSecretKeys[id] ?: throw Exception("DescriptorSecretKey not found")
+                val secretBytes = descriptorSecretKey.secretBytes()
+                result.resolve(Arguments.makeNativeArray(secretBytes))
+            } catch (error: Throwable) {
+                result.reject("DescriptorSecretKey error", error.localizedMessage, error)
+            }
         }.start()
     }
     /** Descriptor secret key methods ends */
@@ -875,17 +924,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         }.start()
     }
 
-    // `addData`
-//    @ReactMethod
-//    fun addData(id: String, data: ReadableArray, result: Promise) {
-//        Thread {
-//            var dataList: MutableList<UByte> = mutableListOf<UByte>()
-//            for (i in 0 until data.size()) dataList.add(data.getInt(i).toUByte())
-//            _txBuilders[id] = _txBuilders[id]!!.addData(dataList)
-//            result.resolve(true)
-//        }.start()
-//    }
-
+    
     // `setRecipients`
     @ReactMethod
     fun setRecipients(id: String, recipients: ReadableArray, promise: Promise) {
