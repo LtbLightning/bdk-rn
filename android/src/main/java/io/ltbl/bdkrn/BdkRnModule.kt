@@ -40,9 +40,6 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     private var _outPoints = mutableMapOf<String, org.bitcoindevkit.OutPoint>()
     private var _txOuts = mutableMapOf<String, org.bitcoindevkit.TxOut>()
     private var _feeRates = mutableMapOf<String, FeeRate>()
-    private val _memoryDBs = mutableMapOf<String, Boolean>()
-    private val _sledPaths = mutableMapOf<String, Pair<String, String>>()
-    private val _sqlitePaths = mutableMapOf<String, String>()
     private val _localOutputs = mutableMapOf<String, LocalOutput>()
 
     /** Mnemonic methods starts */
@@ -263,52 +260,6 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     /** Descriptor public key methods ends */
-
-
-    /** DB configuration methods starts*/
-    @ReactMethod
-    fun memoryDBInit(result: Promise) {
-        Thread {
-            try {
-                val id = randomId()
-                _memoryDBs[id] = true
-                
-                result.resolve(id)
-            } catch (e: Exception) {
-                result.reject("Memory DB Init error", e.message, e)
-            }
-        }.start()
-    }
-
-    @ReactMethod
-    fun sledDBInit(path: String, treeName: String, result: Promise) {
-        Thread {
-            try {
-                val id = randomId()
-                _sledPaths[id] = Pair(path, treeName)
-                
-                result.resolve(id)
-            } catch (e: Exception) {
-                result.reject("Sled DB Init error", e.message, e)
-            }
-        }.start()
-    }
-
-    @ReactMethod
-    fun sqliteDBInit(path: String, result: Promise) {
-        Thread {
-            try {
-                val id = randomId()
-                _sqlitePaths[id] = path
-                
-                result.resolve(id)
-            } catch (e: Exception) {
-                result.reject("SQLite DB Init error", e.message, e)
-            }
-        }.start()
-    }
-    /** DB configuration methods ends*/
-
 
     /** Wallet methods starts*/
     private fun getWalletById(id: String): Wallet {

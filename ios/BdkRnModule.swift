@@ -125,9 +125,6 @@ class BdkRnModule: NSObject {
     var _syncRequests: [String: SyncRequest] = [:]
     var _blockChains: [String: Any] = [:]
     var _blockChainMethods: [String: Any] = [:]
-    var _sqlitePaths: [String: String] = [:]
-    var _sledPaths: [String: (path: String, treeName: String)] = [:]
-    var _memoryDBs: [String: Bool] = [:]
     var _descriptorSecretKeys: [String: DescriptorSecretKey] = [:]
     var _descriptorPublicKeys: [String: DescriptorPublicKey] = [:]
     var _addresses: [String: Address] = [:]
@@ -428,70 +425,6 @@ class BdkRnModule: NSObject {
     }
 
     /** Descriptor public key methods ends */
-
-
-    /** DB configuration methods starts*/
-    
-    @objc
-    func memoryDBInit(
-        _ resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async {
-            let id = self.randomId()
-            self._memoryDBs[id] = true
-            
-            DispatchQueue.main.async {
-                resolve(id)
-            }
-        }
-    }
-    @objc
-    func sledDBInit(
-        _ path: String,
-        treeName: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async {
-            do {
-                let id = self.randomId()
-                self._sledPaths[id] = (path: path, treeName: treeName)
-                
-                DispatchQueue.main.async {
-                    resolve(id)
-                }
-            } catch let error {
-                DispatchQueue.main.async {
-                    reject("Sled DB Init error", "\(error)", error)
-                }
-            }
-        }
-    }
-
-    @objc
-       func sqliteDBInit(
-           _ path: String,
-           resolve: @escaping RCTPromiseResolveBlock,
-           reject: @escaping RCTPromiseRejectBlock
-       ) {
-           DispatchQueue.global(qos: .userInteractive).async {
-               do {
-                   let id = self.randomId()
-                   self._sqlitePaths[id] = path
-                   
-                   DispatchQueue.main.async {
-                       resolve(id)
-                   }
-               } catch let error {
-                   DispatchQueue.main.async {
-                       reject("SQLite DB Init error", "\(error)", error)
-                   }
-               }
-           }
-       }
-    
-    /** DB configuration methods ends*/
 
     /** Wallet methods starts*/
 
