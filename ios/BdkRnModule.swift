@@ -433,7 +433,7 @@ class BdkRnModule: NSObject {
     }
 
     @objc
-    func getAddress(_
+    func revealNextAddress(
         id: String,
         addressIndex: Any,
         resolve: @escaping RCTPromiseResolveBlock,
@@ -454,34 +454,7 @@ class BdkRnModule: NSObject {
                 }
             } catch let error {
                 DispatchQueue.main.async {
-                    reject("Get wallet address error", "\(error)", error)
-                }
-            }
-        }
-    }
-    
-    @objc
-    func getInternalAddress(_
-        id: String,
-        addressIndex: Any,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            do {
-                let addressInfo = try getWalletById(id: id).revealNextAddress(keychain: .internal)
-                let randomId = randomId()
-                _addresses[randomId] = addressInfo.address
-                DispatchQueue.main.async {
-                    resolve([
-                        "index": addressInfo.index,
-                        "address": randomId,
-                        "keychain": "\(addressInfo.keychain)"
-                    ] as [String: Any])
-                }
-            } catch let error {
-                DispatchQueue.main.async {
-                    reject("Get internal address error", "\(error)", error)
+                    reject("Reveal next address error", "\(error)", error)
                 }
             }
         }

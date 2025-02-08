@@ -1,4 +1,4 @@
-import { AddressIndex, Network } from '../lib/enums';
+import { Network } from '../lib/enums';
 import { AddressInfo, Balance, FeeRate, FullScanRequest, KeychainKind, LocalUtxo, SignOptions, SyncRequest, TransactionDetails, Update } from './Bindings';
 import { Blockchain } from './Blockchain';
 import { DatabaseConfig } from './DatabaseConfig';
@@ -21,17 +21,11 @@ export declare class Wallet extends NativeLoader {
      */
     create(descriptor: Descriptor, changeDescriptor: Descriptor | null | undefined, network: Network, dbConfig: DatabaseConfig): Promise<Wallet>;
     /**
-     * Return a derived address using the external descriptor.
-     * @param addressIndex
-     * @returns {Promise<AddressInfo>}
+     * Reveal the next address for a specific keychain
+     * @param keychain The keychain to reveal the next address for
+     * @returns {Promise<AddressInfo>} Information about the revealed address
      */
-    getAddress(addressIndex: AddressIndex | number): Promise<AddressInfo>;
-    /**
-     * Return a derived address using the internal descriptor.
-     * @param addressIndex
-     * @returns {Promise<AddressInfo>}
-     */
-    getInternalAddress(addressIndex: AddressIndex | number): Promise<AddressInfo>;
+    revealNextAddress(keychain: KeychainKind): Promise<AddressInfo>;
     /**
      * check if the wallet is yours or not
      * @param script
@@ -121,7 +115,7 @@ export declare class Wallet extends NativeLoader {
      * @param keychain The keychain to reveal the next address for
      * @returns {Promise<AddressInfo>} Information about the revealed address
      */
-    revealNextAddress(keychain: KeychainKind): Promise<AddressInfo>;
+    walletRevealNextAddress(keychain: KeychainKind): Promise<AddressInfo>;
     /**
      * Calculate the amount sent and received in a transaction
      * @param tx The transaction to analyze

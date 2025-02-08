@@ -32,8 +32,7 @@ export interface NativeBdkRn {
     sledDBInit(path: string, treeName: string): string;
     sqliteDBInit(path: string): string;
     walletInit(descriptor: string, changeDescriptor: string | null, network: Network, dbConfig: string): any;
-    getAddress(id: string, addressIndex: AddressIndex | number): any;
-    getInternalAddress(id: string, addressIndex: AddressIndex | number): any;
+    revealNextAddress(id: string, addressIndex: AddressIndex | number): any;
     isMine(id: string, scriptId: string): boolean;
     getBalance(id: string): Balance;
     getBalanceImmature(id: string): number;

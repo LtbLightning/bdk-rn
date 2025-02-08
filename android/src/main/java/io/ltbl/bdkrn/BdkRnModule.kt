@@ -266,8 +266,8 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         return _wallets[id]!!
     }
 
-    @ReactMethod
-    fun getAddress(id: String, addressIndex: Dynamic, result: Promise) {
+   @ReactMethod
+    fun revealNextAddress(id: String, addressIndex: Dynamic, result: Promise) {
         Thread {
             try {
                 val keychain = when (addressIndex.type) {
@@ -289,31 +289,11 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 
                 result.resolve(Arguments.makeNativeMap(responseObject))
             } catch (error: Throwable) {
-                result.reject("Get wallet address error", error.localizedMessage, error)
+                result.reject("Reveal next address error", error.localizedMessage, error)
             }
         }.start()
     }
-
-       @ReactMethod
-    fun getInternalAddress(id: String, addressIndex: Dynamic, result: Promise) {
-        Thread {
-            try {
-                val addressInfo = getWalletById(id).revealNextAddress(org.bitcoindevkit.KeychainKind.INTERNAL)
-                val randomId = randomId()
-                _addresses[randomId] = addressInfo.address
-                
-                val responseObject = mutableMapOf<String, Any?>()
-                responseObject["index"] = addressInfo.index.toInt()
-                responseObject["address"] = randomId
-                responseObject["keychain"] = addressInfo.keychain.toString()
-                
-                result.resolve(Arguments.makeNativeMap(responseObject))
-            } catch (error: Throwable) {
-                result.reject("Get internal address error", error.localizedMessage, error)
-            }
-        }.start()
-    }
-
+    
     @ReactMethod
     fun isMine(id: String, scriptId: String, result: Promise) {
         Thread {

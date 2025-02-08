@@ -40,25 +40,12 @@ export class Wallet extends NativeLoader {
   }
 
   /**
-   * Return a derived address using the external descriptor.
-   * @param addressIndex
-   * @returns {Promise<AddressInfo>}
+   * Reveal the next address for a specific keychain
+   * @param keychain The keychain to reveal the next address for
+   * @returns {Promise<AddressInfo>} Information about the revealed address
    */
-  async getAddress(addressIndex: AddressIndex | number): Promise<AddressInfo> {
-    let addressInfo = await this._bdk.getAddress(this.id, addressIndex);
-    return new AddressInfo(
-      addressInfo.address,
-      getKeychainKind(addressInfo.keychain)
-    );
-  }
-
-  /**
-   * Return a derived address using the internal descriptor.
-   * @param addressIndex
-   * @returns {Promise<AddressInfo>}
-   */
-  async getInternalAddress(addressIndex: AddressIndex | number): Promise<AddressInfo> {
-    let addressInfo = await this._bdk.getInternalAddress(this.id, addressIndex);
+  async revealNextAddress(keychain: KeychainKind): Promise<AddressInfo> {
+    const addressInfo = await this._bdk.walletRevealNextAddress(this.id, keychain);
     return new AddressInfo(
       addressInfo.address,
       getKeychainKind(addressInfo.keychain)
@@ -246,7 +233,7 @@ export class Wallet extends NativeLoader {
    * @param keychain The keychain to reveal the next address for
    * @returns {Promise<AddressInfo>} Information about the revealed address
    */
-  async revealNextAddress(keychain: KeychainKind): Promise<AddressInfo> {
+  async walletRevealNextAddress(keychain: KeychainKind): Promise<AddressInfo> {
     const result = await this._bdk.walletRevealNextAddress(this.id, keychain);
     return new AddressInfo(
       result.address,
