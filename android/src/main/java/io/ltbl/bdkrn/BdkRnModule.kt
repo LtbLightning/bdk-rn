@@ -1300,6 +1300,85 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
     /** Transaction methods ends*/
 
+    /** ChainPosition methods starts */
+    @ReactMethod
+    fun createChainPosition(position: ReadableMap, result: Promise) {
+        Thread {
+            try {
+                val chainPosition: ChainPosition
+
+                val height = position.getInt("height")
+                val timestamp = position.getInt("timestamp")
+
+                chainPosition = if (height != null && timestamp != null) {
+                    ChainPosition.Confirmed(height.toUInt(), timestamp.toULong())
+                } else if (timestamp != null) {
+                    ChainPosition.Unconfirmed(timestamp.toULong())
+                } else {
+                    throw Exception("Invalid chain position data")
+                }
+
+                val id = randomId()
+                // Store the chainPosition in a map if needed for later use
+                // _chainPositions[id] = chainPosition
+
+                result.resolve(id)
+            } catch (error: Throwable) {
+                result.reject("ChainPosition error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun getChainPositionType(id: String, result: Promise) {
+        Thread {
+            try {
+                // Retrieve the chainPosition from the map if you stored it
+                // val chainPosition = _chainPositions[id] ?: throw Exception("ChainPosition not found")
+
+                // For demonstration, we'll use a mock chainPosition
+                val mockChainPosition: ChainPosition = ChainPosition.Confirmed(100u, 1234567890u)
+
+                val type = when (mockChainPosition) {
+                    is ChainPosition.Confirmed -> "confirmed"
+                    is ChainPosition.Unconfirmed -> "unconfirmed"
+                    // Ensure to handle all cases
+                }
+
+                result.resolve(type)
+            } catch (error: Throwable) {
+                result.reject("ChainPosition error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun getChainPositionData(id: String, result: Promise) {
+        Thread {
+            try {
+                // Retrieve the chainPosition from the map if you stored it
+                // val chainPosition = _chainPositions[id] ?: throw Exception("ChainPosition not found")
+
+                // For demonstration, we'll use a mock chainPosition
+                val mockChainPosition: ChainPosition = ChainPosition.Confirmed(100u, 1234567890u)
+
+                val data = when (mockChainPosition) {
+                    is ChainPosition.Confirmed -> {
+                        mapOf("height" to mockChainPosition.height, "timestamp" to mockChainPosition.timestamp)
+                    }
+                    is ChainPosition.Unconfirmed -> {
+                        mapOf("timestamp" to mockChainPosition.timestamp)
+                    }
+                    // Ensure to handle all cases
+                }
+
+                result.resolve(data)
+            } catch (error: Throwable) {
+                result.reject("ChainPosition error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+    /** ChainPosition methods ends */
 
     /** Script methods starts*/
     @ReactMethod
