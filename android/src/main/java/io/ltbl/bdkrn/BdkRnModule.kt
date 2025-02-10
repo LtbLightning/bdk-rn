@@ -42,6 +42,12 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     private var _feeRates = mutableMapOf<String, FeeRate>()
     private val _localOutputs = mutableMapOf<String, LocalOutput>()
 
+    private var _blockChains = mutableMapOf<String, Any>()
+    private var _fullScanRequests = mutableMapOf<String, FullScanRequest>()
+    private var _syncRequests = mutableMapOf<String, SyncRequest>()
+    private val _updates = mutableMapOf<String, Any>()
+
+
     /** Mnemonic methods starts */
     @ReactMethod
     fun generateSeedFromWordCount(wordCount: Int, result: Promise) {
@@ -104,6 +110,81 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         }.start()
     }
     /** Derviation path methods ends */
+
+    /** EsploraClient methods starts */
+
+    @ReactMethod
+    fun createEsploraClient(url: String, promise: Promise) {
+        Thread {
+            try {
+                val esploraClient = EsploraClient(url)
+                val id = randomId()
+                _blockChains[id] = esploraClient
+                promise.resolve(id)
+            } catch (error: Throwable) {
+                promise.reject("EsploraClient error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun esploraClientBroadcast(clientId: String, txid: String, promise: Promise) {
+        Thread {
+            try {
+                val esploraClient = _blockChains[clientId] as? EsploraClient
+                    ?: throw Exception("EsploraClient not found")
+                val transaction = _transactions[txid]
+                    ?: throw Exception("Transaction not found")
+
+                esploraClient.broadcast(transaction)
+                promise.resolve(null)
+            } catch (error: Throwable) {
+                promise.reject("Broadcast error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun esploraClientFullScan(clientId: String, fullScanRequestId: String, stopGap: Double, parallelRequests: Double, promise: Promise) {
+        Thread {
+            try {
+                val esploraClient = _blockChains[clientId] as? EsploraClient
+                    ?: throw Exception("EsploraClient not found")
+                val fullScanRequest = _fullScanRequests[fullScanRequestId]
+                    ?: throw Exception("FullScanRequest not found")
+
+                val update = esploraClient.fullScan(fullScanRequest,
+                    stopGap.toUInt().toULong(), parallelRequests.toUInt().toULong()
+                )
+                val updateId = randomId()
+                _updates[updateId] = update
+                promise.resolve(updateId)
+            } catch (error: Throwable) {
+                promise.reject("Full scan error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun esploraClientSync(clientId: String, syncRequestId: String, parallelRequests: Double, promise: Promise) {
+        Thread {
+            try {
+                val esploraClient = _blockChains[clientId] as? EsploraClient
+                    ?: throw Exception("EsploraClient not found")
+                val syncRequest = _syncRequests[syncRequestId]
+                    ?: throw Exception("SyncRequest not found")
+
+                val update = esploraClient.sync(syncRequest, parallelRequests.toUInt().toULong())
+                val updateId = randomId()
+                _updates[updateId] = update
+                promise.resolve(updateId)
+            } catch (error: Throwable) {
+                promise.reject("Sync error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    /** EsploraClient methods ends */
 
    /** Descriptor secret key methods starts */
     @ReactMethod
