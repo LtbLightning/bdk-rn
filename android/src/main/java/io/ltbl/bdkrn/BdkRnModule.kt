@@ -186,6 +186,78 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     /** EsploraClient methods ends */
 
+    /** ElectrumClient methods starts */
+    @ReactMethod
+    fun createElectrumClient(url: String, promise: Promise) {
+        Thread {
+            try {
+                val client = ElectrumClient(url)
+                val id = randomId()
+                _blockChains[id] = client
+                promise.resolve(id)
+            } catch (error: Throwable) {
+                promise.reject("ElectrumClient creation error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun electrumClientBroadcast(clientId: String, transactionId: String, promise: Promise) {
+        Thread {
+            try {
+                val client = _blockChains[clientId] as? ElectrumClient
+                    ?: throw Exception("ElectrumClient not found")
+                val transaction = _transactions[transactionId]
+                    ?: throw Exception("Transaction not found")
+
+                val txid = client.broadcast(transaction)
+                promise.resolve(txid)
+            } catch (error: Throwable) {
+                promise.reject("Broadcast error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun electrumClientFullScan(clientId: String, fullScanRequestId: String, stopGap: Double, batchSize: Double, fetchPrevTxouts: Boolean, promise: Promise) {
+        Thread {
+            try {
+                val client = _blockChains[clientId] as? ElectrumClient
+                    ?: throw Exception("ElectrumClient not found")
+                val fullScanRequest = _fullScanRequests[fullScanRequestId]
+                    ?: throw Exception("FullScanRequest not found")
+
+                val update = client.fullScan(fullScanRequest,
+                    stopGap.toUInt().toULong(), batchSize.toUInt().toULong(), fetchPrevTxouts)
+                val updateId = randomId()
+                _updates[updateId] = update
+                promise.resolve(updateId)
+            } catch (error: Throwable) {
+                promise.reject("Full scan error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun electrumClientSync(clientId: String, syncRequestId: String, batchSize: Double, fetchPrevTxouts: Boolean, promise: Promise) {
+        Thread {
+            try {
+                val client = _blockChains[clientId] as? ElectrumClient
+                    ?: throw Exception("ElectrumClient not found")
+                val syncRequest = _syncRequests[syncRequestId]
+                    ?: throw Exception("SyncRequest not found")
+
+                val update = client.sync(syncRequest, batchSize.toUInt().toULong(), fetchPrevTxouts)
+                val updateId = randomId()
+                _updates[updateId] = update
+                promise.resolve(updateId)
+            } catch (error: Throwable) {
+                promise.reject("Sync error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+    /** ElectrumClient methods ends */
+
    /** Descriptor secret key methods starts */
     @ReactMethod
     fun createDescriptorSecretKey(network: String, mnemonic: String, password: String?, result: Promise) {

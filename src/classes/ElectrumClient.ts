@@ -2,7 +2,6 @@ import { FullScanRequest, SyncRequest, Update } from './Bindings';
 import { NativeLoader } from './NativeLoader';
 import { Transaction } from './Transaction';
 
-
 export class ElectrumClient extends NativeLoader {
   private id: string;
 
@@ -67,17 +66,8 @@ export class ElectrumClient extends NativeLoader {
    * @param {boolean} fetchPrevTxouts - Whether to fetch previous transaction outputs
    * @returns {Promise<Update>} - The update result
    */
-  async sync(
-    syncRequest: SyncRequest,
-    batchSize: number,
-    fetchPrevTxouts: boolean
-  ): Promise<Update> {
-    const updateId = await this._bdk.electrumClientSync(
-      this.id,
-      syncRequest.id,
-      batchSize,
-      fetchPrevTxouts
-    );
+  async sync(syncRequest: SyncRequest, batchSize: number, fetchPrevTxouts: boolean): Promise<Update> {
+    const updateId = await this._bdk.electrumClientSync(this.id, syncRequest.id, batchSize, fetchPrevTxouts);
     return new Update(updateId);
   }
 }
