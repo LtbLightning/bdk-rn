@@ -191,7 +191,8 @@ export interface NativeBdkRn {
   getSyncRequestFetchPrevTxouts(id: string): boolean;
   getSyncRequestParallelRequests(id: string): number;
   freeSyncRequest(id: string): void;
-
+  createFullScanRequest(walletId: string): string;
+  freeFullScanRequest(id: string): void;
   getAddress(id: string): Address;
   freeAddress(id: string): void;
   getNetwork(id: string): Network;

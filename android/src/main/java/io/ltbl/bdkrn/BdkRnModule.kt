@@ -1581,5 +1581,45 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         }.start()
     }
     /** Script methods ends*/
+
+    /** FullScanRequest methods starts */
+
+    @ReactMethod
+    fun createFullScanRequest(walletId: String, promise: Promise) {
+        Thread {
+            val wallet = _wallets[walletId]
+            if (wallet == null) {
+                runOnUiThread {
+                    promise.reject("Invalid wallet", "Wallet not found", null)
+                }
+                return@Thread
+            }
+
+            try {
+                val fullScanRequest = wallet.startFullScan() // Assuming this method exists in your Wallet class
+                val id = randomId()
+                _fullScanRequests[id] = fullScanRequest
+                runOnUiThread {
+                    promise.resolve(id)
+                }
+            } catch (error: Throwable) {
+                runOnUiThread {
+                    promise.reject("FullScanRequest creation error", error.localizedMessage, error)
+                }
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun freeFullScanRequest(id: String, promise: Promise) {
+        Thread {
+            _fullScanRequests.remove(id)
+            runOnUiThread {
+                promise.resolve(null)
+            }
+        }.start()
+    }
+
+    /** FullScanRequest methods ends */
 }
 

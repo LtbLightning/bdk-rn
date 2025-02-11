@@ -2688,5 +2688,44 @@ class BdkRnModule: NSObject {
         }
     }
     /** ChangeSpendPolicy methods ends */
+
+    /** FullScanRequest methods starts */
+
+    @objc
+    func createFullScanRequest(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let wallet = self._wallets[walletId] else {
+                DispatchQueue.main.async {
+                    reject("Invalid wallet", "Wallet not found", nil)
+                }
+                return
+            }
+            
+            do {
+                let fullScanRequest = wallet.startFullScan() // Assuming this method exists in your Wallet class
+                let id = self.randomId()
+                self._fullScanRequests[id] = fullScanRequest
+                DispatchQueue.main.async {
+                    resolve(id)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("FullScanRequest creation error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    @objc
+    func freeFullScanRequest(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            self._fullScanRequests.removeValue(forKey: id)
+            DispatchQueue.main.async {
+                resolve(nil)
+            }
+        }
+    }
+
+    /** FullScanRequest methods ends */
 }
 
