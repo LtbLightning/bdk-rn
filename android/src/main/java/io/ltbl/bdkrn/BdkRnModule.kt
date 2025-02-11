@@ -258,6 +258,46 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
     /** ElectrumClient methods ends */
 
+    /** SyncRequest methods starts */
+
+    @ReactMethod
+    fun createSyncRequest(walletId: String, promise: Promise) {
+        Thread {
+            val wallet = _wallets[walletId]
+            if (wallet == null) {
+                runOnUiThread {
+                    promise.reject("Invalid wallet", "Wallet not found", null)
+                }
+                return@Thread
+            }
+
+            try {
+                val syncRequest = wallet.startSyncWithRevealedSpks()
+                val id = randomId()
+                _syncRequests[id] = syncRequest
+                runOnUiThread {
+                    promise.resolve(id)
+                }
+            } catch (error: Throwable) {
+                runOnUiThread {
+                    promise.reject("SyncRequest creation error", error.localizedMessage, error)
+                }
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun freeSyncRequest(id: String, promise: Promise) {
+        Thread {
+            _syncRequests.remove(id)
+            runOnUiThread {
+                promise.resolve(null)
+            }
+        }.start()
+    }
+
+    /** SyncRequest methods ends */
+
    /** Descriptor secret key methods starts */
     @ReactMethod
     fun createDescriptorSecretKey(network: String, mnemonic: String, password: String?, result: Promise) {
