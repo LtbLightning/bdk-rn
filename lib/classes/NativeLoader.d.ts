@@ -1,6 +1,7 @@
 import { ChainPositionData } from './ChainPosition';
 import { AddressIndex, BlockchainRpcConfig, KeychainKind, Network, Payload, WordCount } from '../lib/enums';
 import { Address, AddressInfo, Balance, LocalUtxo, OutPoint, ScriptAmount, SignOptions, TransactionDetails } from './Bindings';
+import { SentAndReceivedValues } from './SentAndReceivedValues';
 export interface NativeBdkRn {
     generateSeedFromWordCount(wordCount: WordCount): string;
     generateSeedFromString(mnemonic: string): string;
@@ -147,6 +148,8 @@ export interface NativeBdkRn {
     freeAddress(id: string): void;
     getNetwork(id: string): Network;
     freeNetwork(id: string): void;
+    createSentAndReceivedValues(sent: number, received: number): string;
+    freeSentAndReceivedValues(values: SentAndReceivedValues): void;
     walletSync(walletId: string, syncRequest: string, blockchain: string, batchSize: number, fetchPrevTxouts: boolean): void;
     walletStartSyncWithRevealedSpks(walletId: string): string;
     walletApplyUpdate(walletId: string, updateId: string): void;

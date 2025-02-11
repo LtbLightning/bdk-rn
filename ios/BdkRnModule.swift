@@ -2727,5 +2727,43 @@ class BdkRnModule: NSObject {
     }
 
     /** FullScanRequest methods ends */
+
+    /** SentAndReceivedValues methods starts */
+
+    @objc
+    func fetchSentAndReceivedValues(_ walletId: String, txId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let wallet = self._wallets[walletId], let tx = self._transactions[txId] else {
+                DispatchQueue.main.async {
+                    reject("Invalid wallet or transaction", "Wallet or Transaction not found", nil)
+                }
+                return
+            }
+            
+            let values = wallet.sentAndReceived(tx: tx) // Assuming sentAndReceived() returns SentAndReceivedValues
+            let result: [String: UInt64] = [
+                "sent": values.sent.toSat(),
+                "received": values.received.toSat()
+            ]
+            
+            DispatchQueue.main.async {
+                resolve(result)
+            }
+        }
+    }
+
+    @objc
+    func freeSentAndReceivedValues(values: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            // Logic to release resources associated with SentAndReceivedValues if necessary
+            // This could involve clearing any in-memory cache or temporary storage
+            
+            DispatchQueue.main.async {
+                resolve(nil)
+            }
+        }
+    }
+
+    /** SentAndReceivedValues methods ends */
 }
 

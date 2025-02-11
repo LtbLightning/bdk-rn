@@ -12,6 +12,7 @@ import {
 } from './Bindings';
 
 import { NativeModules } from 'react-native';
+import { SentAndReceivedValues } from './SentAndReceivedValues';
 
 export interface NativeBdkRn {
   generateSeedFromWordCount(wordCount: WordCount): string;
@@ -197,6 +198,8 @@ export interface NativeBdkRn {
   freeAddress(id: string): void;
   getNetwork(id: string): Network;
   freeNetwork(id: string): void;
+  createSentAndReceivedValues(sent: number, received: number): string; // Assuming Amount can be represented as number
+  freeSentAndReceivedValues(values: SentAndReceivedValues): void;
 
   walletSync(
     walletId: string,

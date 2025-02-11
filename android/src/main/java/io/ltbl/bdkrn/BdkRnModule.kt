@@ -1621,5 +1621,25 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     /** FullScanRequest methods ends */
+
+    /** SentAndRecievedValues methods starts  */
+
+        @ReactMethod
+        fun createSentAndReceivedValues(sent: Amount, received: Amount, promise: Promise) {
+            Thread {
+                val values = SentAndReceivedValues(sent, received)
+                promise.resolve(values)
+            }.start()
+        }
+
+        @ReactMethod
+        fun freeSentAndReceivedValues(values: SentAndReceivedValues, promise: Promise) {
+            Thread {
+                // Freeing logic if needed
+                promise.resolve(null)
+            }.start()
+        }
+
+        /** SentAndReceivedValues methods ends */
 }
 
