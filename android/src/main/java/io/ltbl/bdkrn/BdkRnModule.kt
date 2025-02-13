@@ -23,7 +23,16 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     override fun getConstants(): MutableMap<String, Any> {
         return hashMapOf("count" to 1)
     }
+    private val _canonicalTxs: MutableMap<String, CanonicalTx> = mutableMapOf()
 
+    private fun getTransactionById(id: String): Transaction {
+        return _transactions[id] ?: throw Exception("Transaction not found")
+    }
+
+    private fun getChainPositionById(id: String): ChainPosition {
+        return _chainPositions[id] ?: throw Exception("ChainPosition not found")
+    }
+    private val _chainPositions: MutableMap<String, ChainPosition> = mutableMapOf() 
     private var _descriptorSecretKeys = mutableMapOf<String, DescriptorSecretKey>()
     private var _descriptorPublicKeys = mutableMapOf<String, DescriptorPublicKey>()
 
@@ -1624,22 +1633,70 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     /** SentAndRecievedValues methods starts  */
 
-        @ReactMethod
-        fun createSentAndReceivedValues(sent: Amount, received: Amount, promise: Promise) {
-            Thread {
-                val values = SentAndReceivedValues(sent, received)
-                promise.resolve(values)
-            }.start()
-        }
+    @ReactMethod
+    fun createSentAndReceivedValues(sent: Amount, received: Amount, promise: Promise) {
+        Thread {
+            val values = SentAndReceivedValues(sent, received)
+            promise.resolve(values)
+        }.start()
+    }
 
-        @ReactMethod
-        fun freeSentAndReceivedValues(values: SentAndReceivedValues, promise: Promise) {
-            Thread {
-                // Freeing logic if needed
-                promise.resolve(null)
-            }.start()
-        }
+    @ReactMethod
+    fun freeSentAndReceivedValues(values: SentAndReceivedValues, promise: Promise) {
+        Thread {
+            // Freeing logic if needed
+            promise.resolve(null)
+        }.start()
+    }
 
-        /** SentAndReceivedValues methods ends */
+    /** SentAndReceivedValues methods ends */
+
+    /** CanonicalTx methods starts */
+
+    @ReactMethod
+    fun createCanonicalTx(
+        transactionId: String,
+        chainPositionId: String,
+        promise: Promise
+    ) {
+        Thread {
+            try {
+                val transaction = getTransactionById(transactionId)
+                val chainPosition = getChainPositionById(chainPositionId)
+
+                val canonicalTx = CanonicalTx(transaction, chainPosition)
+                val canonicalTxId = randomId()
+                _canonicalTxs[canonicalTxId] = canonicalTx
+
+                promise.resolve(canonicalTxId)
+            } catch (error: Throwable) {
+                promise.reject("Create CanonicalTx error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun getCanonicalTxById(
+        id: String,
+        promise: Promise
+    ) {
+        Thread {
+            val canonicalTx = _canonicalTxs[id]
+            if (canonicalTx == null) {
+                promise.reject("Get CanonicalTx error", "CanonicalTx not found")
+                return@Thread
+            }
+
+            val result = mapOf(
+                "transaction" to canonicalTx.transaction,
+                "chainPosition" to canonicalTx.chainPosition
+            )
+
+            promise.resolve(result)
+        }.start()
+    }
+
+    /** CanonicalTx methods ends */
+
 }
 

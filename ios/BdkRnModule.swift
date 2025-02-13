@@ -134,6 +134,24 @@ class BdkRnModule: NSObject {
     var _derivationPaths: [String: DerivationPath] = [:]
     var _bumpFeeTxBuilders: [String: BumpFeeTxBuilder] = [:]
     var _transactions: [String: Transaction] = [:]
+    var _canonicalTxs: [String: CanonicalTx] = [:]
+    var _chainPositions: [String: ChainPosition] = [:]
+
+    // Function to retrieve a Transaction by ID
+    private func getTransactionById(_ id: String) throws -> Transaction {
+        guard let transaction = _transactions[id] else {
+            throw NSError(domain: "BdkRnModule", code: 404, userInfo: [NSLocalizedDescriptionKey: "Transaction not found"])
+        }
+        return transaction
+    }
+
+    // Function to retrieve a ChainPosition by ID
+    private func getChainPositionById(_ id: String) throws -> ChainPosition {
+        guard let chainPosition = _chainPositions[id] else {
+            throw NSError(domain: "BdkRnModule", code: 404, userInfo: [NSLocalizedDescriptionKey: "ChainPosition not found"])
+        }
+        return chainPosition
+    }
 
 
 
@@ -2765,5 +2783,65 @@ class BdkRnModule: NSObject {
     }
 
     /** SentAndReceivedValues methods ends */
+
+    /** CanonicalTx methods starts */
+
+    @objc
+    func createCanonicalTx(
+        transactionId: String,
+        chainPositionId: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.global(qos: .userInteractive).async { [self] in
+            do {
+                // Retrieve Transaction and ChainPosition by their IDs
+                let transaction = try getTransactionById(transactionId) // Ensure this method throws an error if not found
+                let chainPosition = try getChainPositionById(chainPositionId) // Ensure this method throws an error if not found
+                
+                // Create the CanonicalTx instance
+                let canonicalTx = CanonicalTx(transaction: transaction, chainPosition: chainPosition)
+                let canonicalTxId = randomId() // Generate a unique ID for the CanonicalTx
+                _canonicalTxs[canonicalTxId] = canonicalTx // Store it in a dictionary
+                
+                DispatchQueue.main.async {
+                    resolve(canonicalTxId) // Resolve with the ID of the created CanonicalTx
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Create CanonicalTx error", "\(error.localizedDescription)", error) // Provide a more descriptive error message
+                }
+            }
+        }
+    }
+
+    // Function to retrieve a CanonicalTx by ID
+    @objc
+    func getCanonicalTxById(
+        id: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.global(qos: .userInteractive).async { [self] in
+            guard let canonicalTx = _canonicalTxs[id] else {
+                DispatchQueue.main.async {
+                    reject("Get CanonicalTx error", "CanonicalTx not found", nil) // Reject if not found
+                }
+                return
+            }
+            
+            // Convert the CanonicalTx to a dictionary format for easier access
+            let result: [String: Any] = [
+                "transaction": canonicalTx.transaction, // Convert to a suitable format if necessary
+                "chainPosition": canonicalTx.chainPosition // Convert to a suitable format if necessary
+            ]
+            
+            DispatchQueue.main.async {
+                resolve(result) // Resolve with the CanonicalTx details
+            }
+        }
+    }
+    /** CanonicalTx methods ends */
+
 }
 
