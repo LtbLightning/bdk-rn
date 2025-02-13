@@ -1,5 +1,17 @@
 import { AddressIndex, Network } from '../lib/enums';
-import { AddressInfo, Balance, BlockTime, FeeRate, FullScanRequest, KeychainKind, LocalUtxo, SignOptions, SyncRequest, TransactionDetails, Update } from './Bindings';
+import {
+  AddressInfo,
+  Balance,
+  BlockTime,
+  FeeRate,
+  FullScanRequest,
+  KeychainKind,
+  LocalUtxo,
+  SignOptions,
+  SyncRequest,
+  TransactionDetails,
+  Update,
+} from './Bindings';
 import { createOutpoint, createTxDetailsObject, createTxOut, getKeychainKind, getNetwork } from '../lib/utils';
 
 import { Blockchain } from './Blockchain';
@@ -46,14 +58,11 @@ export class Wallet extends NativeLoader {
    */
   async revealNextAddress(keychain: KeychainKind): Promise<AddressInfo> {
     const addressInfo = await this._bdk.walletRevealNextAddress(this.id, keychain);
-    return new AddressInfo(
-      addressInfo.address,
-      getKeychainKind(addressInfo.keychain)
-    );
+    return new AddressInfo(addressInfo.address, getKeychainKind(addressInfo.keychain));
   }
 
   /**
-   * check if the wallet is yours or not
+   * Check if the wallet is yours or not
    * @param script
    * @returns {Promise<boolean>}
    */
@@ -129,7 +138,8 @@ export class Wallet extends NativeLoader {
     let signed = await this._bdk.sign(this.id, psbt.base64, signOptions);
     return new PartiallySignedTransaction(signed);
   }
-    /**
+
+  /**
    * Sync the wallet using a specific sync request
    * @param syncRequest The sync request to use
    * @param blockchain The blockchain to sync with
@@ -137,7 +147,12 @@ export class Wallet extends NativeLoader {
    * @param fetchPrevTxouts Whether to fetch previous transaction outputs
    * @returns {Promise<void>}
    */
-  async walletSync(syncRequest: SyncRequest, blockchain: Blockchain, batchSize: number, fetchPrevTxouts: boolean): Promise<void> {
+  async walletSync(
+    syncRequest: SyncRequest,
+    blockchain: Blockchain,
+    batchSize: number,
+    fetchPrevTxouts: boolean
+  ): Promise<void> {
     await this._bdk.walletSync(this.id, syncRequest.id, blockchain.id, batchSize, fetchPrevTxouts);
   }
 
@@ -196,10 +211,7 @@ export class Wallet extends NativeLoader {
     if (result) {
       let confirmationTime: BlockTime | undefined = undefined;
       if (result.confirmationTime) {
-        confirmationTime = new BlockTime(
-          result.confirmationTime.height,
-          result.confirmationTime.timestamp
-        );
+        confirmationTime = new BlockTime(result.confirmationTime.height, result.confirmationTime.timestamp);
       }
 
       let transaction: Transaction | null = null;
@@ -225,7 +237,7 @@ export class Wallet extends NativeLoader {
    */
   async listOutput(): Promise<LocalUtxo[]> {
     const outputs = await this._bdk.walletListOutput(this.id);
-    return outputs.map(output => new LocalUtxo(output.outpoint, output.txout, output.isSpent, output.keychain));
+    return outputs.map((output) => new LocalUtxo(output.outpoint, output.txout, output.isSpent, output.keychain));
   }
 
   /**
@@ -235,10 +247,7 @@ export class Wallet extends NativeLoader {
    */
   async walletRevealNextAddress(keychain: KeychainKind): Promise<AddressInfo> {
     const result = await this._bdk.walletRevealNextAddress(this.id, keychain);
-    return new AddressInfo(
-      result.address,
-      result.keychain
-    );
+    return new AddressInfo(result.address, result.keychain);
   }
 
   /**
@@ -257,5 +266,37 @@ export class Wallet extends NativeLoader {
   async startFullScan(): Promise<FullScanRequest> {
     const fullScanRequestId = await this._bdk.walletStartFullScan(this.id);
     return new FullScanRequest(fullScanRequestId);
+  }
+
+  /**
+   * Create a new wallet without persistence
+   * @param descriptor The wallet descriptor
+   * @param changeDescriptor The change descriptor
+   * @param network The network type
+   * @returns {Promise<string>} The wallet ID
+   */
+  async newNoPersist(descriptor: string, changeDescriptor: string | null, network: string): Promise<string> {
+    const walletId = await this._bdk.walletNewNoPersist(descriptor, changeDescriptor, network);
+    return walletId;
+  }
+
+  /**
+   * Create a new wallet
+   * @param descriptor The wallet descriptor
+   * @param changeDescriptor The change descriptor
+   * @param network The network type
+   * @returns {Promise<string>} The wallet ID
+   */
+  async new(descriptor: string, changeDescriptor: string | null, network: string): Promise<string> {
+    const walletId = await this._bdk.walletNew(descriptor, changeDescriptor, network);
+    return walletId;
+  }
+
+  /**
+   * Get all transactions for the wallet
+   * @returns {Promise<Transaction[]>} The list of transactions
+   */
+  async transactions(): Promise<Transaction[]> {
+    return await this._bdk.walletTransactions(this.id);
   }
 }

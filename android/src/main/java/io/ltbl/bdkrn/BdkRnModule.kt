@@ -1698,5 +1698,161 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     /** CanonicalTx methods ends */
 
+    @ReactMethod
+    fun newNoPersist(descriptor: String, changeDescriptor: String?, network: String, promise: Promise) {
+    Thread {
+        try {
+            val networkType = setNetwork(network) // Implement this method
+            val descriptorObject = Descriptor(descriptor, networkType) // Assuming Descriptor has a constructor
+            val changeDescriptorObject = changeDescriptor?.let { Descriptor(it, networkType) }
+
+            val wallet = Wallet.newNoPersist(descriptorObject, changeDescriptorObject, networkType) // Assuming Wallet has a newNoPersist method
+            val id = randomId() // Generate a unique ID for the wallet
+            _wallets[id] = wallet // Store the wallet in a mutable map
+
+            promise.resolve(id) // Resolve the promise with the wallet ID
+        } catch (error: Throwable) {
+            promise.reject("Wallet creation error", error.localizedMessage, error) // Reject the promise with the error
+        }
+    }.start()
+}
+
+    @ReactMethod
+    fun commit(walletId: String, promise: Promise) {
+        Thread {
+            try {
+                val wallet = _wallets[walletId] ?: throw Exception("Wallet not found")
+                val result = wallet.commit()
+                promise.resolve(result)
+            } catch (error: Throwable) {
+                promise.reject("Commit error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun sign(walletId: String, psbt: String, promise: Promise) {
+        Thread {
+            try {
+                val wallet = _wallets[walletId] ?: throw Exception("Wallet not found")
+                val psbtObject = Psbt(psbt)
+                val signedPsbt = wallet.sign(psbtObject)
+                promise.resolve(signedPsbt)
+            } catch (error: Throwable) {
+                promise.reject("Sign error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+    @ReactMethod
+    fun sentAndReceived(walletId: String, txId: String, promise: Promise) {
+        Thread {
+            try {
+                val wallet = _wallets[walletId] ?: throw Exception("Wallet not found")
+                val tx = _transactions[txId] ?: throw Exception("Transaction not found")
+                val values = wallet.sentAndReceived(tx)
+                promise.resolve(mapOf("sent" to values.sent, "received" to values.received))
+            } catch (error: Throwable) {
+                promise.reject("Sent and received error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun transactions(walletId: String, promise: Promise) {
+        Thread {
+            try {
+                val wallet = _wallets[walletId] ?: throw Exception("Wallet not found")
+                val txList = wallet.transactions()
+                promise.resolve(txList)
+            } catch (error: Throwable) {
+                promise.reject("Transactions error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun getTx(walletId: String, txId: String, promise: Promise) {
+        Thread {
+            try {
+                val wallet = _wallets[walletId] ?: throw Exception("Wallet not found")
+                val tx = wallet.getTx(txId)
+                promise.resolve(tx)
+            } catch (error: Throwable) {
+                promise.reject("Get transaction error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun calculateFee(walletId: String, txId: String, promise: Promise) {
+        Thread {
+            try {
+                val wallet = _wallets[walletId] ?: throw Exception("Wallet not found")
+                val transaction = _transactions[txId] ?: throw Exception("Transaction not found")
+                val fee = wallet.calculateFee(transaction)
+                promise.resolve(fee)
+            } catch (error: Throwable) {
+                promise.reject("Calculate fee error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun calculateFeeRate(walletId: String, txId: String, promise: Promise) {
+        Thread {
+            try {
+                val wallet = _wallets[walletId] ?: throw Exception("Wallet not found")
+                val transaction = _transactions[txId] ?: throw Exception("Transaction not found")
+                val feeRate = wallet.calculateFeeRate(transaction)
+                promise.resolve(feeRate)
+            } catch (error: Throwable) {
+                promise.reject("Calculate fee rate error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun listOutput(walletId: String, promise: Promise) {
+        Thread {
+            try {
+                val wallet = _wallets[walletId] ?: throw Exception("Wallet not found")
+                val outputs = wallet.listOutput()
+                promise.resolve(outputs)
+            } catch (error: Throwable) {
+                promise.reject("List output error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun startFullScan(walletId: String, promise: Promise) {
+        Thread {
+            try {
+                val wallet = _wallets[walletId] ?: throw Exception("Wallet not found")
+                val fullScanRequest = wallet.startFullScan()
+                val id = randomId()
+                _fullScanRequests[id] = fullScanRequest
+                promise.resolve(id)
+            } catch (error: Throwable) {
+                promise.reject("Start full scan error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
+    @ReactMethod
+    fun startSyncWithRevealedSpks(walletId: String, promise: Promise) {
+        Thread {
+            try {
+                val wallet = _wallets[walletId] ?: throw Exception("Wallet not found")
+                val syncRequest = wallet.startSyncWithRevealedSpks()
+                val id = randomId()
+                _syncRequests[id] = syncRequest
+                promise.resolve(id)
+            } catch (error: Throwable) {
+                promise.reject("Start sync with revealed spks error", error.localizedMessage, error)
+            }
+        }.start()
+    }
+
 }
 

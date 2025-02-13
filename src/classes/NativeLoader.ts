@@ -13,6 +13,7 @@ import {
 
 import { NativeModules } from 'react-native';
 import { SentAndReceivedValues } from './SentAndReceivedValues';
+import { Transaction } from './Transaction';
 
 export interface NativeBdkRn {
   generateSeedFromWordCount(wordCount: WordCount): string;
@@ -234,11 +235,13 @@ export interface NativeBdkRn {
   walletRevealNextAddress(walletId: string, keychain: KeychainKind): AddressInfo;
   walletSentAndReceived(walletId: string, transactionId: string): { sent: number; received: number };
   walletStartFullScan(walletId: string): string;
-  walletTransactions(walletId: string, includeRaw: boolean): Array<TransactionDetails>;
+  walletTransactions(id: string): Promise<Transaction[]>;
   walletSign(walletId: string, psbtId: string): string;
   walletNetwork(walletId: string): Network;
   walletListUnspent(walletId: string): Array<LocalUtxo>;
   walletIsMine(walletId: string, scriptId: string): boolean;
+  walletNewNoPersist(descriptor: string, changeDescriptor: string | null, network: string): Promise<string>;
+  walletNew(descriptor: string, changeDescriptor: string | null, network: string): Promise<string>;
 
   createScripwalletStartFullScan(walletId: string): string;
   t(rawOutputScript: Array<number>): Promise<string>;

@@ -2531,6 +2531,214 @@ class BdkRnModule: NSObject {
         }
     }
 
+    @objc
+    func newNoPersist(_ descriptor: String, changeDescriptor: String?, network: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                let networkType = self.setNetwork(networkStr: network)
+                let descriptorObject = try Descriptor(descriptor: descriptor, network: networkType)
+                
+                let changeDescriptorObject = changeDescriptor != nil ? try Descriptor(descriptor: changeDescriptor!, network: networkType) : nil
+                
+                let wallet = try Wallet.newNoPersist(descriptor: descriptorObject, changeDescriptor: changeDescriptorObject, network: networkType)
+                let id = self.randomId()
+                self._wallets[id] = wallet
+                DispatchQueue.main.async {
+                    resolve(id)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Wallet creation error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    @objc
+    func commit(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                guard let wallet = self._wallets[walletId] else {
+                    throw NSError(domain: "BdkRnModule", code: 404, userInfo: [NSLocalizedDescriptionKey: "Wallet not found"])
+                }
+                let result = try wallet.commit()
+                DispatchQueue.main.async {
+                    resolve(result)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Commit error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    @objc
+       func sign(_ walletId: String, psbt: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+           DispatchQueue.global(qos: .userInteractive).async {
+               do {
+                   guard let wallet = self._wallets[walletId] else {
+                       throw NSError(domain: "BdkRnModule", code: 404, userInfo: [NSLocalizedDescriptionKey: "Wallet not found"])
+                   }
+                   
+                   let psbtObject = try Psbt(psbtBase64: psbt)
+                   let signedPsbt = try wallet.sign(psbt: psbtObject)
+                   DispatchQueue.main.async {
+                       resolve(signedPsbt)
+                   }
+               } catch let error {
+                   DispatchQueue.main.async {
+                       reject("Sign error", "\(error)", error)
+                   }
+               }
+           }
+       }
+    @objc
+    func sentAndReceived(_ walletId: String, txId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                guard let wallet = self._wallets[walletId], let tx = self._transactions[txId] else {
+                    throw NSError(domain: "BdkRnModule", code: 404, userInfo: [NSLocalizedDescriptionKey: "Wallet or Transaction not found"])
+                }
+                let values = wallet.sentAndReceived(tx: tx)
+                let result: [String: UInt64] = [
+                    "sent": values.sent.toSat(),
+                    "received": values.received.toSat()
+                ]
+                DispatchQueue.main.async {
+                    resolve(result)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Sent and received error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    @objc
+    func transactions(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                guard let wallet = self._wallets[walletId] else {
+                    throw NSError(domain: "BdkRnModule", code: 404, userInfo: [NSLocalizedDescriptionKey: "Wallet not found"])
+                }
+                let txList = try wallet.transactions()
+                DispatchQueue.main.async {
+                    resolve(txList)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Transactions error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    @objc
+    func getTx(_ walletId: String, txId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                guard let wallet = self._wallets[walletId] else {
+                    throw NSError(domain: "BdkRnModule", code: 404, userInfo: [NSLocalizedDescriptionKey: "Wallet not found"])
+                }
+                let tx = try wallet.getTx(txid: txId)
+                DispatchQueue.main.async {
+                    resolve(tx)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Get transaction error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    @objc
+    func calculateFee(_ walletId: String, txId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                guard let wallet = self._wallets[walletId] else {
+                    throw NSError(domain: "BdkRnModule", code: 404, userInfo: [NSLocalizedDescriptionKey: "Wallet not found"])
+                }
+                // Retrieve the Transaction object using txId
+                guard let transaction = self._transactions[txId] else {
+                    throw NSError(domain: "BdkRnModule", code: 404, userInfo: [NSLocalizedDescriptionKey: "Transaction not found"])
+                }
+                let fee = try wallet.calculateFee(tx: transaction)
+                DispatchQueue.main.async {
+                    resolve(fee)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Calculate fee error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+
+    @objc
+    func listOutput(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                guard let wallet = self._wallets[walletId] else {
+                    throw NSError(domain: "BdkRnModule", code: 404, userInfo: [NSLocalizedDescriptionKey: "Wallet not found"])
+                }
+                let outputs = try wallet.listOutput()
+                DispatchQueue.main.async {
+                    resolve(outputs)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("List output error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    @objc
+    func startFullScan(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                guard let wallet = self._wallets[walletId] else {
+                    throw NSError(domain: "BdkRnModule", code: 404, userInfo: [NSLocalizedDescriptionKey: "Wallet not found"])
+                }
+                let fullScanRequest = try wallet.startFullScan()
+                let id = self.randomId()
+                self._fullScanRequests[id] = fullScanRequest
+                DispatchQueue.main.async {
+                    resolve(id)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Start full scan error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    @objc
+    func startSyncWithRevealedSpks(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                guard let wallet = self._wallets[walletId] else {
+                    throw NSError(domain: "BdkRnModule", code: 404, userInfo: [NSLocalizedDescriptionKey: "Wallet not found"])
+                }
+                let syncRequest = try wallet.startSyncWithRevealedSpks()
+                let id = self.randomId()
+                self._syncRequests[id] = syncRequest
+                DispatchQueue.main.async {
+                    resolve(id)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Start sync with revealed spks error", "\(error)", error)
+                }
+            }
+        }
+    }
+
     /** Wallet Protocol Methods ends */
 
     

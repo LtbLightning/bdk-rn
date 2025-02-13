@@ -1068,6 +1068,22 @@ RCT_EXTERN_METHOD(
     reject:(RCTPromiseRejectBlock)reject
 )
 
+RCT_EXTERN_METHOD(
+    walletNewNoPersist:(nonnull NSString*)descriptor
+    changeDescriptor:(nullable NSString*)changeDescriptor
+    network:(nonnull NSString*)network
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+    walletNew:(nonnull NSString*)descriptor
+    changeDescriptor:(nullable NSString*)changeDescriptor
+    network:(nonnull NSString*)network
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
 /** Script Methods */
 RCT_EXTERN_METHOD(
     createScript:(nonnull NSArray*)rawOutputScript

@@ -2,6 +2,7 @@ import { ChainPositionData } from './ChainPosition';
 import { AddressIndex, BlockchainRpcConfig, KeychainKind, Network, Payload, WordCount } from '../lib/enums';
 import { Address, AddressInfo, Balance, LocalUtxo, OutPoint, ScriptAmount, SignOptions, TransactionDetails } from './Bindings';
 import { SentAndReceivedValues } from './SentAndReceivedValues';
+import { Transaction } from './Transaction';
 export interface NativeBdkRn {
     generateSeedFromWordCount(wordCount: WordCount): string;
     generateSeedFromString(mnemonic: string): string;
@@ -180,11 +181,13 @@ export interface NativeBdkRn {
         received: number;
     };
     walletStartFullScan(walletId: string): string;
-    walletTransactions(walletId: string, includeRaw: boolean): Array<TransactionDetails>;
+    walletTransactions(id: string): Promise<Transaction[]>;
     walletSign(walletId: string, psbtId: string): string;
     walletNetwork(walletId: string): Network;
     walletListUnspent(walletId: string): Array<LocalUtxo>;
     walletIsMine(walletId: string, scriptId: string): boolean;
+    walletNewNoPersist(descriptor: string, changeDescriptor: string | null, network: string): Promise<string>;
+    walletNew(descriptor: string, changeDescriptor: string | null, network: string): Promise<string>;
     createScripwalletStartFullScan(walletId: string): string;
     t(rawOutputScript: Array<number>): Promise<string>;
     scriptToBytes(id: string): Promise<Array<number>>;

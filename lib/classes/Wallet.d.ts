@@ -27,7 +27,7 @@ export declare class Wallet extends NativeLoader {
      */
     revealNextAddress(keychain: KeychainKind): Promise<AddressInfo>;
     /**
-     * check if the wallet is yours or not
+     * Check if the wallet is yours or not
      * @param script
      * @returns {Promise<boolean>}
      */
@@ -63,13 +63,13 @@ export declare class Wallet extends NativeLoader {
      */
     sign(psbt: PartiallySignedTransaction, signOptions?: SignOptions): Promise<PartiallySignedTransaction>;
     /**
-   * Sync the wallet using a specific sync request
-   * @param syncRequest The sync request to use
-   * @param blockchain The blockchain to sync with
-   * @param batchSize The number of transactions to process in each batch
-   * @param fetchPrevTxouts Whether to fetch previous transaction outputs
-   * @returns {Promise<void>}
-   */
+     * Sync the wallet using a specific sync request
+     * @param syncRequest The sync request to use
+     * @param blockchain The blockchain to sync with
+     * @param batchSize The number of transactions to process in each batch
+     * @param fetchPrevTxouts Whether to fetch previous transaction outputs
+     * @returns {Promise<void>}
+     */
     walletSync(syncRequest: SyncRequest, blockchain: Blockchain, batchSize: number, fetchPrevTxouts: boolean): Promise<void>;
     /**
      * Start a sync process with revealed spending keys
@@ -130,4 +130,25 @@ export declare class Wallet extends NativeLoader {
      * @returns {Promise<FullScanRequest>} A new full scan request
      */
     startFullScan(): Promise<FullScanRequest>;
+    /**
+     * Create a new wallet without persistence
+     * @param descriptor The wallet descriptor
+     * @param changeDescriptor The change descriptor
+     * @param network The network type
+     * @returns {Promise<string>} The wallet ID
+     */
+    newNoPersist(descriptor: string, changeDescriptor: string | null, network: string): Promise<string>;
+    /**
+     * Create a new wallet
+     * @param descriptor The wallet descriptor
+     * @param changeDescriptor The change descriptor
+     * @param network The network type
+     * @returns {Promise<string>} The wallet ID
+     */
+    new(descriptor: string, changeDescriptor: string | null, network: string): Promise<string>;
+    /**
+     * Get all transactions for the wallet
+     * @returns {Promise<Transaction[]>} The list of transactions
+     */
+    transactions(): Promise<Transaction[]>;
 }
