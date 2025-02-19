@@ -1,4 +1,4 @@
-import { AddressIndex, Network } from '../lib/enums';
+import { Network } from '../lib/enums';
 import {
   AddressInfo,
   Balance,
