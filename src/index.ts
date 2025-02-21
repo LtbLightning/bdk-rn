@@ -1,7 +1,5 @@
 import { Address } from './classes/Address';
-import { Blockchain } from './classes/Blockchain';
 import { BumpFeeTxBuilder } from './classes/BumpFeeTxBuilder';
-import { DatabaseConfig } from './classes/DatabaseConfig';
 import { DerivationPath } from './classes/DerivationPath';
 import { Descriptor } from './classes/Descriptor';
 import { DescriptorPublicKey } from './classes/DescriptorPublicKey';
@@ -26,10 +24,8 @@ export {
   AddressInfo,
   Amount,
   Balance,
-  Blockchain,
   BumpFeeTxBuilder,
   ChangeSpendPolicy,
-  DatabaseConfig,
   DerivationPath,
   Descriptor,
   DescriptorPublicKey,
