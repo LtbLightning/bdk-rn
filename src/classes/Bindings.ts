@@ -15,7 +15,7 @@ export class Address {
 
 export enum KeychainKind {
   External = 'external',
-  Internal = 'internal'
+  Internal = 'internal',
 }
 
 export class AddressInfo {
@@ -65,35 +65,6 @@ export class TxOut {
   constructor(value: number, script: Script) {
     this.value = value;
     this.script = script;
-  }
-}
-
-/**
- * Unspent outputs of this wallet
- */
-export class LocalUtxo {
-  /**
-   * Reference to a transaction output
-   */
-  outpoint: OutPoint;
-
-  /**
-   * Transaction output
-   */
-  txout: TxOut;
-
-  /**
-   * Whether this UTXO is spent or not
-   */
-  isSpent: boolean;
-
-  keychain: KeychainKind;
-
-  constructor(outpoint: OutPoint, txout: TxOut, isSpent: boolean, keychain: KeychainKind) {
-    this.outpoint = outpoint;
-    this.txout = txout;
-    this.isSpent = isSpent;
-    this.keychain = keychain;
   }
 }
 

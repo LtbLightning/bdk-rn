@@ -1,8 +1,9 @@
 import { ChainPositionData } from './ChainPosition';
 import { AddressIndex, BlockchainRpcConfig, KeychainKind, Network, Payload, WordCount } from '../lib/enums';
-import { Address, AddressInfo, Balance, LocalUtxo, OutPoint, ScriptAmount, SignOptions, TransactionDetails } from './Bindings';
+import { Address, AddressInfo, Balance, OutPoint, ScriptAmount, SignOptions, TransactionDetails } from './Bindings';
 import { SentAndReceivedValues } from './SentAndReceivedValues';
-import { Transaction } from './Transaction';
+import { LocalOutput } from './LocalOutput';
+import { CanonicalTx } from './CanonicalTx';
 export interface NativeBdkRn {
     generateSeedFromWordCount(wordCount: WordCount): string;
     generateSeedFromString(mnemonic: string): string;
@@ -33,7 +34,6 @@ export interface NativeBdkRn {
     memoryDBInit(): string;
     sledDBInit(path: string, treeName: string): string;
     sqliteDBInit(path: string): string;
-    walletInit(descriptor: string, changeDescriptor: string | null, network: Network, dbConfig: string): any;
     revealNextAddress(id: string, addressIndex: AddressIndex | number): any;
     isMine(id: string, scriptId: string): boolean;
     getBalance(id: string): Balance;
@@ -46,7 +46,7 @@ export interface NativeBdkRn {
     getNetwork(id: string): string;
     sync(blockchain: string, id: string): boolean;
     sign(id: string, psbtBase64: string, signOptions?: SignOptions): string;
-    listUnspent(id: string): Array<any>;
+    listUnspent(id: string): Array<LocalOutput>;
     listTransactions(id: string, includeRaw: boolean): Array<TransactionDetails>;
     initAddress(address: string, network: string): string;
     addressFromScript(script: string, network: Network): string;
@@ -151,7 +151,6 @@ export interface NativeBdkRn {
     freeNetwork(id: string): void;
     createSentAndReceivedValues(sent: number, received: number): string;
     freeSentAndReceivedValues(values: SentAndReceivedValues): void;
-    walletSync(walletId: string, syncRequest: string, blockchain: string, batchSize: number, fetchPrevTxouts: boolean): void;
     walletStartSyncWithRevealedSpks(walletId: string): string;
     walletApplyUpdate(walletId: string, updateId: string): void;
     walletGetTransactions(walletId: string, includeRaw: boolean): Array<TransactionDetails>;
@@ -173,21 +172,21 @@ export interface NativeBdkRn {
     walletGetNextReceivingInternalAddress(walletId: string): Address;
     walletGetNextChangeAddressIndex(walletId: string): number;
     walletGetNextReceivingAddressIndex(walletId: string): number;
-    walletGetTx(walletId: string, txid: string): TransactionDetails | null;
-    walletListOutput(walletId: string): Array<LocalUtxo>;
+    walletGetTx(walletId: string, txid: string): CanonicalTx | null;
+    walletListOutput(walletId: string): Array<LocalOutput>;
     walletRevealNextAddress(walletId: string, keychain: KeychainKind): AddressInfo;
     walletSentAndReceived(walletId: string, transactionId: string): {
         sent: number;
         received: number;
     };
     walletStartFullScan(walletId: string): string;
-    walletTransactions(id: string): Promise<Transaction[]>;
+    walletTransactions(id: string): Promise<CanonicalTx[]>;
     walletSign(walletId: string, psbtId: string): string;
     walletNetwork(walletId: string): Network;
-    walletListUnspent(walletId: string): Array<LocalUtxo>;
+    walletListUnspent(walletId: string): Array<LocalOutput>;
     walletIsMine(walletId: string, scriptId: string): boolean;
     walletNewNoPersist(descriptor: string, changeDescriptor: string | null, network: string): Promise<string>;
-    walletNew(descriptor: string, changeDescriptor: string | null, network: string): Promise<string>;
+    walletNew(descriptor: string, changeDescriptor: string | null, network: string, persistenceBackendPath: string): Promise<string>;
     createScripwalletStartFullScan(walletId: string): string;
     t(rawOutputScript: Array<number>): Promise<string>;
     scriptToBytes(id: string): Promise<Array<number>>;

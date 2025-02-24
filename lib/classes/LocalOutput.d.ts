@@ -1,9 +1,10 @@
-import { NativeLoader } from './NativeLoader';
-import { OutPoint, TxOut, LocalUtxo, KeychainKind } from './Bindings';
-export declare class LocalOutput extends NativeLoader {
-    private localUtxo;
-    private static _bdk;
-    constructor(localUtxo: LocalUtxo);
+import { OutPoint, TxOut, KeychainKind } from './Bindings';
+export declare class LocalOutput {
+    outpoint: OutPoint;
+    txout: TxOut;
+    keychain: KeychainKind;
+    isSpent: boolean;
+    constructor(outpoint: OutPoint, txout: TxOut, keychain: KeychainKind, isSpent: boolean);
     /**
      * Get the outpoint of the local output
      * @returns {OutPoint}
@@ -23,11 +24,5 @@ export declare class LocalOutput extends NativeLoader {
      * Check if the local output is spent
      * @returns {boolean}
      */
-    isSpent(): boolean;
-    /**
-     * Create a LocalOutput instance from native data
-     * @param {string} id - The id returned from native code
-     * @returns {Promise<LocalOutput>}
-     */
-    static fromId(id: string): Promise<LocalOutput>;
+    getIsSpent(): boolean;
 }

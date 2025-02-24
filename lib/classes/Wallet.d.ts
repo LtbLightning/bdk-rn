@@ -1,12 +1,12 @@
 import { Network } from '../lib/enums';
-import { AddressInfo, Balance, FeeRate, FullScanRequest, KeychainKind, LocalUtxo, SignOptions, SyncRequest, TransactionDetails, Update } from './Bindings';
-import { Blockchain } from './Blockchain';
-import { DatabaseConfig } from './DatabaseConfig';
+import { AddressInfo, Balance, FeeRate, FullScanRequest, KeychainKind, SignOptions, SyncRequest, Update } from './Bindings';
 import { Descriptor } from './Descriptor';
 import { NativeLoader } from './NativeLoader';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 import { Script } from './Script';
 import { Transaction } from './Transaction';
+import { LocalOutput } from './LocalOutput';
+import { CanonicalTx } from './CanonicalTx';
 /**
  * Wallet methods
  */
@@ -15,11 +15,12 @@ export declare class Wallet extends NativeLoader {
     id: string;
     /**
      * Wallet constructor
-     * @param descriptor
-     * @param network
-     * @returns {Promise<Wallet>}
+     * @param descriptor The wallet descriptor
+     * @param changeDescriptor The change descriptor
+     * @param network The network type
+     * @returns {Promise<string>} The wallet ID
      */
-    create(descriptor: Descriptor, changeDescriptor: Descriptor | null | undefined, network: Network, dbConfig: DatabaseConfig): Promise<Wallet>;
+    create(descriptor: Descriptor, changeDescriptor: Descriptor | null | undefined, network: Network, persistenceBackendPath: string): Promise<Wallet>;
     /**
      * Reveal the next address for a specific keychain
      * @param keychain The keychain to reveal the next address for
@@ -43,34 +44,16 @@ export declare class Wallet extends NativeLoader {
      */
     network(): Promise<Network>;
     /**
-     * Sync the internal database with the [Blockchain]
-     * @returns {Promise<boolean>}
+     * Retrieve the list of unspent outputs for the specified wallet.
+     * @param walletId The ID of the wallet to retrieve unspent outputs from.
+     * @returns {Promise<LocalOutput[]>} A promise that resolves to an array of unspent outputs.
      */
-    sync(blockchain: Blockchain): Promise<boolean>;
-    /**
-     * Return the list of unspent outputs of this wallet
-     * @returns {Promise<Array<LocalUtxo>>}
-     */
-    listUnspent(): Promise<Array<LocalUtxo>>;
-    /**
-     * Return an unsorted list of transactions made and received by the wallet
-     * @returns {Promise<Array<TransactionDetails>>}
-     */
-    listTransactions(includeRaw: boolean): Promise<Array<TransactionDetails>>;
+    listUnspent(walletId: string): Promise<LocalOutput[]>;
     /**
      * Sign PSBT with wallet
      * @returns
      */
     sign(psbt: PartiallySignedTransaction, signOptions?: SignOptions): Promise<PartiallySignedTransaction>;
-    /**
-     * Sync the wallet using a specific sync request
-     * @param syncRequest The sync request to use
-     * @param blockchain The blockchain to sync with
-     * @param batchSize The number of transactions to process in each batch
-     * @param fetchPrevTxouts Whether to fetch previous transaction outputs
-     * @returns {Promise<void>}
-     */
-    walletSync(syncRequest: SyncRequest, blockchain: Blockchain, batchSize: number, fetchPrevTxouts: boolean): Promise<void>;
     /**
      * Start a sync process with revealed spending keys
      * @returns {Promise<SyncRequest>} A new sync request
@@ -102,14 +85,14 @@ export declare class Wallet extends NativeLoader {
     /**
      * Get details of a specific transaction
      * @param txid The transaction ID to look up
-     * @returns {Promise<TransactionDetails | null>} The transaction details, or null if not found
+     * @returns {Promise<CanonicalTx | null>} The transaction details, or null if not found
      */
-    getTx(txid: string): Promise<TransactionDetails | null>;
+    getTx(txid: string): Promise<CanonicalTx | null>;
     /**
      * Get the list of all outputs (spent and unspent) associated with the wallet
-     * @returns {Promise<LocalUtxo[]>} List of all outputs
+     * @returns {Promise<LocalOutput[]>} List of all outputs
      */
-    listOutput(): Promise<LocalUtxo[]>;
+    listOutput(): Promise<LocalOutput[]>;
     /**
      * Reveal the next address for a specific keychain
      * @param keychain The keychain to reveal the next address for
@@ -139,16 +122,8 @@ export declare class Wallet extends NativeLoader {
      */
     newNoPersist(descriptor: string, changeDescriptor: string | null, network: string): Promise<string>;
     /**
-     * Create a new wallet
-     * @param descriptor The wallet descriptor
-     * @param changeDescriptor The change descriptor
-     * @param network The network type
-     * @returns {Promise<string>} The wallet ID
-     */
-    new(descriptor: string, changeDescriptor: string | null, network: string): Promise<string>;
-    /**
      * Get all transactions for the wallet
-     * @returns {Promise<Transaction[]>} The list of transactions
+     * @returns {Promise<CanonicalTx[]>} The list of transactions
      */
-    transactions(): Promise<Transaction[]>;
+    transactions(): Promise<CanonicalTx[]>;
 }

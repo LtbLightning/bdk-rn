@@ -2532,6 +2532,42 @@ class BdkRnModule: NSObject {
     }
 
     @objc
+    func walletNew(
+        descriptor: String,
+        changeDescriptor: String?,
+        persistenceBackendPath: String,
+        network: String,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                let networkType = self.setNetwork(networkStr: network)
+                let desc = try Descriptor(descriptor: descriptor, network: networkType)
+                let changeDesc = changeDescriptor != nil ? try Descriptor(descriptor: changeDescriptor!, network: networkType) : nil
+                
+                let wallet = try Wallet(
+                    descriptor: desc,
+                    changeDescriptor: changeDesc,
+                    persistenceBackendPath: persistenceBackendPath,
+                    network: networkType
+                )
+                
+                let id = self.randomId()
+                self._wallets[id] = wallet
+                
+                DispatchQueue.main.async {
+                    resolve(id)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Create wallet error", "\(error)", error)
+                }
+            }
+        }
+    }
+
+    @objc
     func newNoPersist(_ descriptor: String, changeDescriptor: String?, network: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
             do {
@@ -2553,7 +2589,7 @@ class BdkRnModule: NSObject {
             }
         }
     }
-
+    
     @objc
     func commit(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
