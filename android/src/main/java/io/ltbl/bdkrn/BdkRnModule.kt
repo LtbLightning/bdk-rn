@@ -56,24 +56,33 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     private var _syncRequests = mutableMapOf<String, SyncRequest>()
     private val _updates = mutableMapOf<String, Any>()
 
+    private fun <T> getAndStoreObject(objectMap: MutableMap<String, T>, createObject: () -> T): String {
+        val objectId = randomId()
+        objectMap[objectId] = createObject()
+        return objectId
+    }
 
     /** Mnemonic methods starts */
     @ReactMethod
-    fun generateSeedFromWordCount(wordCount: Int, result: Promise) {
-        Thread {
-            val response = Mnemonic(setWordCount(wordCount))
-            result.resolve(response.asString())
-        }.start()
-    }
+        fun generateSeedFromWordCount(wordCount: Int, result: Promise) {
+            Thread {
+                try {
+                    val response = Mnemonic(setWordCount(wordCount))
+                    result.resolve(response.asString()) // Resolve with the seed string
+                } catch (error: Throwable) {
+                    result.reject("Generate seed error", error.localizedMessage, error) // Reject with error
+                }
+            }.start()
+        }
 
     @ReactMethod
     fun generateSeedFromString(mnemonic: String, result: Promise) {
         Thread {
             try {
                 val response = Mnemonic.fromString(mnemonic)
-                result.resolve(response.asString())
+                result.resolve(response.asString()) // Resolve with the seed string
             } catch (error: Throwable) {
-                result.reject("Generate seed error", error.localizedMessage, error)
+                result.reject("Generate seed error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -83,9 +92,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             try {
                 val response = Mnemonic.fromEntropy(getEntropy(entropy))
-                result.resolve(response.asString())
+                result.resolve(response.asString()) // Resolve with the seed string
             } catch (error: Throwable) {
-                result.reject("Generate seed error", error.localizedMessage, error)
+                result.reject("Generate seed error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -98,9 +107,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             try {
                 val id = randomId()
                 _derivationPaths[id] = DerivationPath(path)
-                result.resolve(id)
+                result.resolve(id) // Resolve with the derivation path ID
             } catch (error: Throwable) {
-                result.reject("Create Derivation path error", error.localizedMessage, error)
+                result.reject("Create Derivation path error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -109,12 +118,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun derivationPathToString(id: String, result: Promise) {
         Thread {
             try {
-            val derivationPath = _derivationPaths[id] ?: throw Exception("DerivationPath not found")
-            // Note: Similar to iOS, we're returning the id as there's no direct toString method
-            // In a real implementation, you might want to store the original string or implement a toString method
-            result.resolve(id)
-        } catch (error: Throwable) {
-                result.reject("DerivationPath error", error.localizedMessage, error)
+                val derivationPath = _derivationPaths[id] ?: throw Exception("DerivationPath not found")
+                result.resolve(id) // Resolve with the derivation path ID
+            } catch (error: Throwable) {
+                result.reject("DerivationPath error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -127,8 +134,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             try {
                 val esploraClient = EsploraClient(url)
-                val id = randomId()
-                _blockChains[id] = esploraClient
+                val id = getAndStoreObject(_blockChains) { esploraClient }
                 promise.resolve(id)
             } catch (error: Throwable) {
                 promise.reject("EsploraClient error", error.localizedMessage, error)
@@ -146,9 +152,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     ?: throw Exception("Transaction not found")
 
                 esploraClient.broadcast(transaction)
-                promise.resolve(null)
+                promise.resolve(null) // Resolve with no value
             } catch (error: Throwable) {
-                promise.reject("Broadcast error", error.localizedMessage, error)
+                promise.reject("Broadcast error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -167,9 +173,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 )
                 val updateId = randomId()
                 _updates[updateId] = update
-                promise.resolve(updateId)
+                promise.resolve(updateId) // Resolve with the update ID
             } catch (error: Throwable) {
-                promise.reject("Full scan error", error.localizedMessage, error)
+                promise.reject("Full scan error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -186,9 +192,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val update = esploraClient.sync(syncRequest, parallelRequests.toUInt().toULong())
                 val updateId = randomId()
                 _updates[updateId] = update
-                promise.resolve(updateId)
+                promise.resolve(updateId) // Resolve with the update ID
             } catch (error: Throwable) {
-                promise.reject("Sync error", error.localizedMessage, error)
+                promise.reject("Sync error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -201,8 +207,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             try {
                 val client = ElectrumClient(url)
-                val id = randomId()
-                _blockChains[id] = client
+                val id = getAndStoreObject(_blockChains) { client }
                 promise.resolve(id)
             } catch (error: Throwable) {
                 promise.reject("ElectrumClient creation error", error.localizedMessage, error)
@@ -220,9 +225,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     ?: throw Exception("Transaction not found")
 
                 val txid = client.broadcast(transaction)
-                promise.resolve(txid)
+                promise.resolve(txid) // Resolve with the transaction ID
             } catch (error: Throwable) {
-                promise.reject("Broadcast error", error.localizedMessage, error)
+                promise.reject("Broadcast error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -240,9 +245,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     stopGap.toUInt().toULong(), batchSize.toUInt().toULong(), fetchPrevTxouts)
                 val updateId = randomId()
                 _updates[updateId] = update
-                promise.resolve(updateId)
+                promise.resolve(updateId) // Resolve with the update ID
             } catch (error: Throwable) {
-                promise.reject("Full scan error", error.localizedMessage, error)
+                promise.reject("Full scan error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -259,9 +264,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val update = client.sync(syncRequest, batchSize.toUInt().toULong(), fetchPrevTxouts)
                 val updateId = randomId()
                 _updates[updateId] = update
-                promise.resolve(updateId)
+                promise.resolve(updateId) // Resolve with the update ID
             } catch (error: Throwable) {
-                promise.reject("Sync error", error.localizedMessage, error)
+                promise.reject("Sync error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -275,21 +280,20 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             val wallet = _wallets[walletId]
             if (wallet == null) {
                 runOnUiThread {
-                    promise.reject("Invalid wallet", "Wallet not found", null)
+                    promise.reject("Invalid wallet", "Wallet not found", null) // Reject if wallet not found
                 }
                 return@Thread
             }
 
             try {
                 val syncRequest = wallet.startSyncWithRevealedSpks()
-                val id = randomId()
-                _syncRequests[id] = syncRequest
+                val id = getAndStoreObject(_syncRequests) { syncRequest }
                 runOnUiThread {
-                    promise.resolve(id)
+                    promise.resolve(id) // Resolve with the sync request ID
                 }
             } catch (error: Throwable) {
                 runOnUiThread {
-                    promise.reject("SyncRequest creation error", error.localizedMessage, error)
+                    promise.reject("SyncRequest creation error", error.localizedMessage, error) // Reject with error
                 }
             }
         }.start()
@@ -300,7 +304,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             _syncRequests.remove(id)
             runOnUiThread {
-                promise.resolve(null)
+                promise.resolve(null) // Resolve with no value
             }
         }.start()
     }
@@ -320,9 +324,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 )
                 val id = randomId()
                 _descriptorSecretKeys[id] = descriptorSecretKey
-                result.resolve(id)
+                result.resolve(id) // Resolve with the secret key ID
             } catch (error: Throwable) {
-                result.reject("DescriptorSecretKey error", error.localizedMessage, error)
+                result.reject("DescriptorSecretKey error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -334,9 +338,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val descriptorSecretKey = DescriptorSecretKey.fromString(secretKey)
                 val id = randomId()
                 _descriptorSecretKeys[id] = descriptorSecretKey
-                result.resolve(id)
+                result.resolve(id) // Resolve with the secret key ID
             } catch (error: Throwable) {
-                result.reject("DescriptorSecretKey error", error.localizedMessage, error)
+                result.reject("DescriptorSecretKey error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -349,9 +353,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val descriptorPublicKey = descriptorSecretKey.asPublic()
                 val publicKeyId = randomId()
                 _descriptorPublicKeys[publicKeyId] = descriptorPublicKey
-                result.resolve(publicKeyId)
+                result.resolve(publicKeyId) // Resolve with the public key ID
             } catch (error: Throwable) {
-                result.reject("DescriptorSecretKey error", error.localizedMessage, error)
+                result.reject("DescriptorSecretKey error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -361,9 +365,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             try {
                 val descriptorSecretKey = _descriptorSecretKeys[id] ?: throw Exception("DescriptorSecretKey not found")
-                result.resolve(descriptorSecretKey.asString())
+                result.resolve(descriptorSecretKey.asString()) // Resolve with the secret key string
             } catch (error: Throwable) {
-                result.reject("DescriptorSecretKey error", error.localizedMessage, error)
+                result.reject("DescriptorSecretKey error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -377,9 +381,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val derivedKey = descriptorSecretKey.derive(derivationPath)
                 val newId = randomId()
                 _descriptorSecretKeys[newId] = derivedKey
-                result.resolve(newId)
+                result.resolve(newId) // Resolve with the derived key ID
             } catch (error: Throwable) {
-                result.reject("DescriptorSecretKey derive error", error.localizedMessage, error)
+                result.reject("DescriptorSecretKey derive error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -393,9 +397,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val extendedKey = descriptorSecretKey.extend(derivationPath)
                 val newId = randomId()
                 _descriptorSecretKeys[newId] = extendedKey
-                result.resolve(newId)
+                result.resolve(newId) // Resolve with the extended key ID
             } catch (error: Throwable) {
-                result.reject("DescriptorSecretKey extend error", error.localizedMessage, error)
+                result.reject("DescriptorSecretKey extend error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -406,24 +410,24 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             try {
                 val descriptorSecretKey = _descriptorSecretKeys[id] ?: throw Exception("DescriptorSecretKey not found")
                 val secretBytes = descriptorSecretKey.secretBytes()
-                result.resolve(Arguments.makeNativeArray(secretBytes))
+                result.resolve(Arguments.makeNativeArray(secretBytes)) // Resolve with the secret bytes
             } catch (error: Throwable) {
-                result.reject("DescriptorSecretKey error", error.localizedMessage, error)
+                result.reject("DescriptorSecretKey error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
     /** Descriptor secret key methods ends */
 
     /** Descriptor public key methods starts */
-    @ReactMethod
+     @ReactMethod
     fun createDescriptorPublic(publicKey: String, result: Promise) {
         Thread {
             try {
                 val id = randomId()
                 _descriptorPublicKeys[id] = DescriptorPublicKey.fromString(publicKey)
-                result.resolve(id)
+                result.resolve(id) // Resolve with the public key ID
             } catch (error: Throwable) {
-                result.reject("DescriptorPublic create error", error.localizedMessage, error)
+                result.reject("DescriptorPublic create error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -434,9 +438,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             try {
                 val keyInfo =
                     _descriptorPublicKeys[publicKeyId]!!.derive(_derivationPaths[derivationPathId]!!)
-                result.resolve(keyInfo.asString())
+                result.resolve(keyInfo.asString()) // Resolve with the derived key string
             } catch (error: Throwable) {
-                result.reject("DescriptorPublic derive error", error.localizedMessage, error)
+                result.reject("DescriptorPublic derive error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -447,9 +451,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             try {
                 val keyInfo =
                     _descriptorPublicKeys[publicKeyId]!!.extend(_derivationPaths[derivationPathId]!!)
-                result.resolve(keyInfo.asString())
+                result.resolve(keyInfo.asString()) // Resolve with the extended key string
             } catch (error: Throwable) {
-                result.reject("DescriptorPublic extend error", error.localizedMessage, error)
+                result.reject("DescriptorPublic extend error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -457,7 +461,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun descriptorPublicAsString(publicKeyId: String, result: Promise) {
         Thread {
-            result.resolve(_descriptorPublicKeys[publicKeyId]!!.asString())
+            result.resolve(_descriptorPublicKeys[publicKeyId]!!.asString()) // Resolve with the public key string
         }.start()
     }
 
@@ -468,7 +472,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         return _wallets[id]!!
     }
 
-   @ReactMethod
+    @ReactMethod
     fun revealNextAddress(id: String, addressIndex: Dynamic, result: Promise) {
         Thread {
             try {
@@ -489,9 +493,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 responseObject["address"] = randomId
                 responseObject["keychain"] = addressInfo.keychain.toString()
                 
-                result.resolve(Arguments.makeNativeMap(responseObject))
+                result.resolve(Arguments.makeNativeMap(responseObject)) // Resolve with the address info
             } catch (error: Throwable) {
-                result.reject("Reveal next address error", error.localizedMessage, error)
+                result.reject("Reveal next address error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -501,9 +505,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             try {
                 val isMine = getWalletById(id).isMine(_scripts[scriptId]!!)
-                result.resolve(isMine)
+                result.resolve(isMine) // Resolve with the isMine boolean
             } catch (error: Throwable) {
-                result.reject("Check wallet isMine error", error.localizedMessage, error)
+                result.reject("Check wallet isMine error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -513,9 +517,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             try {
                 val network = getWalletById(id).network()
-                result.resolve(getNetworkString(network))
+                result.resolve(getNetworkString(network)) // Resolve with the network string
             } catch (error: Throwable) {
-                result.reject("Get network error", error.localizedMessage, error)
+                result.reject("Get network error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -533,9 +537,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 responseObject["trustedSpendable"] = balance.trustedSpendable
                 responseObject["total"] = balance.total
                 
-                promise.resolve(Arguments.makeNativeMap(responseObject))
+                promise.resolve(Arguments.makeNativeMap(responseObject)) // Resolve with the balance info
             } catch (error: Throwable) {
-                promise.reject("Get wallet balance error", error.localizedMessage, error)
+                promise.reject("Get wallet balance error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -553,14 +557,14 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                         put("keychain", item.keychain.toString())
                     }
                 }
-                result.resolve(Arguments.makeNativeArray(unspents))
+                result.resolve(Arguments.makeNativeArray(unspents)) // Resolve with the unspent outputs
             } catch (error: Throwable) {
-                result.reject("List unspent outputs error", error.localizedMessage, error)
+                result.reject("List unspent outputs error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
 
-    @ReactMethod
+   @ReactMethod
     fun walletNew(
         descriptor: String,
         changeDescriptor: String?,
@@ -570,21 +574,19 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     ) {
         Thread {
             try {
-                val networkType = setNetwork(network) // Convert network string to network type
-                val desc = Descriptor(descriptor, networkType) // Create Descriptor from the provided string
-                val changeDesc = changeDescriptor?.let { Descriptor(it, networkType) } // Create change descriptor if provided
+                val id = randomId() // Generate a unique ID for the wallet
+                val nativeDescriptor = _descriptors[descriptor] ?: throw Exception("Descriptor not found")
+                val nativeChangeDescriptor = changeDescriptor?.let { _descriptors[it] } // Look up change descriptor if provided
 
                 // Create the wallet using the descriptors and persistence path
                 val wallet = Wallet(
-                    descriptor = desc,
-                    changeDescriptor = changeDesc,
+                    descriptor = nativeDescriptor,
+                    changeDescriptor = nativeChangeDescriptor,
                     persistenceBackendPath = persistenceBackendPath,
-                    network = networkType
+                    network = setNetwork(network) // Convert network string to network type
                 )
 
-                val id = randomId() // Generate a unique ID for the wallet
                 _wallets[id] = wallet // Store the wallet in the mutable map
-
                 promise.resolve(id) // Resolve the promise with the wallet ID
             } catch (error: Throwable) {
                 promise.reject("Create wallet error", error.localizedMessage, error) // Reject the promise with the error
@@ -592,24 +594,24 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         }.start()
     }
 
-    @ReactMethod
+      @ReactMethod
     fun newNoPersist(descriptor: String, changeDescriptor: String?, network: String, promise: Promise) {
-    Thread {
-        try {
-            val networkType = setNetwork(network) // Implement this method
-            val descriptorObject = Descriptor(descriptor, networkType) // Assuming Descriptor has a constructor
-            val changeDescriptorObject = changeDescriptor?.let { Descriptor(it, networkType) }
+        Thread {
+            try {
+                val networkType = setNetwork(network) // Implement this method
+                val descriptorObject = Descriptor(descriptor, networkType) // Assuming Descriptor has a constructor
+                val changeDescriptorObject = changeDescriptor?.let { Descriptor(it, networkType) }
 
-            val wallet = Wallet.newNoPersist(descriptorObject, changeDescriptorObject, networkType) // Assuming Wallet has a newNoPersist method
-            val id = randomId() // Generate a unique ID for the wallet
-            _wallets[id] = wallet // Store the wallet in a mutable map
+                val wallet = Wallet.newNoPersist(descriptorObject, changeDescriptorObject, networkType) // Assuming Wallet has a newNoPersist method
+                val id = randomId() // Generate a unique ID for the wallet
+                _wallets[id] = wallet // Store the wallet in a mutable map
 
-            promise.resolve(id) // Resolve the promise with the wallet ID
-        } catch (error: Throwable) {
-            promise.reject("Wallet creation error", error.localizedMessage, error) // Reject the promise with the error
-        }
-    }.start()
-}
+                promise.resolve(id) // Resolve the promise with the wallet ID
+            } catch (error: Throwable) {
+                promise.reject("Wallet creation error", error.localizedMessage, error) // Reject the promise with the error
+            }
+        }.start()
+    }
 
     @ReactMethod
     fun commit(walletId: String, promise: Promise) {
@@ -617,9 +619,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             try {
                 val wallet = _wallets[walletId] ?: throw Exception("Wallet not found")
                 val result = wallet.commit()
-                promise.resolve(result)
+                promise.resolve(result) // Resolve with the commit result
             } catch (error: Throwable) {
-                promise.reject("Commit error", error.localizedMessage, error)
+                promise.reject("Commit error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -631,12 +633,13 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val wallet = _wallets[walletId] ?: throw Exception("Wallet not found")
                 val psbtObject = Psbt(psbt)
                 val signedPsbt = wallet.sign(psbtObject)
-                promise.resolve(signedPsbt)
+                promise.resolve(signedPsbt) // Resolve with the signed PSBT
             } catch (error: Throwable) {
-                promise.reject("Sign error", error.localizedMessage, error)
+                promise.reject("Sign error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
+
     @ReactMethod
     fun sentAndReceived(walletId: String, txId: String, promise: Promise) {
         Thread {
@@ -644,9 +647,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val wallet = _wallets[walletId] ?: throw Exception("Wallet not found")
                 val tx = _transactions[txId] ?: throw Exception("Transaction not found")
                 val values = wallet.sentAndReceived(tx)
-                promise.resolve(mapOf("sent" to values.sent, "received" to values.received))
+                promise.resolve(mapOf("sent" to values.sent, "received" to values.received)) // Resolve with sent and received values
             } catch (error: Throwable) {
-                promise.reject("Sent and received error", error.localizedMessage, error)
+                promise.reject("Sent and received error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -657,9 +660,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             try {
                 val wallet = _wallets[walletId] ?: throw Exception("Wallet not found")
                 val txList = wallet.transactions()
-                promise.resolve(txList)
+                promise.resolve(txList) // Resolve with the transaction list
             } catch (error: Throwable) {
-                promise.reject("Transactions error", error.localizedMessage, error)
+                promise.reject("Transactions error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -670,9 +673,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             try {
                 val wallet = _wallets[walletId] ?: throw Exception("Wallet not found")
                 val tx = wallet.getTx(txId)
-                promise.resolve(tx)
+                promise.resolve(tx) // Resolve with the transaction
             } catch (error: Throwable) {
-                promise.reject("Get transaction error", error.localizedMessage, error)
+                promise.reject("Get transaction error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -684,9 +687,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val wallet = _wallets[walletId] ?: throw Exception("Wallet not found")
                 val transaction = _transactions[txId] ?: throw Exception("Transaction not found")
                 val fee = wallet.calculateFee(transaction)
-                promise.resolve(fee)
+                promise.resolve(fee) // Resolve with the fee
             } catch (error: Throwable) {
-                promise.reject("Calculate fee error", error.localizedMessage, error)
+                promise.reject("Calculate fee error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -698,9 +701,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val wallet = _wallets[walletId] ?: throw Exception("Wallet not found")
                 val transaction = _transactions[txId] ?: throw Exception("Transaction not found")
                 val feeRate = wallet.calculateFeeRate(transaction)
-                promise.resolve(feeRate)
+                promise.resolve(feeRate) // Resolve with the fee rate
             } catch (error: Throwable) {
-                promise.reject("Calculate fee rate error", error.localizedMessage, error)
+                promise.reject("Calculate fee rate error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -711,9 +714,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             try {
                 val wallet = _wallets[walletId] ?: throw Exception("Wallet not found")
                 val outputs = wallet.listOutput()
-                promise.resolve(outputs)
+                promise.resolve(outputs) // Resolve with the outputs
             } catch (error: Throwable) {
-                promise.reject("List output error", error.localizedMessage, error)
+                promise.reject("List output error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -726,9 +729,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val fullScanRequest = wallet.startFullScan()
                 val id = randomId()
                 _fullScanRequests[id] = fullScanRequest
-                promise.resolve(id)
+                promise.resolve(id) // Resolve with the full scan request ID
             } catch (error: Throwable) {
-                promise.reject("Start full scan error", error.localizedMessage, error)
+                promise.reject("Start full scan error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -741,9 +744,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val syncRequest = wallet.startSyncWithRevealedSpks()
                 val id = randomId()
                 _syncRequests[id] = syncRequest
-                promise.resolve(id)
+                promise.resolve(id) // Resolve with the sync request ID
             } catch (error: Throwable) {
-                promise.reject("Start sync with revealed spks error", error.localizedMessage, error)
+                promise.reject("Start sync with revealed spks error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -763,9 +766,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 responseObject["trustedSpendable"] = balance.trustedSpendable
                 responseObject["total"] = balance.total
                 
-                promise.resolve(Arguments.makeNativeMap(responseObject))
+                promise.resolve(Arguments.makeNativeMap(responseObject)) // Resolve with the balance info
             } catch (error: Throwable) {
-                promise.reject("Get wallet balance error", error.localizedMessage, error)
+                promise.reject("Get wallet balance error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -851,9 +854,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             try {
                 val id = randomId()
                 _addresses[id] = Address(address, setNetwork(network))
-                promise.resolve(id)
+                promise.resolve(id) // Resolve with the address ID
             } catch (error: Throwable) {
-                promise.reject("Address error", error.localizedMessage, error)
+                promise.reject("Address error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -865,9 +868,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val address = _addresses[id] ?: throw Exception("Address not found")
                 val scriptId = randomId()
                 _scripts[scriptId] = address.scriptPubkey()
-                promise.resolve(scriptId)
+                promise.resolve(scriptId) // Resolve with the script ID
             } catch (error: Throwable) {
-                promise.reject("Script pubkey error", error.localizedMessage, error)
+                promise.reject("Script pubkey error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -878,9 +881,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             try {
                 val address = _addresses[id] ?: throw Exception("Address not found")
                 val network = address.network()
-                promise.resolve(getNetworkString(network))
+                promise.resolve(getNetworkString(network)) // Resolve with the network string
             } catch (error: Throwable) {
-                promise.reject("Network error", error.localizedMessage, error)
+                promise.reject("Network error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -890,9 +893,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             try {
                 val address = _addresses[id] ?: throw Exception("Address not found")
-                promise.resolve(address.toQrUri())
+                promise.resolve(address.toQrUri()) // Resolve with the QR URI
             } catch (error: Throwable) {
-                promise.reject("QR URI error", error.localizedMessage, error)
+                promise.reject("QR URI error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -902,9 +905,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             try {
                 val address = _addresses[id] ?: throw Exception("Address not found")
-                promise.resolve(address.asString())
+                promise.resolve(address.asString()) // Resolve with the address string
             } catch (error: Throwable) {
-                promise.reject("Address string error", error.localizedMessage, error)
+                promise.reject("Address string error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -915,9 +918,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             try {
                 val address = _addresses[id] ?: throw Exception("Address not found")
                 val isValid = address.isValidForNetwork(setNetwork(network))
-                promise.resolve(isValid)
+                promise.resolve(isValid) // Resolve with the validity boolean
             } catch (error: Throwable) {
-                promise.reject("Network validation error", error.localizedMessage, error)
+                promise.reject("Network validation error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -929,9 +932,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             try {
                 val amount = Amount.fromSat(sat.toLong().toULong())
-                promise.resolve(amount.toSat())
+                val id = getAndStoreObject(_amounts) { amount }
+                promise.resolve(id) // Resolve with the amount ID
             } catch (error: Throwable) {
-                promise.reject("Amount creation error", error.localizedMessage, error)
+                promise.reject("Amount creation error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -941,9 +945,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             try {
                 val amount = Amount.fromBtc(btc)
-                promise.resolve(amount.toSat())
+                val id = getAndStoreObject(_amounts) { amount }
+                promise.resolve(id) // Resolve with the amount ID
             } catch (error: Throwable) {
-                promise.reject("Amount creation error", error.localizedMessage, error)
+                promise.reject("Amount creation error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -953,9 +958,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             try {
                 val amount = Amount.fromSat(sats.toLong().toULong())
-                promise.resolve(amount.toSat())
+                val id = getAndStoreObject(_amounts) { amount }
+                promise.resolve(id) // Resolve with the amount ID
             } catch (error: Throwable) {
-                promise.reject("Amount conversion error", error.localizedMessage, error)
+                promise.reject("Amount conversion error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -965,9 +971,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             try {
                 val amount = Amount.fromSat(sats.toLong().toULong())
-                promise.resolve(amount.toBtc())
+                val id = getAndStoreObject(_amounts) { amount }
+                promise.resolve(id) // Resolve with the amount ID
             } catch (error: Throwable) {
-                promise.reject("Amount conversion error", error.localizedMessage, error)
+                promise.reject("Amount conversion error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -979,7 +986,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             val id = randomId()
             _txBuilders[id] = TxBuilder()
-            result.resolve(id)
+            result.resolve(id) // Resolve with the transaction builder ID
         }.start()
     }
 
@@ -994,9 +1001,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val script = _scripts[scriptId] ?: throw Exception("Script not found")
                 
                 _txBuilders[id] = builder.addRecipient(script, amountObj)
-                promise.resolve(true)
+                promise.resolve(true) // Resolve with success
             } catch (error: Throwable) {
-                promise.reject("Add recipient error", error.localizedMessage, error)
+                promise.reject("Add recipient error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -1007,7 +1014,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun addUnspendable(id: String, outPoint: ReadableMap, result: Promise) {
         Thread {
             _txBuilders[id] = _txBuilders[id]!!.addUnspendable(createOutPoint(outPoint))
-            result.resolve(true)
+            result.resolve(true) // Resolve with success
         }.start()
     }
 
@@ -1016,7 +1023,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun addUtxo(id: String, outPoint: ReadableMap, result: Promise) {
         Thread {
             _txBuilders[id] = _txBuilders[id]!!.addUtxo(createOutPoint(outPoint))
-            result.resolve(true)
+            result.resolve(true) // Resolve with success
         }.start()
     }
 
@@ -1033,9 +1040,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     _txBuilders[id] = builder.addUtxo(mappedOutPoint)
                 }
                 
-                promise.resolve(true)
+                promise.resolve(true) // Resolve with success
             } catch (error: Throwable) {
-                promise.reject("Add UTXOs error", error.localizedMessage, error)
+                promise.reject("Add UTXOs error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -1045,7 +1052,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun doNotSpendChange(id: String, result: Promise) {
         Thread {
             _txBuilders[id] = _txBuilders[id]!!.doNotSpendChange()
-            result.resolve(true)
+            result.resolve(true) // Resolve with success
         }.start()
     }
 
@@ -1054,7 +1061,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun manuallySelectedOnly(id: String, result: Promise) {
         Thread {
             _txBuilders[id] = _txBuilders[id]!!.manuallySelectedOnly()
-            result.resolve(true)
+            result.resolve(true) // Resolve with success
         }.start()
     }
 
@@ -1063,7 +1070,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun onlySpendChange(id: String, result: Promise) {
         Thread {
             _txBuilders[id] = _txBuilders[id]!!.onlySpendChange()
-            result.resolve(true)
+            result.resolve(true) // Resolve with success
         }.start()
     }
 
@@ -1075,7 +1082,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             for (i in 0 until outPoints.size())
                 mappedOutPoints.add(createOutPoint(outPoints.getMap(i)))
             _txBuilders[id] = _txBuilders[id]!!.unspendable(mappedOutPoints)
-            result.resolve(true)
+            result.resolve(true) // Resolve with success
         }.start()
     }
 
@@ -1090,9 +1097,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 }
                 val outpointId = randomId()
                 _outPoints[outpointId] = localOutput.outpoint
-                promise.resolve(outpointId)
+                promise.resolve(outpointId) // Resolve with the outpoint ID
             } catch (error: Throwable) {
-                promise.reject("Invalid LocalOutput", error.localizedMessage, error)
+                promise.reject("Invalid LocalOutput", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -1107,9 +1114,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 }
                 val txoutId = randomId()
                 _txOuts[txoutId] = localOutput.txout
-                promise.resolve(txoutId)
+                promise.resolve(txoutId) // Resolve with the txout ID
             } catch (error: Throwable) {
-                promise.reject("Invalid LocalOutput", error.localizedMessage, error)
+                promise.reject("Invalid LocalOutput", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -1122,9 +1129,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     promise.reject("Invalid LocalOutput", "LocalOutput not found", null)
                     return@Thread
                 }
-                promise.resolve(localOutput.keychain.toString())
+                promise.resolve(localOutput.keychain.toString()) // Resolve with the keychain string
             } catch (error: Throwable) {
-                promise.reject("Invalid LocalOutput", error.localizedMessage, error)
+                promise.reject("Invalid LocalOutput", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -1137,9 +1144,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     promise.reject("Invalid LocalOutput", "LocalOutput not found", null)
                     return@Thread
                 }
-                promise.resolve(localOutput.isSpent)
+                promise.resolve(localOutput.isSpent) // Resolve with the spent status
             } catch (error: Throwable) {
-                promise.reject("Invalid LocalOutput", error.localizedMessage, error)
+                promise.reject("Invalid LocalOutput", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -1153,9 +1160,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val feeRate = FeeRate.fromSatPerVb(satPerVb.toLong().toULong())
                 val id = randomId()
                 _feeRates[id] = feeRate
-                promise.resolve(id)
+                promise.resolve(id) // Resolve with the fee rate ID
             } catch (error: Throwable) {
-                promise.reject("FeeRate error", error.localizedMessage, error)
+                promise.reject("FeeRate error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -1167,9 +1174,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val feeRate = FeeRate.fromSatPerKwu(satPerKwu.toLong().toULong())
                 val id = randomId()
                 _feeRates[id] = feeRate
-                promise.resolve(id)
+                promise.resolve(id) // Resolve with the fee rate ID
             } catch (error: Throwable) {
-                promise.reject("FeeRate error", error.localizedMessage, error)
+                promise.reject("FeeRate error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -1182,9 +1189,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     promise.reject("FeeRate error", "FeeRate not found", null)
                     return@Thread
                 }
-                promise.resolve(feeRate.toSatPerVbCeil())
+                promise.resolve(feeRate.toSatPerVbCeil()) // Resolve with the ceiling value
             } catch (error: Throwable) {
-                promise.reject("FeeRate error", error.localizedMessage, error)
+                promise.reject("FeeRate error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -1197,9 +1204,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     promise.reject("FeeRate error", "FeeRate not found", null)
                     return@Thread
                 }
-                promise.resolve(feeRate.toSatPerVbFloor())
+                promise.resolve(feeRate.toSatPerVbFloor()) // Resolve with the floor value
             } catch (error: Throwable) {
-                promise.reject("FeeRate error", error.localizedMessage, error)
+                promise.reject("FeeRate error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -1212,20 +1219,20 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     promise.reject("FeeRate error", "FeeRate not found", null)
                     return@Thread
                 }
-                promise.resolve(feeRate.toSatPerKwu())
+                promise.resolve(feeRate.toSatPerKwu()) // Resolve with the fee rate
             } catch (error: Throwable) {
-                promise.reject("FeeRate error", error.localizedMessage, error)
+                promise.reject("FeeRate error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
     /** FeeRate methods ends */
 
     // `feeAbsolute`
-    @ReactMethod
+ @ReactMethod
     fun feeAbsolute(id: String, feeRate: Int, result: Promise) {
         Thread {
             _txBuilders[id] = _txBuilders[id]!!.feeAbsolute(feeRate.toULong())
-            result.resolve(true)
+            result.resolve(true) // Resolve with success
         }.start()
     }
 
@@ -1234,7 +1241,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun drainWallet(id: String, result: Promise) {
         Thread {
             _txBuilders[id] = _txBuilders[id]!!.drainWallet()
-            result.resolve(true)
+            result.resolve(true) // Resolve with success
         }.start()
     }
 
@@ -1243,7 +1250,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun drainTo(id: String, scriptId: String, result: Promise) {
         Thread {
             _txBuilders[id] = _txBuilders[id]!!.drainTo(_scripts[scriptId]!!)
-            result.resolve(true)
+            result.resolve(true) // Resolve with success
         }.start()
     }
 
@@ -1252,7 +1259,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun enableRbf(id: String, result: Promise) {
         Thread {
             _txBuilders[id] = _txBuilders[id]!!.enableRbf()
-            result.resolve(true)
+            result.resolve(true) // Resolve with success
         }.start()
     }
 
@@ -1261,7 +1268,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun enableRbfWithSequence(id: String, nsequence: Int, result: Promise) {
         Thread {
             _txBuilders[id] = _txBuilders[id]!!.enableRbfWithSequence(nsequence.toUInt())
-            result.resolve(true)
+            result.resolve(true) // Resolve with success
         }.start()
     }
 
@@ -1288,10 +1295,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 
                 val builder = _txBuilders[id] ?: throw Exception("TxBuilder not found")
                 _txBuilders[id] = builder.setRecipients(scriptAmounts)
-                promise.resolve(true)
+                promise.resolve(true) // Resolve with success
                 
             } catch (error: Throwable) {
-                promise.reject("Set recipients error", error.localizedMessage, error)
+                promise.reject("Set recipients error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -1303,9 +1310,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val builder = _bumpFeeTxBuilders[id] ?: throw Exception("BumpFeeTxBuilder not found")
                 val wallet = getWalletById(walletId)
                 val result = builder.finish(wallet)
-                promise.resolve(result.serialize())
+                promise.resolve(result.serialize()) // Resolve with the serialized result
             } catch (error: Throwable) {
-                promise.reject("BumpFee TxBuilder finish error", error.localizedMessage, error)
+                promise.reject("BumpFee TxBuilder finish error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -1316,8 +1323,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun createDescriptor(descriptor: String, network: String, result: Promise) {
         Thread {
             try {
-                val id = randomId()
-                _descriptors[id] = Descriptor(descriptor, setNetwork(network))
+                val id = getAndStoreObject(_descriptors) { Descriptor(descriptor, setNetwork(network)) }
                 result.resolve(id)
             } catch (error: Throwable) {
                 result.reject("Create Descriptor error", error.localizedMessage, error)
@@ -1607,9 +1613,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val id = randomId()
                 val txBytes = getTxBytes(bytes)
                 _transactions[id] = Transaction(txBytes)
-                result.resolve(id)
+                result.resolve(id) // Resolve with the transaction ID
             } catch (error: Throwable) {
-                result.reject("Transaction creation error", error.localizedMessage, error)
+                result.reject("Transaction creation error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -1618,70 +1624,70 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun serializeTransaction(id: String, result: Promise) {
         Thread {
             val uBytes = _transactions[id]!!.serialize()
-            result.resolve(makeNativeArray(uBytes))
+            result.resolve(makeNativeArray(uBytes)) // Resolve with the serialized transaction
         }.start()
     }
 
     @ReactMethod
     fun transactionTxid(id: String, result: Promise) {
         Thread {
-            result.resolve(_transactions[id]!!.txid())
+            result.resolve(_transactions[id]!!.txid()) // Resolve with the transaction ID
         }.start()
     }
 
     @ReactMethod
     fun txWeight(id: String, result: Promise) {
         Thread {
-            result.resolve(_transactions[id]!!.weight().toDouble())
+            result.resolve(_transactions[id]!!.weight().toDouble()) // Resolve with the weight
         }.start()
     }
 
     @ReactMethod
     fun txSize(id: String, result: Promise) {
         Thread {
-            result.resolve(_transactions[id]!!.totalSize().toDouble())
+            result.resolve(_transactions[id]!!.totalSize().toDouble()) // Resolve with the size
         }.start()
     }
 
     @ReactMethod
     fun txVsize(id: String, result: Promise) {
         Thread {
-            result.resolve(_transactions[id]!!.vsize().toDouble())
+            result.resolve(_transactions[id]!!.vsize().toDouble()) // Resolve with the virtual size
         }.start()
     }
 
     @ReactMethod
     fun txIsCoinBase(id: String, result: Promise) {
         Thread {
-            result.resolve(_transactions[id]!!.isCoinbase())
+            result.resolve(_transactions[id]!!.isCoinbase()) // Resolve with the coinbase status
         }.start()
     }
 
     @ReactMethod
     fun txIsExplicitlyRbf(id: String, result: Promise) {
         Thread {
-            result.resolve(_transactions[id]!!.isExplicitlyRbf())
+            result.resolve(_transactions[id]!!.isExplicitlyRbf()) // Resolve with the RBF status
         }.start()
     }
 
     @ReactMethod
     fun txIsLockTimeEnabled(id: String, result: Promise) {
         Thread {
-            result.resolve(_transactions[id]!!.isLockTimeEnabled())
+            result.resolve(_transactions[id]!!.isLockTimeEnabled()) // Resolve with the lock time status
         }.start()
     }
 
     @ReactMethod
     fun txVersion(id: String, result: Promise) {
         Thread {
-            result.resolve(_transactions[id]!!.version())
+            result.resolve(_transactions[id]!!.version()) // Resolve with the transaction version
         }.start()
     }
 
     @ReactMethod
     fun txLockTime(id: String, result: Promise) {
         Thread {
-            result.resolve(_transactions[id]!!.lockTime().toInt())
+            result.resolve(_transactions[id]!!.lockTime().toInt()) // Resolve with the lock time
         }.start()
     }
 
@@ -1693,7 +1699,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             for (item in items) {
                 list.add(createTxIn(item, _scripts))
             }
-            result.resolve(Arguments.makeNativeArray(list))
+            result.resolve(Arguments.makeNativeArray(list)) // Resolve with the input list
         }.start()
     }
 
@@ -1705,7 +1711,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             for (item in items) {
                 list.add(createTxOut(item, _scripts))
             }
-            result.resolve(Arguments.makeNativeArray(list))
+            result.resolve(Arguments.makeNativeArray(list)) // Resolve with the output list
         }.start()
     }
     /** Transaction methods ends*/
@@ -1732,9 +1738,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 // Store the chainPosition in a map if needed for later use
                 // _chainPositions[id] = chainPosition
 
-                result.resolve(id)
+                result.resolve(id) // Resolve with the chain position ID
             } catch (error: Throwable) {
-                result.reject("ChainPosition error", error.localizedMessage, error)
+                result.reject("ChainPosition error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -1755,9 +1761,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     // Ensure to handle all cases
                 }
 
-                result.resolve(type)
+                result.resolve(type) // Resolve with the chain position type
             } catch (error: Throwable) {
-                result.reject("ChainPosition error", error.localizedMessage, error)
+                result.reject("ChainPosition error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -1782,9 +1788,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                     // Ensure to handle all cases
                 }
 
-                result.resolve(data)
+                result.resolve(data) // Resolve with the chain position data
             } catch (error: Throwable) {
-                result.reject("ChainPosition error", error.localizedMessage, error)
+                result.reject("ChainPosition error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -1794,7 +1800,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun toBytes(id: String, result: Promise) {
         Thread {
-            result.resolve(makeNativeArray(_scripts[id]!!.toBytes()))
+            result.resolve(makeNativeArray(_scripts[id]!!.toBytes())) // Resolve with the byte array
         }.start()
     }
     /** Script methods ends*/
@@ -1807,7 +1813,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             val wallet = _wallets[walletId]
             if (wallet == null) {
                 runOnUiThread {
-                    promise.reject("Invalid wallet", "Wallet not found", null)
+                    promise.reject("Invalid wallet", "Wallet not found", null) // Reject if wallet not found
                 }
                 return@Thread
             }
@@ -1817,11 +1823,11 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val id = randomId()
                 _fullScanRequests[id] = fullScanRequest
                 runOnUiThread {
-                    promise.resolve(id)
+                    promise.resolve(id) // Resolve with the full scan request ID
                 }
             } catch (error: Throwable) {
                 runOnUiThread {
-                    promise.reject("FullScanRequest creation error", error.localizedMessage, error)
+                    promise.reject("FullScanRequest creation error", error.localizedMessage, error) // Reject with error
                 }
             }
         }.start()
@@ -1832,7 +1838,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             _fullScanRequests.remove(id)
             runOnUiThread {
-                promise.resolve(null)
+                promise.resolve(null) // Resolve with no value
             }
         }.start()
     }
@@ -1845,7 +1851,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun createSentAndReceivedValues(sent: Amount, received: Amount, promise: Promise) {
         Thread {
             val values = SentAndReceivedValues(sent, received)
-            promise.resolve(values)
+            promise.resolve(values) // Resolve with the values
         }.start()
     }
 
@@ -1853,7 +1859,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun freeSentAndReceivedValues(values: SentAndReceivedValues, promise: Promise) {
         Thread {
             // Freeing logic if needed
-            promise.resolve(null)
+            promise.resolve(null) // Resolve with no value
         }.start()
     }
 
@@ -1861,7 +1867,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     /** CanonicalTx methods starts */
 
-    @ReactMethod
+       @ReactMethod
     fun createCanonicalTx(
         transactionId: String,
         chainPositionId: String,
@@ -1876,9 +1882,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val canonicalTxId = randomId()
                 _canonicalTxs[canonicalTxId] = canonicalTx
 
-                promise.resolve(canonicalTxId)
+                promise.resolve(canonicalTxId) // Resolve with the canonical transaction ID
             } catch (error: Throwable) {
-                promise.reject("Create CanonicalTx error", error.localizedMessage, error)
+                promise.reject("Create CanonicalTx error", error.localizedMessage, error) // Reject with error
             }
         }.start()
     }
@@ -1891,7 +1897,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             val canonicalTx = _canonicalTxs[id]
             if (canonicalTx == null) {
-                promise.reject("Get CanonicalTx error", "CanonicalTx not found")
+                promise.reject("Get CanonicalTx error", "CanonicalTx not found") // Reject if not found
                 return@Thread
             }
 
@@ -1900,11 +1906,12 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 "chainPosition" to canonicalTx.chainPosition
             )
 
-            promise.resolve(result)
+            promise.resolve(result) // Resolve with the canonical transaction data
         }.start()
     }
 
     /** CanonicalTx methods ends */
 
 }
+
 
