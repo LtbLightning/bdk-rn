@@ -153,6 +153,38 @@ class BdkRnModule: NSObject {
         return chainPosition
     }
 
+    // Function to retrieve a Wallet by ID
+    private func getWalletById(_ id: String) throws -> Wallet {
+        guard let wallet = _wallets[id] else {
+            throw NSError(domain: "BdkRnModule", code: 404, userInfo: [NSLocalizedDescriptionKey: "Wallet not found"])
+        }
+        return wallet
+    }
+
+    // Function to retrieve a Script by ID
+    private func getScriptById(_ id: String) throws -> Script {
+        guard let script = _scripts[id] else {
+            throw NSError(domain: "BdkRnModule", code: 404, userInfo: [NSLocalizedDescriptionKey: "Script not found"])
+        }
+        return script
+    }
+
+    // Function to retrieve a FullScanRequest by ID
+    private func getFullScanRequestById(_ id: String) throws -> FullScanRequest {
+        guard let fullScanRequest = _fullScanRequests[id] else {
+            throw NSError(domain: "BdkRnModule", code: 404, userInfo: [NSLocalizedDescriptionKey: "FullScanRequest not found"])
+        }
+        return fullScanRequest
+    }
+
+    // Function to retrieve a SyncRequest by ID
+    private func getSyncRequestById(_ id: String) throws -> SyncRequest {
+        guard let syncRequest = _syncRequests[id] else {
+            throw NSError(domain: "BdkRnModule", code: 404, userInfo: [NSLocalizedDescriptionKey: "SyncRequest not found"])
+        }
+        return syncRequest
+    }
+
 
 
     /** Mnemonic methods starts */
@@ -446,10 +478,6 @@ class BdkRnModule: NSObject {
 
     /** Wallet methods starts*/
 
-    func getWalletById(id: String) -> Wallet {
-        return _wallets[id]!
-    }
-
     @objc
     func revealNextAddress(
         id: String,
@@ -502,9 +530,17 @@ class BdkRnModule: NSObject {
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
-        DispatchQueue.main.async { [self] in
-            let network = getWalletById(id: id).network()
-            resolve(getNetworkString(network: network))
+        DispatchQueue.global(qos: .userInteractive).async { [self] in
+            do {
+                let network = try getWalletById(id: id).network() // Added 'try' to handle potential error
+                DispatchQueue.main.async {
+                    resolve(getNetworkString(network: network))
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Get network error", "\(error)", error) // Handle the error
+                }
+            }
         }
     }
 
@@ -540,24 +576,25 @@ class BdkRnModule: NSObject {
 
     /** Balance methods starts*/
     @objc
-    func getBalance(_
+    func getBalance(
         id: String,
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             do {
-                let balance = getWalletById(id: id).getBalance()
-                let responseBalance = [
+                let wallet = try getWalletById(id: id)
+                let balance = wallet.getBalance()
+                let responseObject: [String: Any] = [
                     "immature": balance.immature.toSat(),
                     "trustedPending": balance.trustedPending.toSat(),
                     "untrustedPending": balance.untrustedPending.toSat(),
                     "confirmed": balance.confirmed.toSat(),
                     "trustedSpendable": balance.trustedSpendable.toSat(),
                     "total": balance.total.toSat()
-                ] as [String: UInt64]
+                ]
                 DispatchQueue.main.async {
-                    resolve(responseBalance)
+                    resolve(responseObject)
                 }
             } catch let error {
                 DispatchQueue.main.async {
@@ -1666,7 +1703,7 @@ class BdkRnModule: NSObject {
         }
     }
 
-    @objc
+      @objc
     func getAddressInfoIndex(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             guard let addressInfo = _addressInfos[id] else {
@@ -1743,27 +1780,35 @@ class BdkRnModule: NSObject {
 
 
     @objc
-    func serializeTransaction(_
-        id: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            DispatchQueue.main.async { [self] in
-                resolve(_transactions[id]!.serialize())
+    func serializeTransaction(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                let transaction = try self.getTransactionById(id)
+                let serialized = transaction.serialize()
+                DispatchQueue.main.async {
+                    resolve(serialized)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Serialize transaction error", "\(error)", error)
+                }
             }
         }
     }
 
     @objc
-    func transactionTxid(_
-        id: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            DispatchQueue.main.async { [self] in
-                resolve(_transactions[id]!.txid())
+    func transactionTxid(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                let transaction = try self.getTransactionById(id)
+                let txid = transaction.txid()
+                DispatchQueue.main.async {
+                    resolve(txid)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Get transaction txid error", "\(error)", error)
+                }
             }
         }
     }
@@ -1775,8 +1820,15 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
-            DispatchQueue.main.async { [self] in
-                resolve(_transactions[id]!.weight())
+            do {
+                let transaction = try getTransactionById(id)
+                DispatchQueue.main.async { [self] in
+                    resolve(transaction.weight())
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Get transaction weight error", "\(error)", error)
+                }
             }
         }
     }
@@ -1788,8 +1840,15 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
-            DispatchQueue.main.async { [self] in
-                resolve(_transactions[id]!.totalSize())
+            do {
+                let transaction = try getTransactionById(id)
+                DispatchQueue.main.async { [self] in
+                    resolve(transaction.totalSize())
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Get transaction size error", "\(error)", error)
+                }
             }
         }
     }
@@ -1801,8 +1860,15 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
-            DispatchQueue.main.async { [self] in
-                resolve(_transactions[id]!.vsize())
+            do {
+                let transaction = try getTransactionById(id)
+                DispatchQueue.main.async { [self] in
+                    resolve(transaction.vsize())
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Get transaction vsize error", "\(error)", error)
+                }
             }
         }
     }
@@ -1814,8 +1880,15 @@ class BdkRnModule: NSObject {
         reject: @escaping RCTPromiseRejectBlock
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
-            DispatchQueue.main.async { [self] in
-                resolve(_transactions[id]!.isCoinbase())
+            do {
+                let transaction = try getTransactionById(id)
+                DispatchQueue.main.async { [self] in
+                    resolve(transaction.isCoinbase())
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Get transaction isCoinbase error", "\(error)", error)
+                }
             }
         }
     }
@@ -1874,38 +1947,36 @@ class BdkRnModule: NSObject {
 
 
     @objc
-    func txInput(_
-        id: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            let list = _transactions[id]!.input()
-            var mapped: [Any] = [];
-            for item in list {
-                mapped.append(createTxIn(txIn: item, _scripts: &_scripts))
-            }
-            DispatchQueue.main.async {
-                resolve(mapped)
+    func txInput(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                let transaction = try self.getTransactionById(id)
+                let inputs = transaction.input()
+                DispatchQueue.main.async {
+                    resolve(inputs)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Get transaction version error", "\(error)", error)
+                }
             }
         }
     }
 
 
     @objc
-    func txOutput(_
-        id: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
-        DispatchQueue.global(qos: .userInteractive).async { [self] in
-            let list = _transactions[id]!.output()
-            var mapped: [Any] = [];
-            for item in list {
-                mapped.append(createTxOut(txOut: item, _scripts: &_scripts))
-            }
-            DispatchQueue.main.async {
-                resolve(mapped)
+    func txOutput(_ id: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                let transaction = try self.getTransactionById(id)
+                let outputs = transaction.output()
+                DispatchQueue.main.async {
+                    resolve(outputs)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Get transaction outputs error", "\(error)", error)
+                }
             }
         }
     }
@@ -2098,14 +2169,8 @@ class BdkRnModule: NSObject {
     @objc
     func createSyncRequest(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
-            guard let wallet = self._wallets[walletId] else {
-                DispatchQueue.main.async {
-                    reject("Invalid wallet", "Wallet not found", nil)
-                }
-                return
-            }
-            
             do {
+                let wallet = try getWalletById(walletId)
                 let syncRequest = wallet.startSyncWithRevealedSpks()
                 let id = self.randomId()
                 self._syncRequests[id] = syncRequest
@@ -2250,9 +2315,7 @@ class BdkRnModule: NSObject {
     func walletCommit(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
             do {
-                guard let wallet = self._wallets[walletId] else {
-                    throw NSError(domain: "BdkRnModule", code: 0, userInfo: [NSLocalizedDescriptionKey: "Wallet not found"])
-                }
+                let wallet = try getWalletById(walletId)
                 let result = try wallet.commit()
                 DispatchQueue.main.async {
                     resolve(result)
@@ -2268,24 +2331,24 @@ class BdkRnModule: NSObject {
     @objc
     func walletGetBalance(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
-            guard let wallet = self._wallets[walletId] else {
+            do {
+                let wallet = try getWalletById(walletId)
+                let balance = wallet.getBalance()
+                let result: [String: UInt64] = [
+                    "immature": balance.immature.toSat(),
+                    "trustedPending": balance.trustedPending.toSat(),
+                    "untrustedPending": balance.untrustedPending.toSat(),
+                    "confirmed": balance.confirmed.toSat(),
+                    "trustedSpendable": balance.trustedSpendable.toSat(),
+                    "total": balance.total.toSat()
+                ]
                 DispatchQueue.main.async {
-                    reject("Invalid wallet", "Wallet not found", nil)
+                    resolve(result)
                 }
-                return
-            }
-            
-            let balance = wallet.getBalance()
-            let result: [String: UInt64] = [
-                "immature": balance.immature.toSat(),
-                "trustedPending": balance.trustedPending.toSat(),
-                "untrustedPending": balance.untrustedPending.toSat(),
-                "confirmed": balance.confirmed.toSat(),
-                "trustedSpendable": balance.trustedSpendable.toSat(),
-                "total": balance.total.toSat()
-            ]
-            DispatchQueue.main.async {
-                resolve(result)
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Get wallet balance error", "\(error)", error)
+                }
             }
         }
     }
@@ -2465,15 +2528,14 @@ class BdkRnModule: NSObject {
     }
 
     @objc
-    func walletSign(_ walletId: String, psbtId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    func walletSign(_ walletId: String, psbt: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
             do {
-                guard let wallet = self._wallets[walletId], let psbt = self._psbts[psbtId] else {
-                    throw NSError(domain: "BdkRnModule", code: 0, userInfo: [NSLocalizedDescriptionKey: "Wallet or PSBT not found"])
-                }
-                let finalized = try wallet.sign(psbt: psbt)
+                let wallet = try getWalletById(walletId)
+                let psbtObject = try Psbt(psbtBase64: psbt)
+                let signedPsbt = try wallet.sign(psbt: psbtObject)
                 DispatchQueue.main.async {
-                    resolve(finalized)
+                    resolve(signedPsbt)
                 }
             } catch let error {
                 DispatchQueue.main.async {
@@ -2594,9 +2656,7 @@ class BdkRnModule: NSObject {
     func commit(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
             do {
-                guard let wallet = self._wallets[walletId] else {
-                    throw NSError(domain: "BdkRnModule", code: 404, userInfo: [NSLocalizedDescriptionKey: "Wallet not found"])
-                }
+                let wallet = try getWalletById(walletId)
                 let result = try wallet.commit()
                 DispatchQueue.main.async {
                     resolve(result)
@@ -2608,27 +2668,25 @@ class BdkRnModule: NSObject {
             }
         }
     }
+    }
 
     @objc
-       func sign(_ walletId: String, psbt: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-           DispatchQueue.global(qos: .userInteractive).async {
-               do {
-                   guard let wallet = self._wallets[walletId] else {
-                       throw NSError(domain: "BdkRnModule", code: 404, userInfo: [NSLocalizedDescriptionKey: "Wallet not found"])
-                   }
-                   
-                   let psbtObject = try Psbt(psbtBase64: psbt)
-                   let signedPsbt = try wallet.sign(psbt: psbtObject)
-                   DispatchQueue.main.async {
-                       resolve(signedPsbt)
-                   }
-               } catch let error {
-                   DispatchQueue.main.async {
-                       reject("Sign error", "\(error)", error)
-                   }
-               }
-           }
-       }
+    func sign(_ walletId: String, psbt: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.global(qos: .userInteractive).async {
+            do {
+                let wallet = try getWalletById(walletId)
+                let psbtObject = try Psbt(psbtBase64: psbt)
+                let signedPsbt = try wallet.sign(psbt: psbtObject)
+                DispatchQueue.main.async {
+                    resolve(signedPsbt)
+                }
+            } catch let error {
+                DispatchQueue.main.async {
+                    reject("Sign error", "\(error)", error)
+                }
+            }
+        }
+    }
     @objc
     func sentAndReceived(_ walletId: String, txId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
@@ -2656,9 +2714,7 @@ class BdkRnModule: NSObject {
     func transactions(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
             do {
-                guard let wallet = self._wallets[walletId] else {
-                    throw NSError(domain: "BdkRnModule", code: 404, userInfo: [NSLocalizedDescriptionKey: "Wallet not found"])
-                }
+                let wallet = try getWalletById(walletId)
                 let txList = try wallet.transactions()
                 DispatchQueue.main.async {
                     resolve(txList)
@@ -2868,7 +2924,7 @@ class BdkRnModule: NSObject {
     /** Script methods ends */
 
     /** ChangeSpendPolicy methods starts */
-    @objc
+     @objc
     func createChainPosition(_ position: NSDictionary, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
             do {
@@ -2956,15 +3012,9 @@ class BdkRnModule: NSObject {
     @objc
     func createFullScanRequest(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
-            guard let wallet = self._wallets[walletId] else {
-                DispatchQueue.main.async {
-                    reject("Invalid wallet", "Wallet not found", nil)
-                }
-                return
-            }
-            
             do {
-                let fullScanRequest = wallet.startFullScan() // Assuming this method exists in your Wallet class
+                let wallet = try getWalletById(walletId)
+                let fullScanRequest = wallet.startFullScan()
                 let id = self.randomId()
                 self._fullScanRequests[id] = fullScanRequest
                 DispatchQueue.main.async {
@@ -2986,7 +3036,6 @@ class BdkRnModule: NSObject {
                 resolve(nil)
             }
         }
-    }
 
     /** FullScanRequest methods ends */
 
