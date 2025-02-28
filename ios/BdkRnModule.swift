@@ -488,7 +488,7 @@ class BdkRnModule: NSObject {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             do {
                 let keychain: KeychainKind = (addressIndex as? Bool == true) ? .internal : .external
-                let addressInfo = try getWalletById(id: id).revealNextAddress(keychain: keychain)
+                let addressInfo = try getWalletById(id).revealNextAddress(keychain: keychain)
                 let randomId = randomId()
                 _addresses[randomId] = addressInfo.address
                 DispatchQueue.main.async {
@@ -516,7 +516,7 @@ class BdkRnModule: NSObject {
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             do {
-                resolve(try getWalletById(id: id).isMine(script: _scripts[scriptId]!))
+                resolve(try getWalletById(id).isMine(script: _scripts[scriptId]!))
             } catch let error {
                 reject("Check wallet isMine error", "\(error)", error)
             }
@@ -532,7 +532,7 @@ class BdkRnModule: NSObject {
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             do {
-                let network = try getWalletById(id: id).network() // Added 'try' to handle potential error
+                let network = try getWalletById(id).network() // Added 'try' to handle potential error
                 DispatchQueue.main.async {
                     resolve(getNetworkString(network: network))
                 }
@@ -552,7 +552,7 @@ class BdkRnModule: NSObject {
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             do {
-                let unspent = try getWalletById(id: id).listUnspent()
+                let unspent = try getWalletById(id).listUnspent()
                 var responseObject: [Any] = []
                 for item in unspent {
                     let unspentObject = [
@@ -583,7 +583,7 @@ class BdkRnModule: NSObject {
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             do {
-                let wallet = try getWalletById(id: id)
+                let wallet = try getWalletById(id)
                 let balance = wallet.getBalance()
                 let responseObject: [String: Any] = [
                     "immature": balance.immature.toSat(),
@@ -612,7 +612,7 @@ class BdkRnModule: NSObject {
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             do {
-                let balance = getWalletById(id: id).getBalance()
+                let balance = try getWalletById(id).getBalance()
                 DispatchQueue.main.async {
                     resolve(balance.immature.toSat())
                 }
@@ -632,7 +632,7 @@ class BdkRnModule: NSObject {
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             do {
-                let balance = getWalletById(id: id).getBalance()
+                let balance = try getWalletById(id).getBalance()
                 DispatchQueue.main.async {
                     resolve(balance.trustedPending.toSat())
                 }
@@ -652,7 +652,7 @@ class BdkRnModule: NSObject {
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             do {
-                let balance = getWalletById(id: id).getBalance()
+                let balance = try getWalletById(id).getBalance()
                 DispatchQueue.main.async {
                     resolve(balance.untrustedPending.toSat())
                 }
@@ -672,7 +672,7 @@ class BdkRnModule: NSObject {
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             do {
-                let balance = getWalletById(id: id).getBalance()
+                let balance = try getWalletById(id).getBalance()
                 DispatchQueue.main.async {
                     resolve(balance.confirmed.toSat())
                 }
@@ -692,7 +692,7 @@ class BdkRnModule: NSObject {
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             do {
-                let balance = getWalletById(id: id).getBalance()
+                let balance = try getWalletById(id).getBalance()
                 DispatchQueue.main.async {
                     resolve(balance.trustedSpendable.toSat())
                 }
@@ -712,7 +712,7 @@ class BdkRnModule: NSObject {
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             do {
-                let balance = getWalletById(id: id).getBalance()
+                let balance = try getWalletById(id).getBalance()
                 DispatchQueue.main.async {
                     resolve(balance.total.toSat())
                 }
@@ -930,7 +930,7 @@ class BdkRnModule: NSObject {
         ) {
             DispatchQueue.global(qos: .userInteractive).async { [self] in
                 do {
-                    let res = try _bumpFeeTxBuilders[id]!.finish(wallet: getWalletById(id: walletId))
+                    let res = try _bumpFeeTxBuilders[id]!.finish(wallet: getWalletById(walletId))
                     DispatchQueue.main.async {
                         resolve(res.serialize())
                     }
@@ -2170,7 +2170,7 @@ class BdkRnModule: NSObject {
     func createSyncRequest(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
             do {
-                let wallet = try getWalletById(walletId)
+                let wallet = try self.getWalletById(walletId)
                 let syncRequest = wallet.startSyncWithRevealedSpks()
                 let id = self.randomId()
                 self._syncRequests[id] = syncRequest
@@ -2315,7 +2315,7 @@ class BdkRnModule: NSObject {
     func walletCommit(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
             do {
-                let wallet = try getWalletById(walletId)
+                let wallet = try self.getWalletById(walletId)
                 let result = try wallet.commit()
                 DispatchQueue.main.async {
                     resolve(result)
@@ -2332,7 +2332,7 @@ class BdkRnModule: NSObject {
     func walletGetBalance(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
             do {
-                let wallet = try getWalletById(walletId)
+                let wallet = try self.getWalletById(walletId)
                 let balance = wallet.getBalance()
                 let result: [String: UInt64] = [
                     "immature": balance.immature.toSat(),
@@ -2531,7 +2531,7 @@ class BdkRnModule: NSObject {
     func walletSign(_ walletId: String, psbt: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
             do {
-                let wallet = try getWalletById(walletId)
+                let wallet = try self.getWalletById(walletId)
                 let psbtObject = try Psbt(psbtBase64: psbt)
                 let signedPsbt = try wallet.sign(psbt: psbtObject)
                 DispatchQueue.main.async {
@@ -2656,7 +2656,7 @@ class BdkRnModule: NSObject {
     func commit(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
             do {
-                let wallet = try getWalletById(walletId)
+                let wallet = try self.getWalletById(walletId)
                 let result = try wallet.commit()
                 DispatchQueue.main.async {
                     resolve(result)
@@ -2668,13 +2668,13 @@ class BdkRnModule: NSObject {
             }
         }
     }
-    }
+    
 
     @objc
     func sign(_ walletId: String, psbt: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
             do {
-                let wallet = try getWalletById(walletId)
+                let wallet = try self.getWalletById(walletId)
                 let psbtObject = try Psbt(psbtBase64: psbt)
                 let signedPsbt = try wallet.sign(psbt: psbtObject)
                 DispatchQueue.main.async {
@@ -2714,7 +2714,7 @@ class BdkRnModule: NSObject {
     func transactions(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
             do {
-                let wallet = try getWalletById(walletId)
+                let wallet = try self.getWalletById(walletId)
                 let txList = try wallet.transactions()
                 DispatchQueue.main.async {
                     resolve(txList)
@@ -3013,7 +3013,7 @@ class BdkRnModule: NSObject {
     func createFullScanRequest(_ walletId: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
             do {
-                let wallet = try getWalletById(walletId)
+                let wallet = try self.getWalletById(walletId)
                 let fullScanRequest = wallet.startFullScan()
                 let id = self.randomId()
                 self._fullScanRequests[id] = fullScanRequest
@@ -3036,6 +3036,7 @@ class BdkRnModule: NSObject {
                 resolve(nil)
             }
         }
+    }
 
     /** FullScanRequest methods ends */
 

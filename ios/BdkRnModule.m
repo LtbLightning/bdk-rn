@@ -1080,6 +1080,7 @@ RCT_EXTERN_METHOD(
     walletNew:(nonnull NSString*)descriptor
     changeDescriptor:(nullable NSString*)changeDescriptor
     network:(nonnull NSString*)network
+    persistenceBackendPath:(nonnull NSString*)persistenceBackendPath
     resolve:(RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
