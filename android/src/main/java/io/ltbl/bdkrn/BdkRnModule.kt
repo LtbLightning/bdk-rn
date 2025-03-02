@@ -932,10 +932,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             try {
                 val amount = Amount.fromSat(sat.toLong().toULong())
-                val id = getAndStoreObject(_amounts) { amount }
-                promise.resolve(id) // Resolve with the amount ID
+                promise.resolve(amount.toSat())
             } catch (error: Throwable) {
-                promise.reject("Amount creation error", error.localizedMessage, error) // Reject with error
+                promise.reject("Amount creation error", error.localizedMessage, error)
             }
         }.start()
     }
@@ -945,10 +944,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             try {
                 val amount = Amount.fromBtc(btc)
-                val id = getAndStoreObject(_amounts) { amount }
-                promise.resolve(id) // Resolve with the amount ID
+                promise.resolve(amount.toSat())
             } catch (error: Throwable) {
-                promise.reject("Amount creation error", error.localizedMessage, error) // Reject with error
+                promise.reject("Amount creation error", error.localizedMessage, error)
             }
         }.start()
     }
@@ -958,10 +956,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             try {
                 val amount = Amount.fromSat(sats.toLong().toULong())
-                val id = getAndStoreObject(_amounts) { amount }
-                promise.resolve(id) // Resolve with the amount ID
+                promise.resolve(amount.toSat())
             } catch (error: Throwable) {
-                promise.reject("Amount conversion error", error.localizedMessage, error) // Reject with error
+                promise.reject("Amount conversion error", error.localizedMessage, error)
             }
         }.start()
     }
@@ -971,10 +968,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             try {
                 val amount = Amount.fromSat(sats.toLong().toULong())
-                val id = getAndStoreObject(_amounts) { amount }
-                promise.resolve(id) // Resolve with the amount ID
+                promise.resolve(amount.toBtc())
             } catch (error: Throwable) {
-                promise.reject("Amount conversion error", error.localizedMessage, error) // Reject with error
+                promise.reject("Amount conversion error", error.localizedMessage, error)
             }
         }.start()
     }
