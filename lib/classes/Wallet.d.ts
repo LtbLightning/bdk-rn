@@ -9,8 +9,7 @@ import { LocalOutput } from './LocalOutput';
 import { CanonicalTx } from './CanonicalTx';
 /**
  * Wallet methods
- */
-export declare class Wallet extends NativeLoader {
+ */ export declare class Wallet extends NativeLoader {
     isInit: boolean;
     id: string;
     /**

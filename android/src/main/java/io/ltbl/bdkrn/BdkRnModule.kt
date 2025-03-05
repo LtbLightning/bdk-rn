@@ -16,6 +16,7 @@ import org.bitcoindevkit.Amount
 import org.bitcoindevkit.OutPoint
 import org.bitcoindevkit.KeychainKind
 import io.ltbl.bdkrn.getTxBytes
+import android.util.Log
 
 class BdkRnModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -575,6 +576,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             try {
                 val id = randomId() // Generate a unique ID for the wallet
+                Log.d("BdkRnModule", "Creating wallet with ID: $id") // Log wallet creation start
                 val nativeDescriptor = _descriptors[descriptor] ?: throw Exception("Descriptor not found")
                 val nativeChangeDescriptor = changeDescriptor?.let { _descriptors[it] } // Look up change descriptor if provided
 
@@ -587,8 +589,10 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 )
 
                 _wallets[id] = wallet // Store the wallet in the mutable map
+                Log.d("BdkRnModule", "Wallet created successfully with ID: $id") // Log successful creation
                 promise.resolve(id) // Resolve the promise with the wallet ID
             } catch (error: Throwable) {
+                Log.e("BdkRnModule", "Create wallet error: ${error.localizedMessage}", error) // Log error
                 promise.reject("Create wallet error", error.localizedMessage, error) // Reject the promise with the error
             }
         }.start()

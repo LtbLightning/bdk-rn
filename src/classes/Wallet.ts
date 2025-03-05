@@ -23,8 +23,7 @@ import { CanonicalTx } from './CanonicalTx';
 
 /**
  * Wallet methods
- */
-export class Wallet extends NativeLoader {
+ */export class Wallet extends NativeLoader {
   isInit: boolean = false;
   id: string = '';
 
@@ -35,21 +34,21 @@ export class Wallet extends NativeLoader {
    * @param network The network type
    * @returns {Promise<string>} The wallet ID
    */
-  async create(
-    descriptor: Descriptor,
-    changeDescriptor: Descriptor | null = null,
-    network: Network,
-    persistenceBackendPath: string
-  ): Promise<Wallet> {
-    this.id = await this._bdk.walletNew(
-      descriptor.id,
-      changeDescriptor ? changeDescriptor.id : null,
-      network,
-      persistenceBackendPath
-    );
-    this.isInit = true;
-    return this;
-  }
+    async create(
+      descriptor: Descriptor,
+      changeDescriptor: Descriptor | null = null,
+      network: Network,
+      persistenceBackendPath: string
+    ): Promise<Wallet> {
+      this.id = await this._bdk.walletNew(
+        descriptor.id,
+        changeDescriptor ? changeDescriptor.id : null,
+        persistenceBackendPath,
+        network
+      );
+      this.isInit = true;
+      return this;
+    }
   /**
    * Reveal the next address for a specific keychain
    * @param keychain The keychain to reveal the next address for
