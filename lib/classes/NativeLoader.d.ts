@@ -34,7 +34,7 @@ export interface NativeBdkRn {
     memoryDBInit(): string;
     sledDBInit(path: string, treeName: string): string;
     sqliteDBInit(path: string): string;
-    revealNextAddress(id: string, addressIndex: AddressIndex | number): any;
+    revealNextAddress(walletId: string, keychain: KeychainKind): AddressInfo;
     isMine(id: string, scriptId: string): boolean;
     getBalance(id: string): Balance;
     getBalanceImmature(id: string): number;
