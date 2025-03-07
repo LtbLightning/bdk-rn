@@ -531,12 +531,12 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             try {
                 val balance = getWalletById(id).getBalance()
                 val responseObject = mutableMapOf<String, Any?>()
-                responseObject["immature"] = balance.immature
-                responseObject["trustedPending"] = balance.trustedPending
-                responseObject["untrustedPending"] = balance.untrustedPending
-                responseObject["confirmed"] = balance.confirmed
-                responseObject["trustedSpendable"] = balance.trustedSpendable
-                responseObject["total"] = balance.total
+                responseObject["immature"] = balance.immature.toLongOrString()
+                responseObject["trustedPending"] = balance.trustedPending.toLongOrString()
+                responseObject["untrustedPending"] = balance.untrustedPending.toLongOrString()
+                responseObject["confirmed"] = balance.confirmed.toLongOrString()
+                responseObject["trustedSpendable"] = balance.trustedSpendable.toLongOrString()
+                responseObject["total"] = balance.total.toLongOrString()
                 
                 promise.resolve(Arguments.makeNativeMap(responseObject)) // Resolve with the balance info
             } catch (error: Throwable) {
@@ -763,12 +763,12 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             try {
                 val balance = getWalletById(id).getBalance()
                 val responseObject = mutableMapOf<String, Any?>()
-                responseObject["immature"] = balance.immature
-                responseObject["trustedPending"] = balance.trustedPending
-                responseObject["untrustedPending"] = balance.untrustedPending
-                responseObject["confirmed"] = balance.confirmed
-                responseObject["trustedSpendable"] = balance.trustedSpendable
-                responseObject["total"] = balance.total
+                responseObject["immature"] = balance.immature.toString()
+                responseObject["trustedPending"] = balance.trustedPending.toString()
+                responseObject["untrustedPending"] = balance.untrustedPending.toString()
+                responseObject["confirmed"] = balance.confirmed.toString()
+                responseObject["trustedSpendable"] = balance.trustedSpendable.toString()
+                responseObject["total"] = balance.total.toString()
                 
                 promise.resolve(Arguments.makeNativeMap(responseObject)) // Resolve with the balance info
             } catch (error: Throwable) {
@@ -1912,6 +1912,15 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
 
     /** CanonicalTx methods ends */
 
+}
+
+// Extension function to handle conversion
+fun Amount.toLongOrString(): Any {
+    return try {
+        this.toSat() // Attempt to convert to Long
+    } catch (e: Exception) {
+        this.toString() // Fallback to String representation
+    }
 }
 
 
