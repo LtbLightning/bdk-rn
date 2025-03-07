@@ -171,7 +171,7 @@ import { CanonicalTx } from './CanonicalTx';
    * @returns {Promise<boolean>} True if commit was successful, false otherwise
    */
   async commit(): Promise<boolean> {
-    return await this._bdk.walletCommit(this.id);
+    return await this._bdk.commit(this.id);
   }
 
   /**

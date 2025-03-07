@@ -163,7 +163,7 @@ export interface NativeBdkRn {
     walletGetBalanceTotal(walletId: string): number;
     walletCalculateFee(walletId: string, transactionId: string): number;
     walletCalculateFeeRate(walletId: string, transactionId: string): string;
-    walletCommit(walletId: string): boolean;
+    commit(walletId: string): boolean;
     walletGetNextAddress(walletId: string, addressIndex: AddressIndex | number): Address;
     walletGetNextInternalAddress(walletId: string, addressIndex: AddressIndex | number): Address;
     walletGetNextChangeAddress(walletId: string): Address;
