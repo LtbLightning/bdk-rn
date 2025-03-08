@@ -153,7 +153,7 @@ import { CanonicalTx } from './CanonicalTx';
    * @returns {Promise<number>} The calculated fee
    */
   async calculateFee(tx: Transaction): Promise<number> {
-    return await this._bdk.walletCalculateFee(this.id, tx.id);
+    return await this._bdk.calculateFee(this.id, tx.id);
   }
 
   /**
@@ -162,7 +162,7 @@ import { CanonicalTx } from './CanonicalTx';
    * @returns {Promise<FeeRate>} The calculated fee rate
    */
   async calculateFeeRate(tx: Transaction): Promise<FeeRate> {
-    const feeRateId = await this._bdk.walletCalculateFeeRate(this.id, tx.id);
+    const feeRateId = await this._bdk.calculateFeeRate(this.id, tx.id);
     return new FeeRate(parseFloat(feeRateId));
   }
 

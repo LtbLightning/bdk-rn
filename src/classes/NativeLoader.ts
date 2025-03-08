@@ -204,8 +204,8 @@ export interface NativeBdkRn {
   walletGetBalanceConfirmed(walletId: string): number;
   walletGetBalanceTrustedSpendable(walletId: string): number;
   walletGetBalanceTotal(walletId: string): number;
-  walletCalculateFee(walletId: string, transactionId: string): number;
-  walletCalculateFeeRate(walletId: string, transactionId: string): string;
+  calculateFee(walletId: string, transactionId: string): number;
+  calculateFeeRate(walletId: string, transactionId: string): string;
   commit(walletId: string): boolean;
   walletGetNextAddress(walletId: string, addressIndex: AddressIndex | number): Address;
   walletGetNextInternalAddress(walletId: string, addressIndex: AddressIndex | number): Address;
