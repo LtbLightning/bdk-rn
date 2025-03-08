@@ -675,6 +675,11 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun getTx(walletId: String, txId: String, promise: Promise) {
         Thread {
             try {
+                // Validate the transaction ID format (example: check length)
+                if (txId.length != 64 || !txId.all { it.isDigit() || it in 'a'..'f' || it in 'A'..'F' }) {
+                    throw Exception("Invalid transaction ID format")
+                }
+
                 val wallet = _wallets[walletId] ?: throw Exception("Wallet not found")
                 val tx = wallet.getTx(txId)
                 promise.resolve(tx) // Resolve with the transaction

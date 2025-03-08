@@ -181,15 +181,11 @@ import { CanonicalTx } from './CanonicalTx';
    */
   async getTx(txid: string): Promise<CanonicalTx | null> {
     try {
-      const result = await this._bdk.walletGetTx(this.id, txid);
-      if (result) {
-        // Assuming result is already a CanonicalTx or can be directly used
-        return result; // Directly return the result if it's already a CanonicalTx
-      }
-      return null;
+      const tx = await this._bdk.getTx(this.id, txid);
+      return tx;
     } catch (error) {
       console.error('Error fetching transaction:', error);
-      throw error; // Rethrow the error after logging
+      throw error;
     }
   }
 
