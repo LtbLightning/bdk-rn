@@ -194,7 +194,7 @@ import { CanonicalTx } from './CanonicalTx';
    * @returns {Promise<LocalOutput[]>} List of all outputs
    */
   async listOutput(): Promise<LocalOutput[]> {
-    const outputs = await this._bdk.walletListOutput(this.id);
+    const outputs = await this._bdk.listOutput(this.id);
     return outputs.map((output) => {
       const outpoint = createOutpoint(output.outpoint); // Assuming createOutpoint is a function that converts the outpoint
       const txout = createTxOut(output.txout); // Assuming createTxOut is a function that converts the txout

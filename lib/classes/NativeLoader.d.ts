@@ -173,7 +173,7 @@ export interface NativeBdkRn {
     walletGetNextChangeAddressIndex(walletId: string): number;
     walletGetNextReceivingAddressIndex(walletId: string): number;
     getTx(walletId: string, txid: string): CanonicalTx | null;
-    walletListOutput(walletId: string): Array<LocalOutput>;
+    listOutput(walletId: string): Array<LocalOutput>;
     walletRevealNextAddress(walletId: string, keychain: KeychainKind): AddressInfo;
     walletSentAndReceived(walletId: string, transactionId: string): {
         sent: number;

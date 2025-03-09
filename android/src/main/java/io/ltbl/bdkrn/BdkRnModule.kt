@@ -723,7 +723,28 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             try {
                 val wallet = _wallets[walletId] ?: throw Exception("Wallet not found")
                 val outputs = wallet.listOutput()
-                promise.resolve(outputs) // Resolve with the outputs
+
+                // Convert outputs to a format that can be serialized
+                val outputList = outputs.map { output ->
+                    mutableMapOf<String, Any?>().apply {
+                        put("outpoint", getOutPoint(output.outpoint)) // Assuming getOutPoint is defined
+                        put("txout", createTxOut(output.txout, _scripts)) // Assuming createTxOut is defined
+                        put("isSpent", output.isSpent)
+                        put("keychain", output.keychain.toString())
+                    }
+                }
+
+                // Use Arguments.createArray() to create a React Native compatible array
+                val reactNativeArray = Arguments.createArray()
+                outputList.forEach { item ->
+                    val reactNativeMap = Arguments.createMap()
+                    item.forEach { (key, value) ->
+                        reactNativeMap.putString(key, value.toString()) // Convert values to String if necessary
+                    }
+                    reactNativeArray.pushMap(reactNativeMap)
+                }
+
+                promise.resolve(reactNativeArray) // Resolve with the serialized outputs
             } catch (error: Throwable) {
                 promise.reject("List output error", error.localizedMessage, error) // Reject with error
             }
