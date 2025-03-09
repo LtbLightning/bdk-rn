@@ -219,7 +219,7 @@ import { CanonicalTx } from './CanonicalTx';
    * @returns {Promise<{ sent: number; received: number }>} The amounts sent and received
    */
   async sentAndReceived(tx: Transaction): Promise<{ sent: number; received: number }> {
-    return await this._bdk.walletSentAndReceived(this.id, tx.id);
+    return await this._bdk.sentAndReceived(this.id, tx.id);
   }
 
   /**
@@ -227,7 +227,7 @@ import { CanonicalTx } from './CanonicalTx';
    * @returns {Promise<FullScanRequest>} A new full scan request
    */
   async startFullScan(): Promise<FullScanRequest> {
-    const fullScanRequestId = await this._bdk.walletStartFullScan(this.id);
+    const fullScanRequestId = await this._bdk.startFullScan(this.id);
     return new FullScanRequest(fullScanRequestId);
   }
 

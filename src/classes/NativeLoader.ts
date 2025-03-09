@@ -218,8 +218,8 @@ export interface NativeBdkRn {
   getTx(walletId: string, txid: string): CanonicalTx | null;
   listOutput(walletId: string): Array<LocalOutput>;
   walletRevealNextAddress(walletId: string, keychain: KeychainKind): AddressInfo;
-  walletSentAndReceived(walletId: string, transactionId: string): { sent: number; received: number };
-  walletStartFullScan(walletId: string): string;
+  sentAndReceived(walletId: string, transactionId: string): { sent: number; received: number };
+  startFullScan(walletId: string): string;
   walletTransactions(id: string): Promise<CanonicalTx[]>;
   walletSign(walletId: string, psbtId: string): string;
   walletNetwork(walletId: string): Network;
