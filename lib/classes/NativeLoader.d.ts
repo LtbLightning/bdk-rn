@@ -36,7 +36,7 @@ export interface NativeBdkRn {
     sqliteDBInit(path: string): string;
     revealNextAddress(walletId: string, keychain: KeychainKind): AddressInfo;
     isMine(id: string, scriptId: string): boolean;
-    getBalance(id: string): Balance;
+    getBalance(walletId: string): Balance;
     getBalanceImmature(id: string): number;
     getBalanceTrustedPending(id: string): number;
     getBalanceUntrustedPending(id: string): number;
@@ -151,7 +151,7 @@ export interface NativeBdkRn {
     freeNetwork(id: string): void;
     createSentAndReceivedValues(sent: number, received: number): string;
     freeSentAndReceivedValues(values: SentAndReceivedValues): void;
-    walletStartSyncWithRevealedSpks(walletId: string): string;
+    startSyncWithRevealedSpks(walletId: string): string;
     walletApplyUpdate(walletId: string, updateId: string): void;
     walletGetTransactions(walletId: string, includeRaw: boolean): Array<TransactionDetails>;
     walletGetBalance(walletId: string): Balance;
@@ -186,7 +186,7 @@ export interface NativeBdkRn {
     walletListUnspent(walletId: string): Array<LocalOutput>;
     walletIsMine(walletId: string, scriptId: string): boolean;
     walletNewNoPersist(descriptor: string, changeDescriptor: string | null, network: string): Promise<string>;
-    walletNew(descriptor: string, changeDescriptor: string | null, network: string, persistenceBackendPath: string): Promise<string>;
+    walletNew(descriptor: string, changeDescriptor: string | null, persistenceBackendPath: string, network: string): Promise<string>;
     createScripwalletStartFullScan(walletId: string): string;
     t(rawOutputScript: Array<number>): Promise<string>;
     scriptToBytes(id: string): Promise<Array<number>>;

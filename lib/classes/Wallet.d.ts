@@ -16,10 +16,11 @@ import { CanonicalTx } from './CanonicalTx';
      * Wallet constructor
      * @param descriptor The wallet descriptor
      * @param changeDescriptor The change descriptor
+     * @param persistenceBackendPath
      * @param network The network type
      * @returns {Promise<string>} The wallet ID
      */
-    create(descriptor: Descriptor, changeDescriptor: Descriptor | null | undefined, network: Network, persistenceBackendPath: string): Promise<Wallet>;
+    create(descriptor: Descriptor, changeDescriptor: Descriptor | null | undefined, persistenceBackendPath: string, network: Network): Promise<Wallet>;
     /**
      * Reveal the next address for a specific keychain
      * @param keychain The keychain to reveal the next address for

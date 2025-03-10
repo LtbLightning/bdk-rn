@@ -31,14 +31,15 @@ import { CanonicalTx } from './CanonicalTx';
    * Wallet constructor
    * @param descriptor The wallet descriptor
    * @param changeDescriptor The change descriptor
+   * @param persistenceBackendPath
    * @param network The network type
    * @returns {Promise<string>} The wallet ID
    */
   async create(
     descriptor: Descriptor,
     changeDescriptor: Descriptor | null = null,
-    network: Network,
-    persistenceBackendPath: string
+    persistenceBackendPath: string,
+    network: Network
   ): Promise<Wallet> {
     this.id = await this._bdk.walletNew(
       descriptor.id,
@@ -73,7 +74,7 @@ import { CanonicalTx } from './CanonicalTx';
    * @returns {Promise<Balance>}
    */
   async getBalance(): Promise<Balance> {
-    let balance = await this._bdk.getBalance(this.id);
+    let balance = await this._bdk.walletGetBalance(this.id);
     return new Balance(
       balance.trustedPending,
       balance.untrustedPending,
@@ -134,7 +135,7 @@ import { CanonicalTx } from './CanonicalTx';
    * @returns {Promise<SyncRequest>} A new sync request
    */
   async startSyncWithRevealedSpks(): Promise<SyncRequest> {
-    const syncRequestId = await this._bdk.walletStartSyncWithRevealedSpks(this.id);
+    const syncRequestId = await this._bdk.startSyncWithRevealedSpks(this.id);
     return new SyncRequest(syncRequestId);
   }
 

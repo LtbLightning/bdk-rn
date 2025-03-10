@@ -60,7 +60,7 @@ export interface NativeBdkRn {
 
   revealNextAddress(walletId: string, keychain: KeychainKind): AddressInfo;
   isMine(id: string, scriptId: string): boolean;
-  getBalance(id: string): Balance;
+  getBalance(walletId: string): Balance;
   getBalanceImmature(id: string): number;
   getBalanceTrustedPending(id: string): number;
   getBalanceUntrustedPending(id: string): number;
@@ -194,7 +194,7 @@ export interface NativeBdkRn {
   createSentAndReceivedValues(sent: number, received: number): string; // Assuming Amount can be represented as number
   freeSentAndReceivedValues(values: SentAndReceivedValues): void;
 
-  walletStartSyncWithRevealedSpks(walletId: string): string;
+  startSyncWithRevealedSpks(walletId: string): string;
   walletApplyUpdate(walletId: string, updateId: string): void;
   walletGetTransactions(walletId: string, includeRaw: boolean): Array<TransactionDetails>;
   walletGetBalance(walletId: string): Balance;
@@ -229,8 +229,8 @@ export interface NativeBdkRn {
   walletNew(
     descriptor: string,
     changeDescriptor: string | null,
-    network: string,
-    persistenceBackendPath: string
+    persistenceBackendPath: string,
+    network: string
   ): Promise<string>;
 
   createScripwalletStartFullScan(walletId: string): string;

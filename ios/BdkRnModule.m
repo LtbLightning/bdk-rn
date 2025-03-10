@@ -199,6 +199,12 @@ RCT_EXTERN_METHOD(
 )
 
 RCT_EXTERN_METHOD(
+    getBalance:(nonnull NSString*)walletId
+    resolve:(RCTPromiseResolveBlock)resolve
+    reject:(RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
     walletRevealNextAddress:(nonnull NSString*)walletId
     keychain:(nonnull NSString*)keychain
     resolve:(RCTPromiseResolveBlock)resolve
@@ -213,7 +219,7 @@ RCT_EXTERN_METHOD(
 )
 
 RCT_EXTERN_METHOD(
-    walletSign:(nonnull NSString*)walletId
+    sign:(nonnull NSString*)walletId
     psbtId:(nonnull NSString*)psbtId
     resolve:(RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
@@ -243,7 +249,7 @@ RCT_EXTERN_METHOD(
 )
 
 RCT_EXTERN_METHOD(
-    walletStartSyncWithRevealedSpks:(nonnull NSString*)walletId
+    startSyncWithRevealedSpks:(nonnull NSString*)walletId
     resolve:(RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
@@ -292,21 +298,21 @@ RCT_EXTERN_METHOD(
 )
 
 RCT_EXTERN_METHOD(
-    walletCalculateFee:(nonnull NSString*)walletId
+    calculateFee:(nonnull NSString*)walletId
     transactionId:(nonnull NSString*)transactionId
     resolve:(RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
 
 RCT_EXTERN_METHOD(
-    walletCalculateFeeRate:(nonnull NSString*)walletId
+    CalculateFeeRate:(nonnull NSString*)walletId
     transactionId:(nonnull NSString*)transactionId
     resolve:(RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
 
 RCT_EXTERN_METHOD(
-    walletCommit:(nonnull NSString*)walletId
+    commit:(nonnull NSString*)walletId
     resolve:(RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
@@ -355,34 +361,27 @@ RCT_EXTERN_METHOD(
 )
 
 RCT_EXTERN_METHOD(
-    walletGetTx:(nonnull NSString*)walletId
+    getTx:(nonnull NSString*)walletId
     txid:(nonnull NSString*)txid
     resolve:(RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
 
 RCT_EXTERN_METHOD(
-    walletListOutput:(nonnull NSString*)walletId
+    listOutput:(nonnull NSString*)walletId
     resolve:(RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
 
 RCT_EXTERN_METHOD(
-    walletRevealNextAddress:(nonnull NSString*)walletId
-    keychain:(nonnull NSString*)keychain
-    resolve:(RCTPromiseResolveBlock)resolve
-    reject:(RCTPromiseRejectBlock)reject
-)
-
-RCT_EXTERN_METHOD(
-    walletSentAndReceived:(nonnull NSString*)walletId
+    sentAndReceived:(nonnull NSString*)walletId
     transactionId:(nonnull NSString*)transactionId
     resolve:(RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
 
 RCT_EXTERN_METHOD(
-    walletStartFullScan:(nonnull NSString*)walletId
+    startFullScan:(nonnull NSString*)walletId
     resolve:(RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
@@ -1069,18 +1068,18 @@ RCT_EXTERN_METHOD(
 )
 
 RCT_EXTERN_METHOD(
-    walletNewNoPersist:(nonnull NSString*)descriptor
+    walletNew:(nonnull NSString*)descriptor
     changeDescriptor:(nullable NSString*)changeDescriptor
+    persistenceBackendPath:(nonnull NSString*)persistenceBackendPath
     network:(nonnull NSString*)network
     resolve:(RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )
 
 RCT_EXTERN_METHOD(
-    walletNew:(nonnull NSString*)descriptor
+    walletNewNoPersist:(nonnull NSString*)descriptor
     changeDescriptor:(nullable NSString*)changeDescriptor
     network:(nonnull NSString*)network
-    persistenceBackendPath:(nonnull NSString*)persistenceBackendPath
     resolve:(RCTPromiseResolveBlock)resolve
     reject:(RCTPromiseRejectBlock)reject
 )

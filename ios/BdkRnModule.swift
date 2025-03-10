@@ -481,20 +481,19 @@ class BdkRnModule: NSObject {
     @objc
     func revealNextAddress(
         id: String,
-        addressIndex: Any,
+        keychain: String, // Change this to accept KeychainKind as a String
         resolve: @escaping RCTPromiseResolveBlock,
         reject: @escaping RCTPromiseRejectBlock
     ) {
         DispatchQueue.global(qos: .userInteractive).async { [self] in
             do {
-                let keychain: KeychainKind = (addressIndex as? Bool == true) ? .internal : .external
-                let addressInfo = try getWalletById(id).revealNextAddress(keychain: keychain)
-                let randomId = randomId()
-                _addresses[randomId] = addressInfo.address
+                // Convert the keychain string back to KeychainKind
+                let keychainKind: KeychainKind = (keychain == "internal") ? .internal : .external
+                let addressInfo = try getWalletById(id).revealNextAddress(keychain: keychainKind)
                 DispatchQueue.main.async {
                     resolve([
-                        "index": addressInfo.index,
-                        "address": randomId,
+                        "index": addressInfo.index, // Ensure this is available in AddressInfo
+                        "address": addressInfo.address.asString(), // Ensure we return the actual address
                         "keychain": "\(addressInfo.keychain)"
                     ] as [String: Any])
                 }
@@ -2593,37 +2592,38 @@ class BdkRnModule: NSObject {
         }
     }
 
-    @objc
-    func walletNew(
-        descriptor: String,
-        changeDescriptor: String?,
-        persistenceBackendPath: String,
-        network: String,
-        resolve: @escaping RCTPromiseResolveBlock,
-        reject: @escaping RCTPromiseRejectBlock
-    ) {
+   @objc
+    func walletNew(_ descriptor: String, changeDescriptor: String?, persistenceBackendPath: String, network: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         DispatchQueue.global(qos: .userInteractive).async {
             do {
-                let networkType = self.setNetwork(networkStr: network)
-                let desc = try Descriptor(descriptor: descriptor, network: networkType)
-                let changeDesc = changeDescriptor != nil ? try Descriptor(descriptor: changeDescriptor!, network: networkType) : nil
+                let id = self.randomId() // Generate a unique ID for the wallet
+                print("Creating wallet with ID: \(id)") // Log wallet creation start
                 
+                // Look up the native descriptor
+                guard let nativeDescriptor = self._descriptors[descriptor] else {
+                    throw NSError(domain: "BdkRnModule", code: 0, userInfo: [NSLocalizedDescriptionKey: "Descriptor not found"])
+                }
+                
+                // Look up the change descriptor if provided
+                let nativeChangeDescriptor = changeDescriptor != nil ? self._descriptors[changeDescriptor!] : nil
+                
+                // Create the wallet using the descriptors and persistence path
                 let wallet = try Wallet(
-                    descriptor: desc,
-                    changeDescriptor: changeDesc,
+                    descriptor: nativeDescriptor,
+                    changeDescriptor: nativeChangeDescriptor,
                     persistenceBackendPath: persistenceBackendPath,
-                    network: networkType
+                    network: self.setNetwork(networkStr: network) // Convert network string to network type
                 )
                 
-                let id = self.randomId()
-                self._wallets[id] = wallet
-                
+                self._wallets[id] = wallet // Store the wallet in the mutable map
+                print("Wallet created successfully with ID: \(id)") // Log successful creation
                 DispatchQueue.main.async {
-                    resolve(id)
+                    resolve(id) // Resolve the promise with the wallet ID
                 }
             } catch let error {
+                print("Create wallet error: \(error.localizedDescription)") // Log error
                 DispatchQueue.main.async {
-                    reject("Create wallet error", "\(error)", error)
+                    reject("Create wallet error", "\(error)", error) // Reject the promise with the error
                 }
             }
         }

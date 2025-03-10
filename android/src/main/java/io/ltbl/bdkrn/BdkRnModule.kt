@@ -474,7 +474,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun revealNextAddress(id: String, addressIndex: Dynamic, result: Promise) {
+    fun walletRevealNextAddress(id: String, addressIndex: Dynamic, result: Promise) {
         Thread {
             try {
                 val keychain = when (addressIndex.type) {
