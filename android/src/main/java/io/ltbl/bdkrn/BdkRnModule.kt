@@ -477,26 +477,31 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     fun walletRevealNextAddress(id: String, addressIndex: Dynamic, result: Promise) {
         Thread {
             try {
+                // Determine the keychain based on the addressIndex type
                 val keychain = when (addressIndex.type) {
                     ReadableType.Boolean -> {
-                        if (addressIndex.asBoolean()) org.bitcoindevkit.KeychainKind.INTERNAL 
-                        else org.bitcoindevkit.KeychainKind.EXTERNAL
+                        if (addressIndex.asBoolean()) KeychainKind.INTERNAL 
+                        else KeychainKind.EXTERNAL
                     }
-                    else -> org.bitcoindevkit.KeychainKind.EXTERNAL
+                    else -> KeychainKind.EXTERNAL
                 }
                 
-                val addressInfo = getWalletById(id).revealNextAddress(keychain)
+                // Use the correct method to reveal the next address
+                val addressInfo = getWalletById(id).revealNextAddress(keychain = keychain) // Use the determined keychain
                 val randomId = randomId()
                 _addresses[randomId] = addressInfo.address
                 
+                // Prepare the response object
                 val responseObject = mutableMapOf<String, Any?>()
                 responseObject["index"] = addressInfo.index.toInt()
-                responseObject["address"] = randomId
-                responseObject["keychain"] = addressInfo.keychain.toString()
+                responseObject["address"] = addressInfo.address.asString()
+                responseObject["keychain"] = keychain.toString()
                 
-                result.resolve(Arguments.makeNativeMap(responseObject)) // Resolve with the address info
+                // Resolve with the address info
+                result.resolve(Arguments.makeNativeMap(responseObject))
             } catch (error: Throwable) {
-                result.reject("Reveal next address error", error.localizedMessage, error) // Reject with error
+                // Reject with error if any exception occurs
+                result.reject("Reveal next address error", error.localizedMessage, error)
             }
         }.start()
     }
@@ -531,12 +536,12 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             try {
                 val balance = getWalletById(id).getBalance()
                 val responseObject = mutableMapOf<String, Any?>()
-                responseObject["immature"] = balance.immature.toLongOrString()
-                responseObject["trustedPending"] = balance.trustedPending.toLongOrString()
-                responseObject["untrustedPending"] = balance.untrustedPending.toLongOrString()
-                responseObject["confirmed"] = balance.confirmed.toLongOrString()
-                responseObject["trustedSpendable"] = balance.trustedSpendable.toLongOrString()
-                responseObject["total"] = balance.total.toLongOrString()
+                responseObject["immature"] = balance.immature.toSat().toString() // Convert ULong to String
+                responseObject["trustedPending"] = balance.trustedPending.toSat().toString() // Convert ULong to String
+                responseObject["untrustedPending"] = balance.untrustedPending.toSat().toString() // Convert ULong to String
+                responseObject["confirmed"] = balance.confirmed.toSat().toString() // Convert ULong to String
+                responseObject["trustedSpendable"] = balance.trustedSpendable.toSat().toString() // Convert ULong to String
+                responseObject["total"] = balance.total.toSat().toString() // Convert ULong to String
                 
                 promise.resolve(Arguments.makeNativeMap(responseObject)) // Resolve with the balance info
             } catch (error: Throwable) {
@@ -565,38 +570,49 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         }.start()
     }
 
-   @ReactMethod
-    fun walletNew(
-        descriptor: String,
-        changeDescriptor: String?,
-        persistenceBackendPath: String,
-        network: String,
-        promise: Promise
-    ) {
-        Thread {
-            try {
-                val id = randomId() // Generate a unique ID for the wallet
-                Log.d("BdkRnModule", "Creating wallet with ID: $id") // Log wallet creation start
-                val nativeDescriptor = _descriptors[descriptor] ?: throw Exception("Descriptor not found")
-                val nativeChangeDescriptor = changeDescriptor?.let { _descriptors[it] } // Look up change descriptor if provided
+  @ReactMethod
+fun walletNew(
+    descriptor: String,
+    changeDescriptor: String?,
+    persistenceBackendPath: String,
+    network: String,
+    promise: Promise
+) {
+    Thread {
+        try {
+            val id = randomId() // Generate a unique ID for the wallet
+            Log.d("BdkRnModule", "Creating wallet with ID: $id") // Log wallet creation start
+            val nativeDescriptor = _descriptors[descriptor] ?: throw Exception("Descriptor not found")
+            val nativeChangeDescriptor = changeDescriptor?.let { _descriptors[it] } // Look up change descriptor if provided
 
-                // Create the wallet using the descriptors and persistence path
-                val wallet = Wallet(
-                    descriptor = nativeDescriptor,
-                    changeDescriptor = nativeChangeDescriptor,
-                    persistenceBackendPath = persistenceBackendPath,
-                    network = setNetwork(network) // Convert network string to network type
-                )
+            // Create the wallet using the descriptors and persistence path
+            val wallet = Wallet(
+                descriptor = nativeDescriptor,
+                changeDescriptor = nativeChangeDescriptor,
+                persistenceBackendPath = persistenceBackendPath,
+                network = setNetwork(network) // Convert network string to network type
+            )
 
-                _wallets[id] = wallet // Store the wallet in the mutable map
-                Log.d("BdkRnModule", "Wallet created successfully with ID: $id") // Log successful creation
-                promise.resolve(id) // Resolve the promise with the wallet ID
-            } catch (error: Throwable) {
-                Log.e("BdkRnModule", "Create wallet error: ${error.localizedMessage}", error) // Log error
-                promise.reject("Create wallet error", error.localizedMessage, error) // Reject the promise with the error
-            }
-        }.start()
-    }
+            _wallets[id] = wallet // Store the wallet in the mutable map
+            Log.d("BdkRnModule", "Wallet created successfully with ID: $id") // Log successful creation
+            promise.resolve(id) // Resolve the promise with the wallet ID
+            
+            // Retrieve the address
+            // Replace with the appropriate keychain instance or type
+            val keychain = KeychainKind.EXTERNAL // Example: using KeychainKind if applicable
+            val addressInfo = wallet.revealNextAddress(keychain = keychain) // Pass the keychain
+            val address = addressInfo.address.toString() // Get the address as a string
+            
+            promise.resolve(Arguments.createMap().apply {
+                putString("id", id)
+                putString("address", address) // Resolve with the wallet ID and address
+            })
+        } catch (error: Throwable) {
+            Log.e("BdkRnModule", "Create wallet error: ${error.localizedMessage}", error) // Log error
+            promise.reject("Create wallet error", error.localizedMessage, error) // Reject the promise with the error
+        }
+    }.start()
+}
 
       @ReactMethod
     fun newNoPersist(descriptor: String, changeDescriptor: String?, network: String, promise: Promise) {
@@ -789,12 +805,12 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             try {
                 val balance = getWalletById(id).getBalance()
                 val responseObject = mutableMapOf<String, Any?>()
-                responseObject["immature"] = balance.immature.toString()
-                responseObject["trustedPending"] = balance.trustedPending.toString()
-                responseObject["untrustedPending"] = balance.untrustedPending.toString()
-                responseObject["confirmed"] = balance.confirmed.toString()
-                responseObject["trustedSpendable"] = balance.trustedSpendable.toString()
-                responseObject["total"] = balance.total.toString()
+                responseObject["immature"] = balance.immature.toSat().toString() // Convert ULong to String
+                responseObject["trustedPending"] = balance.trustedPending.toSat().toString() // Convert ULong to String
+                responseObject["untrustedPending"] = balance.untrustedPending.toSat().toString() // Convert ULong to String
+                responseObject["confirmed"] = balance.confirmed.toSat().toString() // Convert ULong to String
+                responseObject["trustedSpendable"] = balance.trustedSpendable.toSat().toString() // Convert ULong to String
+                responseObject["total"] = balance.total.toSat().toString() // Convert ULong to String
                 
                 promise.resolve(Arguments.makeNativeMap(responseObject)) // Resolve with the balance info
             } catch (error: Throwable) {
