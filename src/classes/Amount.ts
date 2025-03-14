@@ -39,7 +39,7 @@ export class Amount extends NativeLoader {
    * @returns {Promise<number>}
    */
   async asSats(): Promise<number> {
-    return await this._bdk.amountAsSats(this._satoshis);
+    return await Amount._bdk.amountAsSats(this._satoshis);
   }
 
   /**
@@ -47,7 +47,7 @@ export class Amount extends NativeLoader {
    * @returns {Promise<number>}
    */
   async asBtc(): Promise<number> {
-    return await this._bdk.amountAsBtc(this._satoshis);
+    return await Amount._bdk.amountAsBtc(this._satoshis);
   }
 
   /**

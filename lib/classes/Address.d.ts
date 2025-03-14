@@ -12,7 +12,7 @@ export declare class Address extends NativeLoader {
      * @param network
      * @returns {Promise<Address>}
      */
-    create(address: string, network: Network): Promise<Address>;
+    static create(address: string, network: Network): Promise<Address>;
     /**
      * Returns the script pub key of the Address object
      * @returns {Promise<Script>}

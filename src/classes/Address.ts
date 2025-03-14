@@ -14,9 +14,16 @@ export class Address extends NativeLoader {
    * @param network
    * @returns {Promise<Address>}
    */
-  async create(address: string, network: Network): Promise<Address> {
-    this.id = await this._bdk.initAddress(address, network);
-    return this;
+  static async create(address: string, network: Network): Promise<Address> {
+    const instance = new Address();
+
+    // Ensure _bdk is initialized before calling initAddress
+    if (!instance._bdk) {
+      throw new Error('BDK is not initialized');
+    }
+
+    instance.id = await instance._bdk.initAddress(address, network);
+    return instance;
   }
 
   /**

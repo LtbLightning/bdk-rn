@@ -28,7 +28,15 @@ export class TxBuilder extends NativeLoader {
    * @returns {Promise<TxBuilder>}
    */
   async addRecipient(script: Script, amount: Amount): Promise<TxBuilder> {
-    await this._bdk.addRecipient(this.id, script.id, await amount.toSats());
+    console.log('Script ID:', script.id);
+    console.log('Amount:', amount);
+    console.log('Amount Type:', typeof amount);
+
+    if (typeof amount.asSats !== 'function') {
+      throw new Error('Invalid amount object: asSats method is not defined.');
+    }
+
+    this._bdk.addRecipient(this.id, script.id, await amount.asSats());
     return this;
   }
 
@@ -178,7 +186,7 @@ export class TxBuilder extends NativeLoader {
     const scriptAmounts = await Promise.all(
       recipients.map(async ({ script, amount }) => ({
         script: script.id,
-        amount: await amount.toSats(),
+        amount: await amount.asSats(),
       }))
     );
     const scriptAmountsWithScript = scriptAmounts.map(({ script, amount }) => ({

@@ -145,7 +145,12 @@ import { CanonicalTx } from './CanonicalTx';
    * @returns {Promise<void>}
    */
   async applyUpdate(update: Update): Promise<void> {
-    await this._bdk.walletApplyUpdate(this.id, update.id);
+    console.log('Applying update with ID:', update.id);
+    console.log('Update details:', JSON.stringify(update));
+
+    // Call walletApplyUpdate without try-catch
+    this._bdk.walletApplyUpdate(this.id, update.id);
+    console.log('Update applied successfully.');
   }
 
   /**

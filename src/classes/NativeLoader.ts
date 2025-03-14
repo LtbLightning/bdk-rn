@@ -7,6 +7,7 @@ import { SentAndReceivedValues } from './SentAndReceivedValues';
 import { Transaction } from './Transaction';
 import { LocalOutput } from './LocalOutput';
 import { CanonicalTx } from './CanonicalTx';
+import { Amount } from './Amount';
 
 export interface NativeBdkRn {
   generateSeedFromWordCount(wordCount: WordCount): string;
@@ -236,6 +237,8 @@ export interface NativeBdkRn {
   createScripwalletStartFullScan(walletId: string): string;
   t(rawOutputScript: Array<number>): Promise<string>;
   scriptToBytes(id: string): Promise<Array<number>>;
+  createAmountFromSat(satoshis: number): Amount;
+  createAmountFromBtc(btc: number): Amount;
 }
 
 export class NativeLoader {

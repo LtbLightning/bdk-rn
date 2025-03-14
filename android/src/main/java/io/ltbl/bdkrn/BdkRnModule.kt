@@ -274,6 +274,30 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
     /** ElectrumClient methods ends */
 
     /** SyncRequest methods starts */
+    @ReactMethod
+    fun walletApplyUpdate(walletId: String, updateId: String, promise: Promise) {
+        Thread {
+            try {
+                // Retrieve the wallet using the provided walletId
+                val wallet = _wallets[walletId] ?: throw Exception("Wallet not found")
+
+                // Retrieve the update and cast it to the correct type
+                val update = _updates[updateId] as? Update ?: throw Exception("Update not found")
+
+                // Apply the update to the wallet
+                wallet.applyUpdate(update) // This will now throw CannotConnectException if it fails
+
+                // Resolve the promise with no value
+                promise.resolve(null)
+            } catch (error: CannotConnectException) {
+                // Handle the specific CannotConnectException
+                promise.reject("Connection error", error.localizedMessage, error)
+            } catch (error: Throwable) {
+                // Handle any other exceptions
+                promise.reject("Apply update error", error.localizedMessage, error)
+            }
+        }
+    }
 
     @ReactMethod
     fun createSyncRequest(walletId: String, promise: Promise) {
