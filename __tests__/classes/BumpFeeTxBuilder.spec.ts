@@ -1,6 +1,6 @@
 import { BumpFeeTxBuilder, DatabaseConfig, Descriptor, PartiallySignedTransaction, Wallet } from '../../src';
 import { Network } from '../../src/lib/enums';
-import { mockWallet } from '../mockData';
+import { mockScript, mockWallet } from '../mockData';
 import { mockBdkRnModule } from '../setup';
 
 const id = 'instanceId';
@@ -27,9 +27,8 @@ describe('BumpFeeTxBuilder', () => {
     expect(bumpFeeTxBuilder).toBeInstanceOf(BumpFeeTxBuilder);
   });
   it('should allow shrinking', async () => {
-    const address = 'address';
-    await bumpFeeTxBuilder.allowShrinking(address);
-    expect(mockBdkRnModule.bumpFeeTxBuilderAllowShrinking).toHaveBeenCalledWith(id, address);
+    await bumpFeeTxBuilder.allowShrinking(mockScript);
+    expect(mockBdkRnModule.bumpFeeTxBuilderAllowShrinking).toHaveBeenCalledWith(id, mockScript.id);
   });
   it('should enable rbf', async () => {
     await bumpFeeTxBuilder.enableRbf();

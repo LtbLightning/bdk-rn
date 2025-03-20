@@ -1,7 +1,7 @@
-import { NativeModules } from 'react-native';
-
 import { AddressIndex, BlockchainRpcConfig, KeychainKind, Network, Payload, WordCount } from '../lib/enums';
 import { Balance, OutPoint, ScriptAmount, SignOptions, TransactionDetails } from './Bindings';
+
+import { NativeModules } from 'react-native';
 
 export interface NativeBdkRn {
   generateSeedFromWordCount(wordCount: WordCount): string;
@@ -61,13 +61,14 @@ export interface NativeBdkRn {
   listUnspent(id: string): Array<any>;
   listTransactions(id: string, includeRaw: boolean): Array<TransactionDetails>;
 
-  initAddress(address: string): string;
+  initAddress(address: string, network: string): string;
   addressFromScript(script: string, network: Network): string;
   addressToScriptPubkeyHex(id: string): string;
   addressPayload(id: string): Payload;
   addressNetwork(id: string): string;
   addressToQrUri(id: string): string;
   addressAsString(id: string): string;
+  addressIsValidForNetwork(id: string, network: string): boolean;
 
   createTxBuilder(): string;
   addRecipient(id: string, scriptId: string, amount: number): string;
@@ -97,10 +98,12 @@ export interface NativeBdkRn {
   newBip44(id: string, keychain: KeychainKind, network: Network): string;
   newBip49(id: string, keychain: KeychainKind, network: Network): string;
   newBip84(id: string, keychain: KeychainKind, network: Network): string;
+  newBip86(id: string, keychain: KeychainKind, network: Network): string;
 
   newBip44Public(id: string, fingerprint: string, keychain: KeychainKind, network: Network): string;
   newBip49Public(id: string, fingerprint: string, keychain: KeychainKind, network: Network): string;
   newBip84Public(id: string, fingerprint: string, keychain: KeychainKind, network: Network): string;
+  newBip86Public(id: string, fingerprint: string, keychain: KeychainKind, network: Network): string;
 
   combine(psbt64: string, otherPsbt: string): string;
   extractTx(psbt64: string): string;
@@ -111,7 +114,7 @@ export interface NativeBdkRn {
   jsonSerialize(psbt64: string): string;
 
   bumpFeeTxBuilderInit(txid: string, newFeeRate: number): string;
-  bumpFeeTxBuilderAllowShrinking(id: string, address: string): string;
+  bumpFeeTxBuilderAllowShrinking(id: string, scriptId: string): string;
   bumpFeeTxBuilderEnableRbf(id: string): any;
   bumpFeeTxBuilderEnableRbfWithSequence(id: string, nsequence: number): any;
   bumpFeeTxBuilderFinish(id: string, walletId: string): any;
