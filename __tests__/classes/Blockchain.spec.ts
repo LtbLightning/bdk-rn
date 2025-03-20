@@ -48,7 +48,6 @@ const rpcConfig: BlockchainRpcConfig = {
 mockBdkRnModule.initElectrumBlockchain.mockReturnValue('electrum');
 mockBdkRnModule.initEsploraBlockchain.mockReturnValue('esplora');
 mockBdkRnModule.initRpcBlockchain.mockReturnValue('rpc');
-
 describe('Blockchain', () => {
   let blockChain: Blockchain;
 
@@ -88,7 +87,6 @@ describe('Blockchain', () => {
     expect(blockChain.id).toBe('rpc');
     expect(mockBdkRnModule.initRpcBlockchain).toHaveBeenCalledWith(rpcConfig);
   });
-
   it('throws error if invalid name is passed', async () => {
     try {
       // @ts-ignore
@@ -123,7 +121,7 @@ describe('Blockchain', () => {
 
   it('broadcasts tx', async () => {
     mockBdkRnModule.broadcast.mockResolvedValue(true);
-    const mockTx = await new Transaction().create([1, 2, 34]);
+    const mockTx = await Transaction.create([1, 2, 34]);
     let res = await blockChain.broadcast(mockTx);
     expect(res).toBe(true);
   });

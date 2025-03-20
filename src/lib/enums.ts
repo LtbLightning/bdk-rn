@@ -35,6 +35,68 @@ export enum KeychainKind {
   Internal = 'internal',
 }
 
+export enum AddressError {
+  Base58 = 'Base58',
+  Bech32 = 'Bech32',
+  WitnessVersion = 'WitnessVersion',
+  WitnessProgram = 'WitnessProgram',
+  UncompressedPubkey = 'UncompressedPubkey',
+  ExcessiveScriptSize = 'ExcessiveScriptSize',
+  UnrecognizedScript = 'UnrecognizedScript',
+  NetworkValidation = 'NetworkValidation',
+  OtherAddressErr = 'OtherAddressErr'
+}
+
+export enum ChainPosition {
+  Confirmed = 'Confirmed',
+  Unconfirmed = 'Unconfirmed'
+}
+
+export enum CreateTxError {
+  Descriptor = 'Descriptor',
+  Persist = 'Persist',
+  Policy = 'Policy',
+  SpendingPolicyRequired = 'SpendingPolicyRequired',
+  Version0 = 'Version0',
+  Version1Csv = 'Version1Csv',
+  LockTime = 'LockTime',
+  RbfSequence = 'RbfSequence',
+  RbfSequenceCsv = 'RbfSequenceCsv',
+  FeeTooLow = 'FeeTooLow',
+  FeeRateTooLow = 'FeeRateTooLow',
+  NoUtxosSelected = 'NoUtxosSelected',
+  OutputBelowDustLimit = 'OutputBelowDustLimit',
+  ChangePolicyDescriptor = 'ChangePolicyDescriptor',
+  CoinSelection = 'CoinSelection',
+  InsufficientFunds = 'InsufficientFunds',
+  NoRecipients = 'NoRecipients',
+  Psbt = 'Psbt',
+  MissingKeyOrigin = 'MissingKeyOrigin',
+  UnknownUtxo = 'UnknownUtxo',
+  MissingNonWitnessUtxo = 'MissingNonWitnessUtxo',
+  MiniscriptPsbt = 'MiniscriptPsbt'
+}
+
+export enum ElectrumError {
+  IoError = 'IoError',
+  Json = 'Json',
+  Hex = 'Hex',
+  Protocol = 'Protocol',
+  Bitcoin = 'Bitcoin',
+  AlreadySubscribed = 'AlreadySubscribed',
+  NotSubscribed = 'NotSubscribed',
+  InvalidResponse = 'InvalidResponse',
+  Message = 'Message',
+  InvalidDnsNameError = 'InvalidDnsNameError',
+  MissingDomain = 'MissingDomain',
+  AllAttemptsErrored = 'AllAttemptsErrored',
+  SharedIoError = 'SharedIoError',
+  CouldntLockReader = 'CouldntLockReader',
+  Mpsc = 'Mpsc',
+  CouldNotCreateConnection = 'CouldNotCreateConnection',
+  RequestAlreadyConsumed = 'RequestAlreadyConsumed'
+}
+
 export interface BlockchainElectrumConfig {
   url: string;
   sock5: string | null;

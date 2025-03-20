@@ -1,3 +1,22 @@
+## [1.0.0-alpha.11]
+
+#### APIs Added
+
+- Added `Amount` type for precise Bitcoin amount handling
+- Introduced `TxIn` type for transaction input management
+- Enhanced `Transaction` class with new methods:
+  - `input()`
+  - `output()`
+  - `lock_time()`
+- Implemented Electrum client for improved blockchain interaction
+- Added memory wallet support for temporary wallet management
+- Simplified full_scan and sync workflows for more efficient wallet syncing
+- Introduced RPC blockchain support
+
+#### Other Changes:
+
+- Simplified full_scan and sync workflows for syncing wallets
+
 ## [0.31.0]
 
 #### APIs Changed:

@@ -5,12 +5,13 @@ export const mockBdkRnModule = {
 
   createDerivationPath: jest.fn(),
 
-  createDescriptorSecret: jest.fn(),
-  descriptorSecretDerive: jest.fn(),
-  descriptorSecretExtend: jest.fn(),
-  descriptorSecretAsPublic: jest.fn(),
-  descriptorSecretAsSecretBytes: jest.fn(),
-  descriptorSecretAsString: jest.fn(),
+  createDescriptorSecretKey: jest.fn(),
+  descriptorSecretKeyFromString: jest.fn(),
+  descriptorSecretKeyDerive: jest.fn(),
+  descriptorSecretKeyExtend: jest.fn(),
+  descriptorSecretKeyAsPublic: jest.fn(),
+  descriptorSecretKeySecretBytes: jest.fn(),
+  descriptorSecretKeyAsString: jest.fn(),
 
   createDescriptorPublic: jest.fn(),
   descriptorPublicDerive: jest.fn(),

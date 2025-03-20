@@ -1,25 +1,21 @@
-import { Address } from './Address';
-import { KeychainKind } from '../lib/enums';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 import { Script } from './Script';
 import { Transaction } from './Transaction';
 /**
  * A derived address and the index it was found at For convenience this automatically derefs to Address
  */
+export declare class Address {
+    id: string;
+    constructor(id: string);
+}
+export declare enum KeychainKind {
+    External = "external",
+    Internal = "internal"
+}
 export declare class AddressInfo {
-    /**
-     * Child index of this address
-     */
-    index: number;
-    /**
-     * Address
-     */
     address: Address;
-    /**
-     * KeychainKind
-     */
     keychain: KeychainKind;
-    constructor(index: number, address: Address, keychain: KeychainKind);
+    constructor(address: Address, keychain: KeychainKind);
 }
 /**
  * A reference to a transaction output.
@@ -48,25 +44,6 @@ export declare class TxOut {
      */
     script: Script;
     constructor(value: number, script: Script);
-}
-/**
- * Unspent outputs of this wallet
- */
-export declare class LocalUtxo {
-    /**
-     * Reference to a transaction output
-     */
-    outpoint: OutPoint;
-    /**
-     * Transaction output
-     */
-    txout: TxOut;
-    /**
-     * Whether this UTXO is spent or not
-     */
-    isSpent: boolean;
-    keychain: KeychainKind;
-    constructor(outpoint: OutPoint, txout: TxOut, isSpent: boolean, keychain: KeychainKind);
 }
 export declare class Balance {
     /**
@@ -183,6 +160,18 @@ export declare class TxIn {
     sequence: number;
     witness: Array<number>;
     constructor(previousOutput: OutPoint, scriptSig: Script, sequence: number, witness: Array<number>);
+}
+export declare class FullScanRequest {
+    id: string;
+    constructor(id: string);
+}
+export declare class SyncRequest {
+    id: string;
+    constructor(id: string);
+}
+export declare class Update {
+    id: string;
+    constructor(id: string);
 }
 /**
  * Options for a software signer

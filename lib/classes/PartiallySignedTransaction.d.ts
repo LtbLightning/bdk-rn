@@ -14,33 +14,18 @@ export declare class PartiallySignedTransaction extends NativeLoader {
      */
     combine(other: PartiallySignedTransaction): Promise<PartiallySignedTransaction>;
     /**
-     * Return the transaction as bytes.
-     * @returns {Promise<any>}
+     * Extract the final transaction from the PSBT.
+     * @returns {Promise<Transaction>}
      */
     extractTx(): Promise<Transaction>;
     /**
-     * Return transaction as string
+     * Serialize the PSBT to hex format.
      * @returns {Promise<string>}
      */
     serialize(): Promise<string>;
     /**
-     * Return txid as string
+     * Get the transaction ID (txid) of the PSBT.
      * @returns {Promise<string>}
      */
     txid(): Promise<string>;
-    /**
-     * Return feeAmount
-     * @returns {Promise<number>}
-     */
-    feeAmount(): Promise<number>;
-    /**
-     * Return feeRate
-     * @returns {Promise<number>}
-     */
-    feeRate(): Promise<number>;
-    /**
-     * Return transaction as json
-     * @returns {Promise<string>}
-     */
-    jsonSerialize(): Promise<string>;
 }

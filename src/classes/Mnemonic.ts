@@ -34,7 +34,7 @@ export class Mnemonic extends NativeLoader {
    * @param entropy
    * @returns {Promise<Mnemonic>}
    */
-  async fromEntropy(entropy: Array<number>): Promise<Mnemonic> {
+  async fromEntropy(entropy: number[]): Promise<Mnemonic> {
     this.mnemonic = await this._bdk.generateSeedFromEntropy(entropy);
     return this;
   }
@@ -45,5 +45,35 @@ export class Mnemonic extends NativeLoader {
    */
   asString(): string {
     return this.mnemonic;
+  }
+
+  /**
+   * Static method to create a Mnemonic from a word count
+   * @param wordCount
+   * @returns {Promise<Mnemonic>}
+   */
+  static async fromWordCount(wordCount: WordCount = WordCount.WORDS12): Promise<Mnemonic> {
+    const mnemonic = new Mnemonic();
+    return mnemonic.create(wordCount);
+  }
+
+  /**
+   * Static method to create a Mnemonic from a string
+   * @param mnemonicString
+   * @returns {Promise<Mnemonic>}
+   */
+  static async fromMnemonicString(mnemonicString: string): Promise<Mnemonic> {
+    const mnemonic = new Mnemonic();
+    return mnemonic.fromString(mnemonicString);
+  }
+
+  /**
+   * Static method to create a Mnemonic from entropy
+   * @param entropy
+   * @returns {Promise<Mnemonic>}
+   */
+  static async fromEntropyArray(entropy: number[]): Promise<Mnemonic> {
+    const mnemonic = new Mnemonic();
+    return mnemonic.fromEntropy(entropy);
   }
 }

@@ -1,74 +1,67 @@
-import { AddressIndex, Network } from '../lib/enums';
-import { AddressInfo, Balance, LocalUtxo, SignOptions, TransactionDetails } from './Bindings';
+import { Network } from '../lib/enums';
+import {
+  AddressInfo,
+  Balance,
+  BlockTime,
+  FeeRate,
+  FullScanRequest,
+  KeychainKind,
+  SignOptions,
+  SyncRequest,
+  TransactionDetails,
+  Update,
+} from './Bindings';
 import { createOutpoint, createTxDetailsObject, createTxOut, getKeychainKind, getNetwork } from '../lib/utils';
 
-import { Address } from './Address';
-import { Blockchain } from './Blockchain';
-import { DatabaseConfig } from './DatabaseConfig';
 import { Descriptor } from './Descriptor';
 import { NativeLoader } from './NativeLoader';
 import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 import { Script } from './Script';
+import { Transaction } from './Transaction';
+import { LocalOutput } from './LocalOutput';
+import { CanonicalTx } from './CanonicalTx';
 
 /**
  * Wallet methods
- */
-export class Wallet extends NativeLoader {
+ */ export class Wallet extends NativeLoader {
   isInit: boolean = false;
   id: string = '';
 
   /**
    * Wallet constructor
-   * @param descriptor
-   * @param network
-   * @returns {Promise<Wallet>}
+   * @param descriptor The wallet descriptor
+   * @param changeDescriptor The change descriptor
+   * @param persistenceBackendPath
+   * @param network The network type
+   * @returns {Promise<string>} The wallet ID
    */
   async create(
     descriptor: Descriptor,
     changeDescriptor: Descriptor | null = null,
-    network: Network,
-    dbConfig: DatabaseConfig
+    persistenceBackendPath: string,
+    network: Network
   ): Promise<Wallet> {
-    this.id = await this._bdk.walletInit(
+    this.id = await this._bdk.walletNew(
       descriptor.id,
       changeDescriptor ? changeDescriptor.id : null,
-      network,
-      dbConfig.id
+      persistenceBackendPath,
+      network
     );
     this.isInit = true;
     return this;
   }
-
   /**
-   * Return a derived address using the external descriptor.
-   * @param addressIndex
-   * @returns {Promise<AddressInfo>}
+   * Reveal the next address for a specific keychain
+   * @param keychain The keychain to reveal the next address for
+   * @returns {Promise<AddressInfo>} Information about the revealed address
    */
-  async getAddress(addressIndex: AddressIndex | number): Promise<AddressInfo> {
-    let addressInfo = await this._bdk.getAddress(this.id, addressIndex);
-    return new AddressInfo(
-      addressInfo.index,
-      new Address()._setAddress(addressInfo.address),
-      getKeychainKind(addressInfo.keychain)
-    );
+  async revealNextAddress(keychain: KeychainKind): Promise<AddressInfo> {
+    const result = await this._bdk.revealNextAddress(this.id, keychain);
+    return new AddressInfo(result.address, result.keychain);
   }
 
   /**
-   * Return a derived address using the internal descriptor.
-   * @param addressIndex
-   * @returns {Promise<AddressInfo>}
-   */
-  async getInternalAddress(addressIndex: AddressIndex | number): Promise<AddressInfo> {
-    let addressInfo = await this._bdk.getInternalAddress(this.id, addressIndex);
-    return new AddressInfo(
-      addressInfo.index,
-      new Address()._setAddress(addressInfo.address),
-      getKeychainKind(addressInfo.keychain)
-    );
-  }
-
-  /**
-   * check if the wallet is yours or not
+   * Check if the wallet is yours or not
    * @param script
    * @returns {Promise<boolean>}
    */
@@ -81,7 +74,7 @@ export class Wallet extends NativeLoader {
    * @returns {Promise<Balance>}
    */
   async getBalance(): Promise<Balance> {
-    let balance = await this._bdk.getBalance(this.id);
+    let balance = await this._bdk.walletGetBalance(this.id);
     return new Balance(
       balance.trustedPending,
       balance.untrustedPending,
@@ -101,39 +94,31 @@ export class Wallet extends NativeLoader {
   }
 
   /**
-   * Sync the internal database with the [Blockchain]
-   * @returns {Promise<boolean>}
+   * Retrieve the list of unspent outputs for the specified wallet.
+   * @param walletId The ID of the wallet to retrieve unspent outputs from.
+   * @returns {Promise<LocalOutput[]>} A promise that resolves to an array of unspent outputs.
    */
-  async sync(blockchain: Blockchain): Promise<boolean> {
-    return await this._bdk.sync(this.id, blockchain.id);
-  }
+  async listUnspent(walletId: string): Promise<LocalOutput[]> {
+    try {
+      // Call the wallet's listUnspent method to fetch unspent outputs
+      const outputs = await this._bdk.listUnspent(walletId);
 
-  /**
-   * Return the list of unspent outputs of this wallet
-   * @returns {Promise<Array<LocalUtxo>>}
-   */
-  async listUnspent(): Promise<Array<LocalUtxo>> {
-    let output = await this._bdk.listUnspent(this.id);
-    let localUtxo: Array<LocalUtxo> = [];
-    output.map((item) => {
-      let localObj = new LocalUtxo(createOutpoint(item.outpoint), createTxOut(item.txout), item.isSpent, item.keychain);
-      localUtxo.push(localObj);
-    });
-    return localUtxo;
-  }
+      // Map the outputs to LocalOutput instances
+      return outputs.map((item) => {
+        return new LocalOutput(
+          createOutpoint(item.outpoint),
+          createTxOut(item.txout),
+          item.keychain as KeychainKind,
+          item.isSpent
+        );
+      });
+    } catch (error) {
+      // Log any errors that occur during the fetching process
+      console.error('Error fetching unspent outputs:', error);
 
-  /**
-   * Return an unsorted list of transactions made and received by the wallet
-   * @returns {Promise<Array<TransactionDetails>>}
-   */
-  async listTransactions(includeRaw: boolean): Promise<Array<TransactionDetails>> {
-    let list = await this._bdk.listTransactions(this.id, includeRaw);
-    let transactions: Array<TransactionDetails> = [];
-    list.map((item) => {
-      let localObj = createTxDetailsObject(item);
-      transactions.push(localObj);
-    });
-    return transactions;
+      // Rethrow the error to be handled by the caller
+      throw error;
+    }
   }
 
   /**
@@ -143,5 +128,139 @@ export class Wallet extends NativeLoader {
   async sign(psbt: PartiallySignedTransaction, signOptions?: SignOptions): Promise<PartiallySignedTransaction> {
     let signed = await this._bdk.sign(this.id, psbt.base64, signOptions);
     return new PartiallySignedTransaction(signed);
+  }
+
+  /**
+   * Start a sync process with revealed spending keys
+   * @returns {Promise<SyncRequest>} A new sync request
+   */
+  async startSyncWithRevealedSpks(): Promise<SyncRequest> {
+    const syncRequestId = await this._bdk.startSyncWithRevealedSpks(this.id);
+    return new SyncRequest(syncRequestId);
+  }
+
+  /**
+   * Apply an update to the wallet
+   * @param update The update to apply
+   * @returns {Promise<void>}
+   */
+  async applyUpdate(update: Update): Promise<void> {
+    console.log('Applying update with ID:', update.id);
+    console.log('Update details:', JSON.stringify(update));
+
+    // Call walletApplyUpdate without try-catch
+    this._bdk.walletApplyUpdate(this.id, update.id);
+    console.log('Update applied successfully.');
+  }
+
+  /**
+   * Calculate the fee for a transaction
+   * @param tx The transaction to calculate the fee for
+   * @returns {Promise<number>} The calculated fee
+   */
+  async calculateFee(tx: Transaction): Promise<number> {
+    return await this._bdk.calculateFee(this.id, tx.id);
+  }
+
+  /**
+   * Calculate the fee rate for a transaction
+   * @param tx The transaction to calculate the fee rate for
+   * @returns {Promise<FeeRate>} The calculated fee rate
+   */
+  async calculateFeeRate(tx: Transaction): Promise<FeeRate> {
+    const feeRateId = await this._bdk.calculateFeeRate(this.id, tx.id);
+    return new FeeRate(parseFloat(feeRateId));
+  }
+
+  /**
+   * Commit pending wallet operations
+   * @returns {Promise<boolean>} True if commit was successful, false otherwise
+   */
+  async commit(): Promise<boolean> {
+    return await this._bdk.commit(this.id);
+  }
+
+  /**
+   * Get details of a specific transaction
+   * @param txid The transaction ID to look up
+   * @returns {Promise<CanonicalTx | null>} The transaction details, or null if not found
+   */
+  async getTx(txid: string): Promise<CanonicalTx | null> {
+    try {
+      const tx = await this._bdk.getTx(this.id, txid);
+      return tx;
+    } catch (error) {
+      console.error('Error fetching transaction:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get the list of all outputs (spent and unspent) associated with the wallet
+   * @returns {Promise<LocalOutput[]>} List of all outputs
+   */
+  async listOutput(): Promise<LocalOutput[]> {
+    const outputs = await this._bdk.listOutput(this.id);
+    return outputs.map((output) => {
+      const outpoint = createOutpoint(output.outpoint); // Assuming createOutpoint is a function that converts the outpoint
+      const txout = createTxOut(output.txout); // Assuming createTxOut is a function that converts the txout
+      const keychain = output.keychain as KeychainKind; // Convert to KeychainKind if necessary
+      return new LocalOutput(outpoint, txout, keychain, output.isSpent);
+    });
+  }
+
+  /**
+   * Reveal the next address for a specific keychain
+   * @param keychain The keychain to reveal the next address for
+   * @returns {Promise<AddressInfo>} Information about the revealed address
+   */
+  async walletRevealNextAddress(keychain: KeychainKind): Promise<AddressInfo> {
+    const result = await this._bdk.walletRevealNextAddress(this.id, keychain);
+    return new AddressInfo(result.address, result.keychain);
+  }
+
+  /**
+   * Calculate the amount sent and received in a transaction
+   * @param tx The transaction to analyze
+   * @returns {Promise<{ sent: number; received: number }>} The amounts sent and received
+   */
+  async sentAndReceived(tx: Transaction): Promise<{ sent: number; received: number }> {
+    return await this._bdk.sentAndReceived(this.id, tx.id);
+  }
+
+  /**
+   * Start a full scan of the wallet
+   * @returns {Promise<FullScanRequest>} A new full scan request
+   */
+  async startFullScan(): Promise<FullScanRequest> {
+    const fullScanRequestId = await this._bdk.startFullScan(this.id);
+    return new FullScanRequest(fullScanRequestId);
+  }
+
+  /**
+   * Create a new wallet without persistence
+   * @param descriptor The wallet descriptor
+   * @param changeDescriptor The change descriptor
+   * @param network The network type
+   * @returns {Promise<string>} The wallet ID
+   */
+  async newNoPersist(descriptor: string, changeDescriptor: string | null, network: string): Promise<string> {
+    const walletId = await this._bdk.walletNewNoPersist(descriptor, changeDescriptor, network);
+    return walletId;
+  }
+
+  /**
+   * Get all transactions for the wallet
+   * @returns {Promise<CanonicalTx[]>} The list of transactions
+   */
+  async transactions(): Promise<CanonicalTx[]> {
+    try {
+      // Fetch the transactions from the wallet using the wallet ID
+      const transactions = await this._bdk.walletTransactions(this.id);
+      return transactions;
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      throw error;
+    }
   }
 }

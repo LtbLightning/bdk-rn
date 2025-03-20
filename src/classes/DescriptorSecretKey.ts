@@ -11,7 +11,7 @@ export class DescriptorSecretKey extends NativeLoader {
   public id: string = '';
 
   /**
-   * Create xprv
+   * Create a DescriptorSecretKey from network, mnemonic, and optional password
    * @param network
    * @param mnemonic
    * @param password
@@ -21,50 +21,66 @@ export class DescriptorSecretKey extends NativeLoader {
     if (!Object.values(Network).includes(network)) {
       throw `Invalid network passed. Allowed values are ${Object.values(Network)}`;
     }
-    this.id = await this._bdk.createDescriptorSecret(network, mnemonic.asString(), password);
+    this.id = await this._bdk.createDescriptorSecretKey(network, mnemonic.asString(), password);
     return this;
   }
 
   /**
-   * Derive xprv from derivation path
-   * @param path
+   * Create a DescriptorSecretKey from a string representation
+   * @param secretKey
    * @returns {Promise<DescriptorSecretKey>}
    */
-  async derive(derivationPath: DerivationPath): Promise<string> {
-    return await this._bdk.descriptorSecretDerive(this.id, derivationPath.id);
+  async fromString(secretKey: string): Promise<DescriptorSecretKey> {
+    this.id = await this._bdk.descriptorSecretKeyFromString(secretKey);
+    return this;
   }
 
   /**
-   * Extend xprv from derivation path
-   * @param path
+   * Derive a new DescriptorSecretKey from a derivation path
+   * @param derivationPath
    * @returns {Promise<DescriptorSecretKey>}
    */
-  async extend(derivationPath: DerivationPath): Promise<string> {
-    return await this._bdk.descriptorSecretExtend(this.id, derivationPath.id);
+  async derive(derivationPath: DerivationPath): Promise<DescriptorSecretKey> {
+    const newId = await this._bdk.descriptorSecretKeyDerive(this.id, await derivationPath.toString());
+    const newKey = new DescriptorSecretKey();
+    newKey.id = newId;
+    return newKey;
   }
 
   /**
-   * Create publicSecretKey from xprv
-   * @returns {Promise<string>}
+   * Extend the DescriptorSecretKey with a derivation path
+   * @param derivationPath
+   * @returns {Promise<DescriptorSecretKey>}
+   */
+  async extend(derivationPath: DerivationPath): Promise<DescriptorSecretKey> {
+    const newId = await this._bdk.descriptorSecretKeyExtend(this.id, await derivationPath.toString());
+    const newKey = new DescriptorSecretKey();
+    newKey.id = newId;
+    return newKey;
+  }
+
+  /**
+   * Create a DescriptorPublicKey from this DescriptorSecretKey
+   * @returns {Promise<DescriptorPublicKey>}
    */
   async asPublic(): Promise<DescriptorPublicKey> {
-    let pubkeyId = await this._bdk.descriptorSecretAsPublic(this.id);
+    const pubkeyId = await this._bdk.descriptorSecretKeyAsPublic(this.id);
     return new DescriptorPublicKey().create(pubkeyId);
   }
 
   /**
-   * Create secret bytes of xprv
-   * @returns {Promise<Array<number>>}
+   * Get the secret bytes of the DescriptorSecretKey
+   * @returns {Promise<number[]>}
    */
-  async secretBytes(): Promise<Array<number>> {
-    return await this._bdk.descriptorSecretAsSecretBytes(this.id);
+  async secretBytes(): Promise<number[]> {
+    return await this._bdk.descriptorSecretKeySecretBytes(this.id);
   }
 
   /**
-   * Get secret key as string
-   * @returns {string}
+   * Get the string representation of the DescriptorSecretKey
+   * @returns {Promise<string>}
    */
   async asString(): Promise<string> {
-    return await this._bdk.descriptorSecretAsString(this.id);
+    return await this._bdk.descriptorSecretKeyAsString(this.id);
   }
 }

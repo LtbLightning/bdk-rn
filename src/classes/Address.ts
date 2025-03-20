@@ -1,6 +1,3 @@
-import { PubkeyHash, ScriptHash, WitnessProgram } from './Bindings';
-import { getNetwork, getPayload } from '../lib/utils';
-
 import { NativeLoader } from './NativeLoader';
 import { Network } from '../lib/enums';
 import { Script } from './Script';
@@ -9,61 +6,46 @@ import { Script } from './Script';
  * Address methods
  */
 export class Address extends NativeLoader {
-  id: string = '';
-
-  /**
-   * Set Address
-   * @returns {Address}
-   */
-  _setAddress(id: string): Address {
-    this.id = id;
-    return this;
-  }
+  private id: string = '';
 
   /**
    * Create Address instance from address string
    * @param address
+   * @param network
    * @returns {Promise<Address>}
    */
-  async create(address: string, network: string): Promise<Address> {
-    this.id = await this._bdk.initAddress(address, network);
-    return this;
+  static async create(address: string, network: Network): Promise<Address> {
+    const instance = new Address();
+
+    // Ensure _bdk is initialized before calling initAddress
+    if (!instance._bdk) {
+      throw new Error('BDK is not initialized');
+    }
+
+    instance.id = await instance._bdk.initAddress(address, network);
+    return instance;
   }
 
   /**
-   * Create Address instance from script
-   * @param script
-   * @returns {Promise<Address>}
-   */
-  async fromScript(script: Script, network: Network): Promise<Address> {
-    this.id = await this._bdk.addressFromScript(script.id, network);
-    return this;
-  }
-
-  /**
-   * Returns the script pub key of the [Address] object
+   * Returns the script pub key of the Address object
    * @returns {Promise<Script>}
    */
   async scriptPubKey(): Promise<Script> {
-    return new Script(await this._bdk.addressToScriptPubkeyHex(this.id));
+    const scriptId = await this._bdk.addressToScriptPubkeyHex(this.id);
+    return new Script(scriptId);
   }
 
   /**
-   * @returns {Promise<any>}
-   */
-  async payload(): Promise<PubkeyHash | ScriptHash | WitnessProgram> {
-    return getPayload(await this._bdk.addressPayload(this.id));
-  }
-
-  /**
+   * Get the network of the address
    * @returns {Promise<Network>}
    */
   async network(): Promise<Network> {
-    let networkName = await this._bdk.addressNetwork(this.id);
-    return getNetwork(networkName);
+    const networkString = await this._bdk.addressNetwork(this.id);
+    return networkString as Network;
   }
 
   /**
+   * Get the QR URI representation of the address
    * @returns {Promise<string>}
    */
   async toQrUri(): Promise<string> {
@@ -71,6 +53,7 @@ export class Address extends NativeLoader {
   }
 
   /**
+   * Get the string representation of the address
    * @returns {Promise<string>}
    */
   async asString(): Promise<string> {
@@ -78,9 +61,22 @@ export class Address extends NativeLoader {
   }
 
   /**
+   * Check if the address is valid for the given network
+   * @param network
    * @returns {Promise<boolean>}
    */
-  async isValidForNetwork(network: string): Promise<boolean> {
-    return await this._bdk.addressIsValidForNetwork(this.id, network);
+  async isValidForNetwork(network: Network): Promise<boolean> {
+    const addressString = await this.asString();
+    return await this._bdk.addressIsValidForNetwork(addressString, network);
+  }
+
+  /**
+   * Set Address id (internal use only)
+   * @param id
+   * @returns {Address}
+   */
+  _setAddress(id: string): Address {
+    this.id = id;
+    return this;
   }
 }

@@ -50,4 +50,12 @@ export class DescriptorPublicKey extends NativeLoader {
   async asString(): Promise<string> {
     return await this._bdk.descriptorPublicAsString(this.id);
   }
+
+  /**
+   * Get public key as bytes
+   * @returns {Promise<Array<number>>}
+   */
+  async asBytes(): Promise<Array<number>> {
+    return await this._bdk.descriptorPublicKeyAsBytes(this.id);
+  }
 }

@@ -2,18 +2,14 @@ package io.ltbl.bdkrn
 
 import android.util.Log
 import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.Arguments.makeNativeArray
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableNativeArray
 import org.bitcoindevkit.*
 import java.util.*
 import kotlin.collections.ArrayList
-
-object BdkProgress : Progress {
-    override fun update(progress: Float, message: String?) {
-        Log.i(progress.toString(), "Progress Log")
-    }
-}
+import org.bitcoindevkit.KeychainKind
 
 fun setNetwork(networkStr: String? = "testnet"): Network {
     return when (networkStr) {
@@ -37,11 +33,12 @@ fun getNetworkString(network: Network): String {
 
 fun setWordCount(wordCount: Int?): WordCount {
     return when (wordCount) {
+        12 -> WordCount.WORDS12
         15 -> WordCount.WORDS15
         18 -> WordCount.WORDS18
         21 -> WordCount.WORDS21
         24 -> WordCount.WORDS24
-        else -> WordCount.WORDS12
+        else -> throw IllegalArgumentException("Invalid word count. Must be one of: 12, 15, 18, 21, or 24")
     }
 }
 
@@ -53,6 +50,12 @@ fun getEntropy(entropy: ReadableArray): List<UByte> {
     return entropyArray
 }
 
+sealed class AddressIndex {
+    object New : AddressIndex()
+    object LastUnused : AddressIndex()
+    data class Peek(val index: UInt) : AddressIndex()
+}
+
 fun setAddressIndex(addressIndex: Any?): AddressIndex {
     return when (addressIndex) {
         is String -> when (addressIndex) {
@@ -60,42 +63,54 @@ fun setAddressIndex(addressIndex: Any?): AddressIndex {
             "lastUnused" -> AddressIndex.LastUnused
             else -> AddressIndex.New
         }
-
-        is Double -> {
-            AddressIndex.Peek(addressIndex.toUInt())
-        }
-
+        is Double -> AddressIndex.Peek(addressIndex.toUInt())
         else -> AddressIndex.New
     }
 }
 
 fun randomId() = UUID.randomUUID().toString()
 
+data class TransactionDetails(
+    val txid: String,
+    val received: Long,
+    val sent: Long,
+    val fee: Long?,
+    val confirmationTime: ConfirmationTime?
+)
+
+data class ConfirmationTime(
+    val height: UInt,
+    val timestamp: UInt
+)
+
 fun getTransactionObject(transaction: TransactionDetails): MutableMap<String, Any> {
-    return mutableMapOf<String, Any>(
+    return mutableMapOf(
         "received" to transaction.received.toDouble(),
         "sent" to transaction.sent.toDouble(),
-        "fee" to transaction.fee!!.toDouble(),
+        "fee" to (transaction.fee?.toDouble() ?: 0.0),
         "txid" to transaction.txid,
-        "confirmationTime" to mutableMapOf<String, Any>(
+        "confirmationTime" to mutableMapOf(
             "height" to (transaction.confirmationTime?.height?.toInt() ?: 0),
-            "timestamp" to (transaction.confirmationTime?.timestamp?.toDouble() ?: 0),
+            "timestamp" to (transaction.confirmationTime?.timestamp?.toDouble() ?: 0.0)
         )
     )
 }
 
+data class TxBuilderResult(
+    val psbt: Psbt,
+    val transactionDetails: TransactionDetails
+)
+
 fun getPSBTObject(txResult: TxBuilderResult?): MutableMap<String, Any> {
     return mutableMapOf(
         "base64" to txResult!!.psbt.serialize(),
-        "transactionDetails" to getTransactionObject(txResult.transactionDetails),
+        "transactionDetails" to getTransactionObject(txResult.transactionDetails)
     )
 }
 
-fun createOutPoint(outPoint: ReadableMap): OutPoint {
-    return OutPoint(
-        outPoint.getString("txid").toString(),
-        outPoint.getInt("vout").toUInt(),
-    )
+enum class KeychainKind {
+    EXTERNAL,
+    INTERNAL
 }
 
 fun setKeychainKind(keychainKind: String? = "external"): KeychainKind {
@@ -106,70 +121,55 @@ fun setKeychainKind(keychainKind: String? = "external"): KeychainKind {
     }
 }
 
-fun getTxBytes(bytes: ReadableArray): List<UByte> {
-    val bytesArray = ArrayList<UByte>()
-    for (i in 0 until bytes.size()) {
-        bytesArray.add(bytes.getInt(i).toUByte())
-    }
-    return bytesArray
-}
-
-fun makeNativeArray(bytes: List<UByte>): WritableNativeArray {
-    val arr = WritableNativeArray()
-    for (i in bytes) arr.pushInt(i.toInt())
-    return arr
+sealed class Payload {
+    data class PubkeyHash(val pubkeyHash: String) : Payload()
+    data class ScriptHash(val scriptHash: String) : Payload()
+    data class WitnessProgram(val program: List<UByte>, val version: Int) : Payload()
 }
 
 fun getPayload(payload: Payload): MutableMap<String, Any> {
-    var response = mutableMapOf<String, Any>();
-    when (payload) {
-        is Payload.PubkeyHash -> {
-            response["type"] = "pubkeyHash"
-            response["value"] = payload.pubkeyHash
-        }
-
-        is Payload.ScriptHash -> {
-            response["type"] = "scriptHash"
-            response["value"] = payload.scriptHash
-        }
-
-        is Payload.WitnessProgram -> {
-            response["type"] = "witnessProgram"
-            response["value"] = makeNativeArray(payload.program)
-            response["version"] = payload.version.toString()
-        }
+    return when (payload) {
+        is Payload.PubkeyHash -> mutableMapOf(
+            "type" to "pubkeyHash",
+            "value" to payload.pubkeyHash
+        )
+        is Payload.ScriptHash -> mutableMapOf(
+            "type" to "scriptHash",
+            "value" to payload.scriptHash
+        )
+        is Payload.WitnessProgram -> mutableMapOf(
+            "type" to "witnessProgram",
+            "value" to makeNativeArray(payload.program),
+            "version" to payload.version.toString()
+        )
     }
-    return response
 }
 
+data class TxOut(
+    val value: Long,
+    val scriptPubkey: Script
+)
 
-fun createTxOut(txOut: TxOut, _scripts: MutableMap<String, Script>): MutableMap<String, Any> {
-    val randomId = randomId()
-    _scripts[randomId] = txOut.scriptPubkey
-    return mutableMapOf("script" to randomId, "value" to txOut.value.toDouble())
-}
+data class TxIn(
+    val previousOutput: OutPoint,
+    val scriptSig: Script,
+    val sequence: UInt,
+    val witness: List<List<UByte>>
+)
 
-fun createTxIn(txIn: TxIn, _scripts: MutableMap<String, Script>): MutableMap<String, Any> {
-    val randomId = randomId()
-    _scripts[randomId] = txIn.scriptSig
-    var witnessList = mutableListOf<Any>();
-    for (item in txIn.witness) {
-        witnessList.add(makeNativeArray(item))
-    }
-    return mutableMapOf(
-        "scriptSig" to randomId,
-        "previousOutput" to getOutPoint(txIn.previousOutput),
-        "sequence" to txIn.sequence.toInt(),
-        "witness" to witnessList
-    )
-}
+data class Script(val script: String)
 
-fun getOutPoint(outPoint: OutPoint): MutableMap<String, Any> {
-    return mutableMapOf("txid" to outPoint.txid, "vout" to outPoint.vout.toInt())
-}
+data class SignOptions(
+    val trustWitnessUtxo: Boolean,
+    val assumeHeight: UInt,
+    val allowAllSighashes: Boolean,
+    val removePartialSigs: Boolean,
+    val tryFinalize: Boolean,
+    val signWithTapInternalKey: Boolean,
+    val allowGrinding: Boolean
+)
 
-
-fun createSignOptions(options: ReadableMap): SignOptions? {
+fun createSignOptions(options: ReadableMap): SignOptions {
     return SignOptions(
         options.getBoolean("trustWitnessUtxo"),
         options.getInt("assumeHeight").toUInt(),
@@ -177,6 +177,65 @@ fun createSignOptions(options: ReadableMap): SignOptions? {
         options.getBoolean("removePartialSigs"),
         options.getBoolean("tryFinalize"),
         options.getBoolean("signWithTapInternalKey"),
-        options.getBoolean("allowGrinding"),
+        options.getBoolean("allowGrinding")
+    )
+}
+
+private val _outPoints = mutableMapOf<String, org.bitcoindevkit.OutPoint>()
+
+fun getOutPoint(outpoint: org.bitcoindevkit.OutPoint): Map<String, Any> {
+    val id = randomId()
+    _outPoints[id] = outpoint
+    
+    return mapOf(
+        "id" to id,
+        "txid" to outpoint.txid,
+        "vout" to outpoint.vout
+    )
+}
+
+fun createTxOut(txOut: org.bitcoindevkit.TxOut, scripts: MutableMap<String, org.bitcoindevkit.Script>): Map<String, Any> {
+    val scriptId = randomId()
+    scripts[scriptId] = txOut.scriptPubkey
+    
+    return mapOf(
+            "value" to txOut.value,
+            "script" to mapOf(
+                "id" to scriptId
+            )
+    )
+}
+
+fun createOutPoint(outPoint: ReadableMap): OutPoint {
+    val txid = outPoint.getString("txid") ?: throw Exception("txid is required")
+    val vout = outPoint.getDouble("vout").toInt().toUInt()
+    return org.bitcoindevkit.OutPoint(txid, vout)
+    }
+
+fun getTxBytes(array: ReadableArray): List<UByte> {
+    return List(array.size()) { i ->
+        array.getInt(i).toUByte()
+    }
+}
+
+fun createTxIn(
+    txIn: org.bitcoindevkit.TxIn,
+    scripts: MutableMap<String, org.bitcoindevkit.Script>
+): Map<String, Any?> {
+    val scriptSigId = randomId()
+    scripts[scriptSigId] = txIn.scriptSig
+
+    return mapOf(
+        "previousOutput" to mapOf(
+            "txid" to txIn.previousOutput.txid,
+            "vout" to txIn.previousOutput.vout
+        ),
+        "scriptSig" to mapOf(
+            "id" to scriptSigId
+        ),
+        "sequence" to txIn.sequence,
+        "witness" to txIn.witness.map { witnessData ->
+            witnessData.map { it.toInt() }
+        }
     )
 }

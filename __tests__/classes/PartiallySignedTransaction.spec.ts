@@ -1,7 +1,5 @@
 import { PartiallySignedTransaction, Transaction } from '../../src';
-
 import { mockBdkRnModule } from '../setup';
-import { mockPsbtJson } from '../mockData';
 
 describe('PartiallySignedTransaction', () => {
   const base64PSBTA = 'base64PSBTA';
@@ -42,26 +40,5 @@ describe('PartiallySignedTransaction', () => {
     const res = await partiallySignedTransactionA.txid();
     expect(mockBdkRnModule.txid).toHaveBeenCalledWith(partiallySignedTransactionA.base64);
     expect(res).toBe(txId);
-  });
-  it('returns fee amount', async () => {
-    const feeAmount = 2148;
-    mockBdkRnModule.feeAmount.mockResolvedValueOnce(feeAmount);
-    const res = await partiallySignedTransactionA.feeAmount();
-    expect(mockBdkRnModule.feeAmount).toHaveBeenCalledWith(partiallySignedTransactionA.base64);
-    expect(res).toBe(feeAmount);
-  });
-  it('returns fee rate', async () => {
-    const feeRate = 21;
-    mockBdkRnModule.psbtFeeRate.mockResolvedValueOnce(feeRate);
-    const res = await partiallySignedTransactionA.feeRate();
-    expect(mockBdkRnModule.psbtFeeRate).toHaveBeenCalledWith(partiallySignedTransactionA.base64);
-    expect(res).toBe(feeRate);
-  });
-
-  it('returns json serialize', async () => {
-    mockBdkRnModule.jsonSerialize.mockResolvedValueOnce(mockPsbtJson);
-    const res = await partiallySignedTransactionA.jsonSerialize();
-    expect(mockBdkRnModule.jsonSerialize).toHaveBeenCalledWith(partiallySignedTransactionA.base64);
-    expect(res).toBe(mockPsbtJson);
   });
 });

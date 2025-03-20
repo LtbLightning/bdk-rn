@@ -49,47 +49,8 @@ func getEntropy(entropy: NSArray) -> Array<UInt8> {
     return entropyArray
 }
 
-
-func setAddressIndex(addressIndex: Any?) -> AddressIndex {
-    if let addressIndexString = addressIndex as? String {
-        switch addressIndexString {
-        case "new":
-            return AddressIndex.new
-        case "lastUnused":
-            return AddressIndex.lastUnused
-        default:
-            return AddressIndex.new
-        }
-    } else if let addressIndexNumber = addressIndex as? Int {
-        return AddressIndex.peek(index: UInt32(addressIndexNumber))
-    } else {
-        return AddressIndex.new
-    }
-}
-
 func randomId() -> String {
     return UUID().uuidString
-}
-
-func getTransactionObject(transaction: TransactionDetails?) -> [String: Any] {
-    return [
-        "fee": transaction?.fee as Any,
-        "received": transaction?.received as Any,
-        "sent": transaction?.sent as Any,
-        "txid": transaction?.txid as Any,
-        "confirmationTime": [
-            "height": transaction?.confirmationTime?.height as Any,
-            "timestamp": transaction?.confirmationTime?.timestamp as Any
-        ],
-    ] as [String: Any]
-}
-
-
-func getPSBTObject(txResult: TxBuilderResult?) -> [String: Any] {
-    return [
-        "base64": txResult?.psbt.serialize() as Any,
-        "transactionDetails": getTransactionObject(transaction: txResult?.transactionDetails)
-    ] as [String: Any]
 }
 
 func createOutPoint(outPoint: NSDictionary) -> OutPoint {
@@ -117,23 +78,6 @@ func getTxBytes(bytes: NSArray) -> Array<UInt8> {
 }
 
 
-func getPayload(payload: Payload) -> [String: Any] {
-    var response: [String: Any] = [:];
-    switch (payload) {
-    case .pubkeyHash(pubkeyHash: let pubkeyHash):
-        response["type"] = "pubkeyHash"
-        response["value"] = pubkeyHash
-    case .scriptHash(scriptHash: let scriptHash):
-        response["type"] = "scriptHash"
-        response["value"] = scriptHash
-    case .witnessProgram(version: let version, program: let program):
-        response["type"] = "witnessProgram"
-        response["value"] = program
-        response["version"] = "\(version)"
-    }
-    return response as [String: Any]
-}
-
 func createTxOut(txOut: TxOut, _scripts: inout [String: Script]) -> [String: Any] {
     let randomId = randomId()
     _scripts[randomId] = txOut.scriptPubkey
@@ -158,14 +102,41 @@ func getOutPoint(outPoint: OutPoint) -> [String: Any] {
     return ["txid": outPoint.txid, "vout": outPoint.vout] as [String: Any]
 }
 
-func createSignOptions(options: NSDictionary) -> SignOptions? {
-    return SignOptions(
-        trustWitnessUtxo: (options["trustWitnessUtxo"] != nil),
-        assumeHeight: options["assumeHeight"] as? UInt32,
-        allowAllSighashes: (options["allowAllSighashes"] != nil),
-        removePartialSigs: (options["removePartialSigs"] != nil),
-        tryFinalize: (options["tryFinalize"] != nil),
-        signWithTapInternalKey: (options["signWithTapInternalKey"] != nil),
-        allowGrinding: (options["allowGrinding"] != nil)
-    )
-}
+func createAmount(satoshis: UInt64) -> [String: Any] {
+        var sats = satoshis
+        let amount = Amount(unsafeFromRawPointer: &sats)  // Use the address of sats
+        return [
+            "sat": amount.toSat(),
+            "btc": amount.toBtc()
+        ]
+    }
+
+func createFeeRate(satPerVb: NSNumber? = nil, satPerKw: NSNumber? = nil) -> FeeRate {
+        if let satPerVb = satPerVb {
+            return try! FeeRate.fromSatPerVb(satPerVb: UInt64(truncating: satPerVb))
+        } else if let satPerKw = satPerKw {
+            return FeeRate.fromSatPerKwu(satPerKwu: UInt64(truncating: satPerKw))
+        } else {
+            fatalError("Either satPerVb or satPerKw must be provided")
+        }
+    }
+
+func feeRateToSatPerVb(feeRate: FeeRate) -> UInt64 {
+        return feeRate.toSatPerVbFloor()
+    }
+
+func feeRateToSatPerKw(feeRate: FeeRate) -> UInt64 {
+        return feeRate.toSatPerKwu()
+    }
+
+
+
+func createTxIn(txIn: TxIn) -> [String: Any] {
+        return [
+            "previousOutput": [
+                "txid": txIn.previousOutput.txid,
+                "vout": txIn.previousOutput.vout
+            ],
+            "sequence": txIn.sequence
+        ]
+    }

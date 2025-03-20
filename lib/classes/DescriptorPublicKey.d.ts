@@ -32,4 +32,9 @@ export declare class DescriptorPublicKey extends NativeLoader {
      * @returns {string}
      */
     asString(): Promise<string>;
+    /**
+     * Get public key as bytes
+     * @returns {Promise<Array<number>>}
+     */
+    asBytes(): Promise<Array<number>>;
 }

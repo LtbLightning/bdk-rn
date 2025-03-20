@@ -7,8 +7,8 @@ export class DerivationPath extends NativeLoader {
   public id: string = '';
 
   /**
-   * Verify derivation path
-   * @param path
+   * Create a new DerivationPath instance
+   * @param path The derivation path string
    * @returns {Promise<DerivationPath>}
    */
   async create(path: string): Promise<DerivationPath> {

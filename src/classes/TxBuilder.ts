@@ -1,10 +1,10 @@
-import { OutPoint, ScriptAmount, TxBuilderResult } from './Bindings';
-
 import { NativeLoader } from './NativeLoader';
-import { PartiallySignedTransaction } from './PartiallySignedTransaction';
 import { Script } from './Script';
+import { OutPoint } from './Bindings';
+import { Amount } from './Amount';
 import { Wallet } from './Wallet';
-import { createTxDetailsObject } from '../lib/utils';
+import { PartiallySignedTransaction } from './PartiallySignedTransaction';
+import { FeeRate } from './FeeRate';
 
 /**
  * TxBuilder methods
@@ -27,8 +27,16 @@ export class TxBuilder extends NativeLoader {
    * @param amount
    * @returns {Promise<TxBuilder>}
    */
-  async addRecipient(script: Script, amount: number): Promise<TxBuilder> {
-    await this._bdk.addRecipient(this.id, script.id, amount);
+  async addRecipient(script: Script, amount: Amount): Promise<TxBuilder> {
+    console.log('Script ID:', script.id);
+    console.log('Amount:', amount);
+    console.log('Amount Type:', typeof amount);
+
+    if (typeof amount.asSats !== 'function') {
+      throw new Error('Invalid amount object: asSats method is not defined.');
+    }
+
+    this._bdk.addRecipient(this.id, script.id, await amount.asSats());
     return this;
   }
 
@@ -54,7 +62,7 @@ export class TxBuilder extends NativeLoader {
 
   /**
    * Add Utxos
-   * @param {Array<outPoint>}
+   * @param {Array<OutPoint>}
    * @returns {Promise<TxBuilder>}
    */
   async addUtxos(outPoints: Array<OutPoint>): Promise<TxBuilder> {
@@ -91,7 +99,7 @@ export class TxBuilder extends NativeLoader {
 
   /**
    * Add unspendable utxos list
-   * @param {Array<outPoint>}
+   * @param {Array<OutPoint>}
    * @returns {Promise<TxBuilder>}
    */
   async unspendable(outPoints: Array<OutPoint>): Promise<TxBuilder> {
@@ -99,23 +107,26 @@ export class TxBuilder extends NativeLoader {
     return this;
   }
 
+  // Note: The following methods are not present in the provided Swift code,
+  // but I'm keeping them here in case they're implemented elsewhere or planned for future use.
+
   /**
    * Set a custom fee rate
-   * @param {feeRate}
+   * @param {FeeRate}
    * @returns {Promise<TxBuilder>}
    */
-  async feeRate(feeRate: number): Promise<TxBuilder> {
-    await this._bdk.feeRate(this.id, feeRate);
+  async feeRate(feeRate: FeeRate): Promise<TxBuilder> {
+    await this._bdk.feeRate(this.id, await feeRate.getSatPerVb());
     return this;
   }
 
   /**
    * Set an absolute fee
-   * @param {feeRate}
+   * @param {Amount}
    * @returns {Promise<TxBuilder>}
    */
-  async feeAbsolute(feeRate: number): Promise<TxBuilder> {
-    await this._bdk.feeAbsolute(this.id, feeRate);
+  async feeAbsolute(fee: Amount): Promise<TxBuilder> {
+    await this._bdk.feeAbsolute(this.id, await fee.toSats());
     return this;
   }
 
@@ -148,7 +159,7 @@ export class TxBuilder extends NativeLoader {
 
   /**
    * Enable signaling RBF with a specific nSequence value
-   * @param {nsequence}
+   * @param {number}
    * @returns {Promise<TxBuilder>}
    */
   async enableRbfWithSequence(nsequence: number): Promise<TxBuilder> {
@@ -158,7 +169,7 @@ export class TxBuilder extends NativeLoader {
 
   /**
    * Add data as an output, using OP_RETURN
-   * @param {data}
+   * @param {Array<number>}
    * @returns {Promise<TxBuilder>}
    */
   async addData(data: Array<number>): Promise<TxBuilder> {
@@ -167,23 +178,32 @@ export class TxBuilder extends NativeLoader {
   }
 
   /**
-   * Add number of receipents at once
-   * @param {data}
+   * Add number of recipients at once
+   * @param {Array<{script: Script; amount: Amount}>}
    * @returns {Promise<TxBuilder>}
    */
-  async setRecipients(recipients: Array<ScriptAmount>): Promise<TxBuilder> {
-    await this._bdk.setRecipients(this.id, recipients);
+  async setRecipients(recipients: Array<{ script: Script; amount: Amount }>): Promise<TxBuilder> {
+    const scriptAmounts = await Promise.all(
+      recipients.map(async ({ script, amount }) => ({
+        script: script.id,
+        amount: await amount.asSats(),
+      }))
+    );
+    const scriptAmountsWithScript = scriptAmounts.map(({ script, amount }) => ({
+      script: new Script(script),
+      amount,
+    }));
+    await this._bdk.setRecipients(this.id, scriptAmountsWithScript);
     return this;
   }
 
   /**
    * Finishes the transaction building
    * @param wallet
-   * @returns
+   * @returns {Promise<PartiallySignedTransaction>}
    */
-  async finish(wallet: Wallet): Promise<TxBuilderResult> {
-    let response = await this._bdk.finish(this.id, wallet.id);
-    let psbt = new PartiallySignedTransaction(response.base64);
-    return new TxBuilderResult(psbt, createTxDetailsObject(response.transactionDetails));
+  async finish(wallet: Wallet): Promise<PartiallySignedTransaction> {
+    const psbtBase64 = await this._bdk.finish(this.id, wallet.id);
+    return new PartiallySignedTransaction(psbtBase64.base64);
   }
 }

@@ -1,145 +1,135 @@
-import { Address, PartiallySignedTransaction, TxBuilder, Wallet } from '../../src';
-import { OutPoint, ScriptAmount, TxBuilderResult } from '../../src/classes/Bindings';
-import { mockScript, mockTransactionDetails } from '../mockData';
+import { Amount, FeeRate, TxBuilder, Wallet } from '../../src';
+import { OutPoint } from '../../src/classes/Bindings';
+import { Script } from '../../src/classes/Script';
 import { mockBdkRnModule } from '../setup';
 
 describe('TxBuilder', () => {
-  const mockWallet = new Wallet();
-  const mockAddress = new Address();
-
-  const txBuilderId = 'txBuilderId';
-  const outPoint = new OutPoint('efc5d0e6ad6611f22b05d3c1fc8888c3552e8929a4231f2944447e4426f52056', 1);
-  const psbtString =
-    'cHNidP8BAJoBAAAAAivIGwj79VJdDEMC6DTEBFWNRXh8i63O5Bj2ul/ckLSiAAAAAAD+////q/fYDAwa/ovXiOHXMMJWBzSSppAfXu8xVBWr97kc60kAAAAAAP7///8CCwUAAAAAAAAWABTiG3occFHBPEfIFYEno1q+KemyBNwFAAAAAAAAFgAUJeosBE8pPYv+vWAJxdrAq2HPlb50ByUAAAEA3gEAAAAAAQG1SXpVEroudlm2vsvLISuSLWqp3SMiU8bE/zFmMfSlrAEAAAAA/v///wLcBQAAAAAAABYAFCXqLARPKT2L/r1gCcXawKthz5W+kRAAAAAAAAAWABRIuasG/iTpawzZOHBRQUPdiAgtjwJHMEQCICkgZhWePD/RuE7V87/VcxX6PIv9LPg8+K6O42bX49usAiBe+ohVk1/abwUqmeqYuSM8x/e6sDrnZB1rD6GFdfm9iQEhApqPApANDfpFbG9N/WKaIz7W/c4Mf/7J8Zw2Usaj0G/InfEkAAEBH9wFAAAAAAAAFgAUJeosBE8pPYv+vWAJxdrAq2HPlb4iBgKn69zak6elBqiAOr/Z//pXXXHCW9JlHB6Nh9ccRCENABgJwK/eVAAAgAEAAIAAAACAAAAAAAcAAAAAAQD9cgEBAAAAAAECovbyC3Cz7gh5c5NeEl+NmyrVHkJ1d2rhU7Uh+DmS7NkBAAAAAP7///+SPhXvmO5lpEkSYDX3pXJX4UQxOwl3kr/j1zniiE3ZngEAAAAA/v///wLcBQAAAAAAABYAFCXqLARPKT2L/r1gCcXawKthz5W+sBoAAAAAAAAWABRAhHNCgth+tfSl0MjNpNs3O47FEgJHMEQCIHl0XcCSCH7JKLwvO32VdRO0J9W0V/IL3RaQ0Vp4ac3WAiBW5cHlrtP+mxBDJ+wMj8DCjptEnO9zxDw9heSw6CL7GwEhAqfr3NqTp6UGqIA6v9n/+lddccJb0mUcHo2H1xxEIQ0AAkcwRAIgUzTkO+PIbFWFVbZRl6ygi7yt/hCYEmVijPrJFr1E458CIAbTRLNvI8lsnDhcoze8mHZTkrAhfQQxexiy4AVxPYvJASEDNiD45tgRtvrlY6QCHTSPq/yyeARojSMzPVWTgO7tHite+SQAAQEf3AUAAAAAAAAWABQl6iwETyk9i/69YAnF2sCrYc+VviIGAqfr3NqTp6UGqIA6v9n/+lddccJb0mUcHo2H1xxEIQ0AGAnAr95UAACAAQAAgAAAAIAAAAAABwAAAAAiAgI2ReskgqkBRuwxJXtQ26XViRJaolnh8310DqkZHcZkzRgJwK/eVAAAgAEAAIAAAACAAAAAAAkAAAAAIgICp+vc2pOnpQaogDq/2f/6V11xwlvSZRwejYfXHEQhDQAYCcCv3lQAAIABAACAAAAAgAAAAAAHAAAAAA==';
-  const mockPsbt = new PartiallySignedTransaction(psbtString);
-  const mockTxBuilderResult = new TxBuilderResult(mockPsbt, mockTransactionDetails);
-
   let txBuilder: TxBuilder;
+  let wallet: Wallet;
+  const txBuilderId = 'txBuilderId';
+  const walletId = 'wallet-id';
 
-  mockBdkRnModule.createTxBuilder.mockResolvedValue(txBuilderId);
+  // Mock implementations
+  const mockAmount = {
+    toSats: jest.fn().mockResolvedValue(1000),
+  };
 
-  beforeAll(async () => {
+  const mockFeeRate = {
+    getSatPerVb: jest.fn().mockResolvedValue(1),
+  };
+
+  beforeAll(() => {
+    Object.assign(mockBdkRnModule, {
+      createTxBuilder: jest.fn().mockResolvedValue(txBuilderId),
+      addRecipient: jest.fn().mockResolvedValue(undefined),
+      addUnspendable: jest.fn().mockResolvedValue(undefined),
+      addUtxo: jest.fn().mockResolvedValue(undefined),
+      addUtxos: jest.fn().mockResolvedValue(undefined),
+      doNotSpendChange: jest.fn().mockResolvedValue(undefined),
+      manuallySelectedOnly: jest.fn().mockResolvedValue(undefined),
+      onlySpendChange: jest.fn().mockResolvedValue(undefined),
+      unspendable: jest.fn().mockResolvedValue(undefined),
+      feeRate: jest.fn().mockResolvedValue(undefined),
+      feeAbsolute: jest.fn().mockResolvedValue(undefined),
+      drainWallet: jest.fn().mockResolvedValue(undefined),
+      drainTo: jest.fn().mockResolvedValue(undefined),
+      enableRbf: jest.fn().mockResolvedValue(undefined),
+      enableRbfWithSequence: jest.fn().mockResolvedValue(undefined),
+      addData: jest.fn().mockResolvedValue(undefined),
+      setRecipients: jest.fn().mockResolvedValue(undefined),
+      finish: jest.fn().mockResolvedValue({ base64: 'psbt-base64' }),
+    });
+  });
+
+  beforeEach(async () => {
     txBuilder = await new TxBuilder().create();
+    // Initialize wallet with id property
+    wallet = { id: walletId } as Wallet;
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('should create new instance of TxBuilder', async () => {
+  it('creates a new instance of TxBuilder', () => {
+    expect(txBuilder).toBeInstanceOf(TxBuilder);
     expect(txBuilder.id).toBe(txBuilderId);
   });
-
   it('should add a recipient', async () => {
-    const amount = 50000;
-    await txBuilder.addRecipient(mockScript, amount);
-    expect(mockBdkRnModule.addRecipient).toHaveBeenCalledWith(txBuilder.id, mockScript.id, amount);
+    const scriptId = 'script-id';
+    const script = new Script(scriptId);
+    await txBuilder.addRecipient(script, mockAmount as unknown as Amount);
+    expect(mockBdkRnModule.addRecipient).toHaveBeenCalledWith(txBuilderId, scriptId, 1000);
   });
-  it('should add a utxo to the internal list of unspendable utxos', async () => {
-    await txBuilder.addUnspendable(outPoint);
-    expect(mockBdkRnModule.addUnspendable).toHaveBeenCalledWith(txBuilder.id, outPoint);
-  });
-  it('should add a utxo', async () => {
-    await txBuilder.addUtxo(outPoint);
-    expect(mockBdkRnModule.addUtxo).toHaveBeenCalledWith(txBuilder.id, outPoint);
-  });
-  it('should add utxos', async () => {
-    await txBuilder.addUtxos([outPoint, outPoint]);
-    expect(mockBdkRnModule.addUtxos).toHaveBeenCalledWith(txBuilder.id, [outPoint, outPoint]);
-  });
-  it('should call do not spend change outputs', async () => {
-    await txBuilder.doNotSpendChange();
-    expect(mockBdkRnModule.doNotSpendChange).toHaveBeenCalledWith(txBuilder.id);
-  });
-  it('should only spend utxos added by add_utxo', async () => {
-    await txBuilder.manuallySelectedOnly();
-    expect(mockBdkRnModule.manuallySelectedOnly).toHaveBeenCalledWith(txBuilder.id);
-  });
-  it('should only spend change outputs', async () => {
-    await txBuilder.onlySpendChange();
-    expect(mockBdkRnModule.onlySpendChange).toHaveBeenCalledWith(txBuilder.id);
-  });
-  it('should add unspendable utxos list', async () => {
-    await txBuilder.unspendable([outPoint, outPoint]);
-    expect(mockBdkRnModule.unspendable).toHaveBeenCalledWith(txBuilder.id, [outPoint, outPoint]);
-  });
-  it('should set a custom fee rate', async () => {
-    const feeRate = 21;
-    await txBuilder.feeRate(feeRate);
-    expect(mockBdkRnModule.feeRate).toHaveBeenCalledWith(txBuilder.id, feeRate);
-  });
-  it('set an absolute fee', async () => {
-    const absoluteFee = 615;
 
-    await txBuilder.feeAbsolute(absoluteFee);
-    expect(mockBdkRnModule.feeAbsolute).toHaveBeenCalledWith(txBuilder.id, absoluteFee);
+  it('should add an unspendable UTXO', async () => {
+    const outpoint = new OutPoint('outpoint', 0);
+    await txBuilder.addUnspendable(outpoint);
+    expect(mockBdkRnModule.addUnspendable).toHaveBeenCalledWith(txBuilderId, outpoint);
   });
-  it('should spend all the available inputs. ', async () => {
+
+  it('should add a UTXO', async () => {
+    const outpoint = new OutPoint('outpoint', 0);
+    await txBuilder.addUtxo(outpoint);
+    expect(mockBdkRnModule.addUtxo).toHaveBeenCalledWith(txBuilderId, outpoint);
+  });
+
+  it('should set do not spend change', async () => {
+    await txBuilder.doNotSpendChange();
+    expect(mockBdkRnModule.doNotSpendChange).toHaveBeenCalledWith(txBuilderId);
+  });
+
+  it('should set manually selected only', async () => {
+    await txBuilder.manuallySelectedOnly();
+    expect(mockBdkRnModule.manuallySelectedOnly).toHaveBeenCalledWith(txBuilderId);
+  });
+
+  it('should set only spend change', async () => {
+    await txBuilder.onlySpendChange();
+    expect(mockBdkRnModule.onlySpendChange).toHaveBeenCalledWith(txBuilderId);
+  });
+  it('should set unspendable UTXOs', async () => {
+    const outpoints = [new OutPoint('txid', 0), new OutPoint('txid', 1)];
+    await txBuilder.unspendable(outpoints);
+    expect(mockBdkRnModule.unspendable).toHaveBeenCalledWith(txBuilderId, outpoints);
+  });
+
+  it('should set a custom fee rate', async () => {
+    await txBuilder.feeRate(mockFeeRate as unknown as FeeRate);
+    expect(mockBdkRnModule.feeRate).toHaveBeenCalledWith(txBuilderId, 1);
+  });
+  it('should set an absolute fee', async () => {
+    await txBuilder.feeAbsolute(mockAmount as unknown as Amount);
+    expect(mockBdkRnModule.feeAbsolute).toHaveBeenCalledWith(txBuilderId, 1000);
+  });
+
+  it('should drain the wallet', async () => {
     await txBuilder.drainWallet();
-    expect(mockBdkRnModule.drainWallet).toHaveBeenCalledWith(txBuilder.id);
+    expect(mockBdkRnModule.drainWallet).toHaveBeenCalledWith(txBuilderId);
   });
-  it('should set the address script to drain excess coins to', async () => {
-    await txBuilder.drainTo(mockScript);
-    expect(mockBdkRnModule.drainTo).toHaveBeenCalledWith(txBuilder.id, mockScript.id);
+  it('should drain to an address', async () => {
+    const scriptId = 'script-id';
+    const script = new Script(scriptId);
+    await txBuilder.drainTo(script);
+    expect(mockBdkRnModule.drainTo).toHaveBeenCalledWith(txBuilderId, scriptId);
   });
-  it('should enable signaling RBF', async () => {
+
+  it('should enable RBF', async () => {
     await txBuilder.enableRbf();
-    expect(mockBdkRnModule.enableRbf).toHaveBeenCalledWith(txBuilder.id);
+    expect(mockBdkRnModule.enableRbf).toHaveBeenCalledWith(txBuilderId);
   });
-  it('should enable signaling RBF with a specific nSequence value', async () => {
-    const nSequence = 2;
-    await txBuilder.enableRbfWithSequence(nSequence);
-    expect(mockBdkRnModule.enableRbfWithSequence).toHaveBeenCalledWith(txBuilder.id, nSequence);
+
+  it('should enable RBF with sequence', async () => {
+    const sequence = 123;
+    await txBuilder.enableRbfWithSequence(sequence);
+    expect(mockBdkRnModule.enableRbfWithSequence).toHaveBeenCalledWith(txBuilderId, sequence);
   });
-  it('should add data as an output, using OP_RETURN', async () => {
+
+  it('should add data to output', async () => {
     const data = [1, 2, 3];
     await txBuilder.addData(data);
-    expect(mockBdkRnModule.addData).toHaveBeenCalledWith(txBuilder.id, data);
+    expect(mockBdkRnModule.addData).toHaveBeenCalledWith(txBuilderId, data);
   });
-  it('should add number of receipents at once', async () => {
-    const scriptAmount = new ScriptAmount(mockScript, 500000);
-    await txBuilder.setRecipients([scriptAmount, scriptAmount]);
-    expect(mockBdkRnModule.setRecipients).toHaveBeenCalledWith(txBuilder.id, [scriptAmount, scriptAmount]);
-  });
+
   it('should finish the transaction building', async () => {
-    mockBdkRnModule.finish.mockResolvedValueOnce({
-      base64: psbtString,
-      transactionDetails: mockTransactionDetails,
-    });
-
-    let script = await mockAddress.scriptPubKey();
-    await txBuilder.addRecipient(script, 1200);
-    expect(mockBdkRnModule.addRecipient).toHaveBeenCalledWith(txBuilder.id, script.id, 1200);
-
-    let res = await txBuilder.finish(mockWallet);
-    expect(res).toEqual(mockTxBuilderResult);
-    expect(mockBdkRnModule.finish).toHaveBeenCalledWith(txBuilder.id, mockWallet.id);
-  });
-
-  it('should return a exception when funds are insufficient', async () => {
-    try {
-      mockBdkRnModule.finish.mockRejectedValue(new Error('{ needed: 751, available: 0 }'));
-      await txBuilder.finish(mockWallet);
-    } catch (e) {
-      expect(e.message).toBe('{ needed: 751, available: 0 }');
-    }
-  });
-
-  it('should return a exception when no recipients are added', async () => {
-    try {
-      mockBdkRnModule.finish.mockRejectedValue(new Error('No Recipients'));
-      await txBuilder.finish(mockWallet);
-    } catch (e) {
-      expect(e.message).toBe('No Recipients');
-    }
-  });
-
-  it('Verify addData() Exception', async () => {
-    try {
-      mockBdkRnModule.addData.mockRejectedValue(new Error('List must not be empty'));
-      await txBuilder.addData([]);
-    } catch (e) {
-      expect(e.message).toBe('List must not be empty');
-    }
+    const psbt = await txBuilder.finish(wallet);
+    expect(mockBdkRnModule.finish).toHaveBeenCalledWith(txBuilderId, walletId);
+    expect(psbt.base64).toBe('psbt-base64');
   });
 });

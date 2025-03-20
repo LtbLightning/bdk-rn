@@ -30,7 +30,7 @@ export const createTxDetailsObject = (item: Props): TransactionDetails => {
     item.sent,
     item?.fee,
     new BlockTime(item.confirmationTime?.height, item.confirmationTime?.timestamp),
-    !item.transaction ? null : new Transaction()._setTransaction(item.transaction)
+    item.transaction ? Transaction.fromData(item.transaction) : null
   );
 };
 

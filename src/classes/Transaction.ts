@@ -8,22 +8,21 @@ import { NativeLoader } from './NativeLoader';
 export class Transaction extends NativeLoader {
   id: string = '';
 
-  /**
-   * Set Transaction from extractTx
-   * @returns {Transaction}
-   */
-  _setTransaction(id: string): Transaction {
+  constructor(id: string = '') {
+    super();
     this.id = id;
-    return this;
   }
 
   /**
    * Create Transaction at native side
+   * @param {Array<number>} bytes - Transaction bytes
    * @returns {Promise<Transaction>}
    */
-  async create(bytes: Array<number>): Promise<Transaction> {
-    this.id = await this._bdk.createTransaction(bytes);
-    return this;
+  static async create(bytes: Array<number>): Promise<Transaction> {
+    const instance = new Transaction();
+    const id = await instance._bdk.createTransaction(bytes);
+    instance.id = id;
+    return instance;
   }
 
   /**
@@ -70,17 +69,22 @@ export class Transaction extends NativeLoader {
     return await this._bdk.txLockTime(this.id);
   }
 
-  async input(): Promise<Array<any>> {
-    let input = await this._bdk.txInput(this.id);
-    let localTxIn: Array<TxIn> = [];
-    input.map((item) => localTxIn.push(createTxIn(item)));
-    return localTxIn;
+  async input(): Promise<Array<TxIn>> {
+    const input = await this._bdk.txInput(this.id);
+    return input.map((item: any) => createTxIn(item));
   }
 
   async output(): Promise<Array<TxOut>> {
-    let output = await this._bdk.txOutput(this.id);
-    let localTxout: Array<TxOut> = [];
-    output.map((item) => localTxout.push(createTxOut(item)));
-    return localTxout;
+    const output = await this._bdk.txOutput(this.id);
+    return output.map((item: any) => createTxOut(item));
+  }
+
+  /**
+   * Static method to create a Transaction from extracted data
+   * @param {string} id - Transaction ID
+   * @returns {Transaction}
+   */
+  static fromData(id: string): Transaction {
+    return new Transaction(id);
   }
 }
