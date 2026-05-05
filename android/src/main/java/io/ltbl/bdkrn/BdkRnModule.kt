@@ -448,7 +448,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
                 val randomId = randomId()
 
                 var resolvedIndex: Any = "new"
-                when (val type = addressIndex.getType()) {
+                when (val type = addressIndex.type) {
                     ReadableType.String -> {
                         resolvedIndex = (addressIndex as Dynamic).asString() ?: "new"
                     }
@@ -481,7 +481,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
             try {
                 val randomId = randomId()
                 var resolvedIndex: Any = "new"
-                when (val type = addressIndex.getType()) {
+                when (val type = addressIndex.type) {
                     ReadableType.String -> {
                         resolvedIndex = (addressIndex as Dynamic).asString() ?: "new"
                     }
@@ -730,7 +730,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             val mappedOutPoints: MutableList<OutPoint> = mutableListOf()
             for (i in 0 until outPoints.size())
-                mappedOutPoints.add(createOutPoint(outPoints.getMap(i)))
+                mappedOutPoints.add(createOutPoint(outPoints.getMap(i)!!))
             _txBuilders[id] = _txBuilders[id]!!.addUtxos(mappedOutPoints)
             result.resolve(true)
         }.start()
@@ -769,7 +769,7 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             val mappedOutPoints: MutableList<OutPoint> = mutableListOf()
             for (i in 0 until outPoints.size())
-                mappedOutPoints.add(createOutPoint(outPoints.getMap(i)))
+                mappedOutPoints.add(createOutPoint(outPoints.getMap(i)!!))
             _txBuilders[id] = _txBuilders[id]!!.unspendable(mappedOutPoints)
             result.resolve(true)
         }.start()
@@ -846,9 +846,9 @@ class BdkRnModule(reactContext: ReactApplicationContext) :
         Thread {
             var scriptAmounts: MutableList<ScriptAmount> = mutableListOf()
             for (i in 0 until recipients.size()) {
-                val item = recipients.getMap(i)
-                val amount = item.getInt("amount").toULong()
-                val scriptId = item.getMap("script")!!.getString("id")
+                val item = recipients.getMap(i)!!
+                val amount = item!!.getInt("amount").toULong()
+                val scriptId = item!!.getMap("script")!!.getString("id")
                 val scriptAmount = ScriptAmount(_scripts[scriptId]!!, amount)
                 scriptAmounts.add(scriptAmount)
             }
